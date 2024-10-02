@@ -214,7 +214,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Widget _buildProductCard(Produit produit) {
   return Card(
-    margin: EdgeInsets.all(2),
+    // margin: EdgeInsets.all(2),
     elevation: 2.0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8.0),
@@ -261,15 +261,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
               SizedBox(height: 4),
-              Text('Disponibilité: 150 tonnes'),
-              Text('Origine: Siguiri'),
-              SizedBox(height: 4),
-              Text(
-                'Date de mise à jour : 15 août 2024',
-                style: TextStyle(color: Colors.red),
-                maxLines: 1, // Limiter le nombre de lignes pour éviter les dépassements
+              Text('Disponibilité: 150 tonnes',
+              maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              Text('Origine: Siguiri'),
+              SizedBox(height: 4),
+              
             ],
           ),
         ),

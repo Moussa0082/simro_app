@@ -9,8 +9,10 @@ import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
+import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/screens/detail_enquete.dart';
+import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Marche_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
@@ -30,6 +32,8 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
 
     TextEditingController numFicheController = TextEditingController();
     late TextEditingController _searchController;
+    List<EnqueteCollecte> enqueteCollecteList = [];
+
 
     TextEditingController marcheController = TextEditingController();
     TextEditingController collecteurController = TextEditingController();
@@ -76,6 +80,13 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
         http.get(Uri.parse('$apiUrl/all-marche/'));
     _collecteurList =
         http.get(Uri.parse('$apiUrl/all-collecteur/'));
+             // Appel pour récupérer les produits au chargement de la page
+     EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+    setState(() {
+      enqueteCollecteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      isLoading = false;  // Désactiver le chargement
+    });
+  });
   }
 
    Future<void> _openDialog() async {
@@ -242,7 +253,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                           
                           if (formkey.currentState!.validate()) {
                             try {
-                              await EnqueteCollecteService()
+                              await EnqueteService()
                                   .addEnqueteCollecte(
                                     num_fiche:numFicheController.text, 
                                     marche:marcheController.text, 
@@ -250,7 +261,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                                     date_enquete: dateController.text, 
                                       )
                                   .then((value) => {
-                                        Provider.of<EnqueteCollecteService>(context,
+                                        Provider.of<EnqueteService>(context,
                                                 listen: false)
                                             .applyChange(),
                                         dateController.clear(),
@@ -366,8 +377,9 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
 
               Expanded(
               child: isLoading ? buildShimmerListCorE() :  ListView.builder(
-                itemCount: 3, // Par exemple, 3 fiches pour l'instant
+                itemCount: enqueteCollecteList.length, // Par exemple, 3 fiches pour l'instant
                 itemBuilder: (context, index) {
+                  final enquete = enqueteCollecteList[index];
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: Padding(
@@ -376,21 +388,19 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'N° fiche: 01',
+                            'N° fiche: ${enquete.num_fiche!}',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
                           ),
                           SizedBox(height: 5),
-                          Text('Marché enquête: Bamako' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          SizedBox(height: 5),
-                          Text('Date Enquête: le 17/07/2024' ,
+                          Text('Marché enquête: ${enquete.marche!}' ,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                           // SizedBox(height: 5),
+                         
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
 
-                          Text('Date Enquête: le 17/07/2024' ,
+                          Text('Date Enquête: le ${enquete.date_enquete}' ,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                           // Bouton avec trois points
                           PopupMenuButton<String>(
@@ -401,7 +411,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                                 print('Modifier sélectionné');
                               } else if (result == 'detail') {
                                 // Action pour détail
-                                Get.to(DetailEnqueteScreen());
+                                Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
                                 print('Détail sélectionné');
                               } else if (result == 'supprimer') {
                                 // Action pour supprimer

@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:http/http.dart' as http;
+import 'package:simro/models/Commune.dart';
+import 'package:simro/models/Marche.dart';
+import 'package:simro/models/Produit.dart';
 import 'package:simro/screens/prix_marche_collecte.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -16,6 +21,7 @@ class AddPrixMarcheCollecteScreen extends StatefulWidget {
 class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScreen> {
 
   late TextEditingController _searchController;
+  
 
   TextEditingController uniteController = TextEditingController();
   TextEditingController poidsUnitaireController = TextEditingController();
@@ -34,279 +40,505 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   TextEditingController produitController = TextEditingController();
   TextEditingController localiteController = TextEditingController();
   bool isLoading = true;
+      late Marche marche;
+    late Future _marcheList;
+      late Produit produit;
+    late Future _produitList;
+      late Commune commune;
+    late Future _communeList;
 
    
-  void _showMarche() {
-  final BuildContext context = this.context;
-  final TextEditingController _searchController = TextEditingController();
-  List<String> marcheList = [
-    'Marché Central',
-    'Marché Local',
-    'Marché Virtuel',
-    'Marché International',
-  ];
-  List<String> filteredList = marcheList;
-  
+   // Fonction pour récupérer la liste des marchés depuis l'API
 
-  // Simuler un délai de 4 secondes avant de charger les données
-  Timer(const Duration(seconds: 4), () {
-    isLoading = false;
-    if (context.mounted) setState(() {});
-  });
+  void showMarche() async {
+    final BuildContext context = this.context;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  if (mounted) {
-                    setState(() {
-                      filteredList = marcheList
-                          .where((marche) => marche
-                              .toLowerCase()
-                              .contains(value.toLowerCase()))
-                          .toList();
-                    });
-                  }
-                },
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un marché',
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey[300]!,
-                      width: 1,
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un marché',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
                     ),
+                    suffixIcon: const Icon(Icons.search),
                   ),
-                  suffixIcon: const Icon(Icons.search),
                 ),
               ),
-            ),
-            content: isLoading
+              content: FutureBuilder(
+                future: _marcheList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Marche> typeListe = responseData
+                          .map((e) => Marche.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+               
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Marche> filteredSearch = typeListe
+                          .where((type) => type.nom_marche!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return isLoading
                 ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
-                : filteredList.isEmpty
+                : filteredSearch.isEmpty
                     ? const Padding(
                         padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucun marché trouvé")),
-                      )
-                    : SizedBox(
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          itemCount: filteredList.length,
-                          itemBuilder: (context, index) {
-                            final marche = filteredList[index];
-                            return Column(
-                              children: [
-                                ListTile(
-                                  title: Text(
-                                    marche,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      print('Marché sélectionné: $marche');
-                                    });
-                                  },
-                                ),
-                                const Divider(),
-                              ],
+                        child: Center(child: Text("Aucun marché trouvée")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = marcheController.text ==
+                                      type.nom_marche!;
+                                      
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_marche!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            marche = type;
+                                            marcheController.text =
+                                                type.nom_marche!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
                             );
-                          },
-                        ),
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showProduit() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un produit',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
                       ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text(
-                  'Annuler',
-                  style: TextStyle(color: Colors.orange, fontSize: 16),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
                 ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
+              ),
+              content: FutureBuilder(
+                future: _produitList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return  buildShimmerSelectList();
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Produit> typeListe = responseData
+                          .map((e) => Produit.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Produit> filteredSearch = typeListe
+                          .where((type) => type.nom_produit!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return isLoading
+                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
+                : filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucun produit trouvé")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = produitController.text ==
+                                      type.nom_produit!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_produit!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            produit = type;
+                                            produitController.text =
+                                                type.nom_produit!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
                 },
               ),
-              TextButton(
-                child: const Text(
-                  'Valider',
-                  style: TextStyle(color: vert, fontSize: 16),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showLocalite() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une localité',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _communeList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Commune> typeListe = responseData
+                          .map((e) => Commune.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Commune> filteredSearch = typeListe
+                          .where((type) => type.nom_commune!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return isLoading
+                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
+                : filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucune localité trouvée")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = localiteController.text ==
+                                      type.nom_commune!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_commune!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            commune = type;
+                                            localiteController.text =
+                                                type.nom_commune!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
                 },
               ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+   
+   // Fonction pour récupérer la liste des marchés depuis l'API
+  Future<void> _fetchMarcheList() async {
+    // Ajoutez votre logique pour récupérer la liste des marchés ici
+    _marcheList = http.get(Uri.parse('$apiUrl/all-marche/'));
+  }
+  Future<void> _fetchCommuneList() async {
+    // Ajoutez votre logique pour récupérer la liste des marchés ici
+    _communeList =
+        http.get(Uri.parse('$apiUrl/all-commune/'));
+  }
+  Future<void> _fetchProduitList() async {
+    // Ajoutez votre logique pour récupérer la liste des marchés ici
+      _produitList =
+        http.get(Uri.parse('$apiUrl/all-produits/'));
+  }
 
 
 
-  //  void _showCategorie() async {
-  //   final BuildContext context = this.context;
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //             title: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: TextField(
-  //                 controller: _searchController,
-  //                 onChanged: (value) {
-  //                   if (mounted) setState(() {});
-  //                 },
-  //                 decoration: InputDecoration(
-  //                   hintText: 'Rechercher une categorie',
-  //                   border: UnderlineInputBorder(
-  //                     borderSide: BorderSide(
-  //                       color: Colors.grey[300]!,
-  //                       width: 1,
-  //                     ),
-  //                   ),
-  //                   suffixIcon: const Icon(Icons.search),
-  //                 ),
-  //               ),
-  //             ),
-  //             content: FutureBuilder(
-  //               future: _categorieList,
-  //               builder: (_, snapshot) {
-  //                 if (snapshot.connectionState == ConnectionState.waiting) {
-  //                   return const Center(child: CircularProgressIndicator());
-  //                 }
-
-  //                 if (snapshot.hasError) {
-  //                   return const Center(
-  //                     child: Text("Erreur lors du chargement des données"),
-  //                   );
-  //                 }
-
-  //                 if (snapshot.hasData) {
-  //                   final responseData =
-  //                       json.decode(utf8.decode(snapshot.data.bodyBytes));
-  //                   if (responseData is List) {
-  //                     List<CategorieProduit> typeListe = responseData
-  //                         .map((e) => CategorieProduit.fromMap(e))
-  //                         .where((con) => con.statutCategorie == true)
-  //                         .toList();
-
-  //                     if (typeListe.isEmpty) {
-  //                       return const Padding(
-  //                         padding: EdgeInsets.all(10),
-  //                         child:
-  //                             Center(child: Text("Aucune categorie trouvée")),
-  //                       );
-  //                     }
-
-  //                     String searchText = _searchController.text.toLowerCase();
-  //                     List<CategorieProduit> filteredSearch = typeListe
-  //                         .where((type) => type.libelleCategorie!
-  //                             .toLowerCase()
-  //                             .contains(searchText))
-  //                         .toList();
-
-  //                     return filteredSearch.isEmpty
-  //                         ? const Text(
-  //                             'Aucune categorie trouvée',
-  //                             style:
-  //                                 TextStyle(color: Colors.black, fontSize: 17),
-  //                           )
-  //                         : SizedBox(
-  //                             width: double.maxFinite,
-  //                             child: ListView.builder(
-  //                               itemCount: filteredSearch.length,
-  //                               itemBuilder: (context, index) {
-  //                                 final type = filteredSearch[index];
-  //                                 final isSelected = catController.text ==
-  //                                     type.libelleCategorie;
-
-  //                                 return Column(
-  //                                   children: [
-  //                                     ListTile(
-  //                                       title: Text(
-  //                                         type.libelleCategorie!,
-  //                                         style: TextStyle(
-  //                                           color: Colors.black,
-  //                                           fontWeight: isSelected
-  //                                               ? FontWeight.bold
-  //                                               : FontWeight.normal,
-  //                                           fontSize: 16,
-  //                                         ),
-  //                                       ),
-  //                                       trailing: isSelected
-  //                                           ? const Icon(
-  //                                               Icons.check_box_outlined,
-  //                                               color: d_colorOr,
-  //                                             )
-  //                                           : null,
-  //                                       onTap: () {
-  //                                         setState(() {
-  //                                           categorieProduit = type;
-  //                                           catController.text =
-  //                                               type.libelleCategorie!;
-  //                                         });
-  //                                       },
-  //                                     ),
-  //                                     Divider()
-  //                                   ],
-  //                                 );
-  //                               },
-  //                             ),
-  //                           );
-  //                   }
-  //                 }
-
-  //                 return const SizedBox(height: 8);
-  //               },
-  //             ),
-  //             actions: <Widget>[
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Annuler',
-  //                   style: TextStyle(color: d_colorOr, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Valider',
-  //                   style: TextStyle(color: vert, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   print('Options sélectionnées : $categorieProduit');
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _searchController = TextEditingController();
+       _searchController = TextEditingController();
+        // _marcheList =
+        // http.get(Uri.parse('$apiUrl/all-marche/'));
+        
+     _fetchMarcheList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+     _fetchProduitList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+     _fetchCommuneList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+
+  
+
   }
 
 
@@ -743,9 +975,9 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                             ),
                           ),
                            GestureDetector(
-                             onTap: _showMarche,
+                             onTap: showMarche,
                              child: TextFormField(
-                               onTap: _showMarche,
+                               onTap: showMarche,
                                controller: marcheController,
                                keyboardType: TextInputType.text,
                                decoration: InputDecoration(
@@ -773,9 +1005,9 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                             ),
                           ),
                            GestureDetector(
-                             onTap: _showMarche,
+                             onTap: showProduit,
                              child: TextFormField(
-                               onTap: _showMarche,
+                               onTap: showProduit,
                                controller: produitController,
                                keyboardType: TextInputType.text,
                                decoration: InputDecoration(
@@ -803,9 +1035,9 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                             ),
                           ),
                            GestureDetector(
-                             onTap: _showMarche,
+                             onTap: showLocalite,
                              child: TextFormField(
-                               onTap: _showMarche,
+                               onTap: showLocalite,
                                controller: localiteController,
                                keyboardType: TextInputType.text,
                                decoration: InputDecoration(

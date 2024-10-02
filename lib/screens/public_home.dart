@@ -3,6 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Categorie_Produit.dart';
 import 'package:simro/models/Produit.dart';
 import 'package:simro/screens/detail_product.dart';
 import 'package:simro/screens/enquete_collecte.dart';
@@ -13,6 +14,7 @@ import 'package:simro/screens/prix_marche_collecte.dart';
 import 'package:simro/screens/prix_marche_consommation.dart';
 import 'package:simro/screens/prix_marche_grossiste.dart';
 import 'package:simro/screens/products.dart';
+import 'package:simro/services/Categorie_Produit_Service.dart';
 import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/pin_code.dart';
 import 'package:simro/widgets/pin_code_login.dart';
@@ -35,6 +37,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // int _currentIndex = 0;
    bool isLoading = true;
     List<Produit> produitList = [];
+      int selectedCategoryIndex = 0;
+     List<CategorieProduit> categorieList = [];
+
+
 
 
     Future<void> fetchProduit() async {
@@ -52,6 +58,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
    @override
   void initState() {
     fetchProduit();
+    CategorieProduitService().fetchCategorie().then((value) => {
+  setState(() {
+      categorieList = value;
+      isLoading = false;
+  })      
+    });
     super.initState();
   }
  
@@ -108,24 +120,25 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           //   ),
           // ),
           // Onglets pour les catégories avec possibilité de scroll horizontal
+          isLoading ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: shimmerEffectCatPubHome(),
+          ) :
           Container(
-            color: Colors.green[800],
-            height: 50.0,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  categoryItem('CÉRÉALE'),
-                  categoryItem('BULBE'),
-                  categoryItem('SEMENCES'),
-                  categoryItem('FRUITS'),
-                  categoryItem('LÉGUMES'),
-                  categoryItem('PRODUITS LAITIERS'),
-                  categoryItem('VIANDE'),
-                ],
+              color: Colors.green[800],
+              width: double.infinity,
+              height: 50.0,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    categorieList.length,
+                    (index) => categoryItem(categorieList[index].nom_categorie_produit!, index),
+                  ),
+                ),
               ),
             ),
-          ),
+  
           // Corps de la page avec les cartes de prix
            Expanded(
             child: 
@@ -160,21 +173,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
           ),
         ],
-      ),
-    );
-  }
-
-  Widget categoryItem(String categoryName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Center(
-        child: Text(
-          categoryName,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-          ),
-        ),
       ),
     );
   }
@@ -303,6 +301,43 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       ),
     );
   }
+
+   Widget categoryItem(String categoryName, int index) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedCategoryIndex = index;
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              categoryName,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: selectedCategoryIndex == index
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+              ),
+            ),
+            SizedBox(height: 4.0),
+            selectedCategoryIndex == index
+                ? Container(
+                    height: 2.0,
+                    width: 20.0,
+                    color: Colors.white,
+                  )
+                : Container(), // The white underline if selected
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildPriceInfo(String label, int price) {
     return Column(

@@ -3,6 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 
+
+//  caegorie pub home shimmer 
+ // Widget pour l'effet shimmer
+  Widget shimmerEffectCatPubHome() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+              width: double.infinity,
+              height: 40,
+              color: Colors.grey,
+            ),
+    );
+  }
+
 //  Crad public home shimmer 
  // Widget pour représenter une carte shimmer
   Widget buildShimmerCardPublicHomme() {

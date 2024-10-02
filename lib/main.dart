@@ -28,12 +28,12 @@ class _MyAppState extends State<MyApp> {
     @override
   void initState() {
     super.initState();
-    requestPermissions(context); // Demander les permissions dès l'init
+    // requestPermissions(); // Demander les permissions dès l'init
   }
 
   // Demande de permissions pour la caméra, la galerie et d'autres services si nécessaire
   
-Future<void> requestPermissions(BuildContext context) async {
+Future<void> requestPermissions() async {
   // Demander les permissions à l'utilisateur
   Map<Permission, PermissionStatus> statuses = await [
     Permission.camera,

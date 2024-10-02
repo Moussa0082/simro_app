@@ -44,12 +44,12 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Utiser un email',
-                style: TextStyle(color: Colors.blueAccent),
-              ))
+          // TextButton(
+          //     onPressed: () {},
+          //     child: const Text(
+          //       'Utiser un email',
+          //       style: TextStyle(color: Colors.blueAccent),
+          //     ))
         ],
       ),
       body: SafeArea(
