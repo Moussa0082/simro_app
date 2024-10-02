@@ -1,88 +1,86 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
-
 class EnqueteGrossiste {
-    String? numFiche;
+    String? num_fiche;
     String? marche;
     String? collecteur;
-    DateTime? dateEnquete;
-    DateTime? dateEnregistrement;
-    String? idPersonnel;
+    String? date_enquete;
+    String? date_enregistrement;
+    String? id_personnel;
     String? etat;
-    DateTime? modifierLe;
-    String? modifierPar;
-    int? idEnquete;
+    String? modifier_le;
+    String? modifier_par;
+    int? id_enquete;
 
     EnqueteGrossiste({
-         this.numFiche,
+         this.num_fiche,
          this.marche,
          this.collecteur,
-         this.dateEnquete,
-         this.dateEnregistrement,
-         this.idPersonnel,
+         this.date_enquete,
+         this.date_enregistrement,
+         this.id_personnel,
          this.etat,
-         this.modifierLe,
-         this.modifierPar,
-         this.idEnquete,
+         this.modifier_le,
+         this.modifier_par,
+         this.id_enquete,
     });
 
 
 
   EnqueteGrossiste copyWith({
-    String? numFiche,
+    String? num_fiche,
     String? marche,
     String? collecteur,
-    DateTime? dateEnquete,
-    DateTime? dateEnregistrement,
-    String? idPersonnel,
+    String? date_enquete,
+    String? date_enregistrement,
+    String? id_personnel,
     String? etat,
-    DateTime? modifierLe,
-    String? modifierPar,
-    int? idEnquete,
+    String? modifier_le,
+    String? modifier_par,
+    int? id_enquete,
   }) {
     return EnqueteGrossiste(
-      numFiche: numFiche ?? this.numFiche,
+      num_fiche: num_fiche ?? this.num_fiche,
       marche: marche ?? this.marche,
       collecteur: collecteur ?? this.collecteur,
-      dateEnquete: dateEnquete ?? this.dateEnquete,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
+      date_enquete: date_enquete ?? this.date_enquete,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      id_personnel: id_personnel ?? this.id_personnel,
       etat: etat ?? this.etat,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idEnquete: idEnquete ?? this.idEnquete,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_enquete: id_enquete ?? this.id_enquete,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'numFiche': numFiche,
+      'num_fiche': num_fiche,
       'marche': marche,
       'collecteur': collecteur,
-      'dateEnquete': dateEnquete?.millisecondsSinceEpoch,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'idPersonnel': idPersonnel,
+      'date_enquete': date_enquete,
+      'date_enregistrement': date_enregistrement,
+      'id_personnel': id_personnel,
       'etat': etat,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idEnquete': idEnquete,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
+      'id_enquete': id_enquete,
     };
   }
 
   factory EnqueteGrossiste.fromMap(Map<String, dynamic> map) {
     return EnqueteGrossiste(
-      numFiche: map['numFiche'] != null ? map['numFiche'] as String : null,
+      num_fiche: map['num_fiche'] != null ? map['num_fiche'] as String : null,
       marche: map['marche'] != null ? map['marche'] as String : null,
       collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
-      dateEnquete: map['dateEnquete'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnquete'] as int) : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
+      date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
       etat: map['etat'] != null ? map['etat'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idEnquete: map['idEnquete'] != null ? map['idEnquete'] as int : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_enquete: map['id_enquete'] != null ? map['id_enquete'] as int : null,
     );
   }
 
@@ -92,7 +90,7 @@ class EnqueteGrossiste {
 
   @override
   String toString() {
-    return 'EnqueteGrossiste(numFiche: $numFiche, marche: $marche, collecteur: $collecteur, dateEnquete: $dateEnquete, dateEnregistrement: $dateEnregistrement, idPersonnel: $idPersonnel, etat: $etat, modifierLe: $modifierLe, modifierPar: $modifierPar, idEnquete: $idEnquete)';
+    return 'EnqueteGrossiste(num_fiche: $num_fiche, marche: $marche, collecteur: $collecteur, date_enquete: $date_enquete, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_enquete: $id_enquete)';
   }
 
   @override
@@ -100,29 +98,29 @@ class EnqueteGrossiste {
     if (identical(this, other)) return true;
   
     return 
-      other.numFiche == numFiche &&
+      other.num_fiche == num_fiche &&
       other.marche == marche &&
       other.collecteur == collecteur &&
-      other.dateEnquete == dateEnquete &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.idPersonnel == idPersonnel &&
+      other.date_enquete == date_enquete &&
+      other.date_enregistrement == date_enregistrement &&
+      other.id_personnel == id_personnel &&
       other.etat == etat &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar &&
-      other.idEnquete == idEnquete;
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par &&
+      other.id_enquete == id_enquete;
   }
 
   @override
   int get hashCode {
-    return numFiche.hashCode ^
+    return num_fiche.hashCode ^
       marche.hashCode ^
       collecteur.hashCode ^
-      dateEnquete.hashCode ^
-      dateEnregistrement.hashCode ^
-      idPersonnel.hashCode ^
+      date_enquete.hashCode ^
+      date_enregistrement.hashCode ^
+      id_personnel.hashCode ^
       etat.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode ^
-      idEnquete.hashCode;
+      modifier_le.hashCode ^
+      modifier_par.hashCode ^
+      id_enquete.hashCode;
   }
  }

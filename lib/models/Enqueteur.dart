@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class Enqueteur {
     int? idEnqueteur;
     String? code;
@@ -14,12 +13,12 @@ class Enqueteur {
     int? superviseur;
     String? description;
     String? appProfil;
-    int? idActeur;
+    int? id_acteur;
     String? etat;
-    DateTime? dateEnregistrement;
-    String? idPersonnel;
-    DateTime? modifierLe;
-    String? modifierPar;
+    String? date_enregistrement;
+    String? id_personnel;
+    String? modifier_le;
+    String? modifier_par;
 
   Enqueteur({
     this.idEnqueteur,
@@ -33,14 +32,15 @@ class Enqueteur {
     this.superviseur,
     this.description,
     this.appProfil,
-    this.idActeur,
+    this.id_acteur,
     this.etat,
-    this.dateEnregistrement,
-    this.idPersonnel,
-    this.modifierLe,
-    this.modifierPar,
+    this.date_enregistrement,
+    this.id_personnel,
+    this.modifier_le,
+    this.modifier_par,
   });
     
+
 
   Enqueteur copyWith({
     int? idEnqueteur,
@@ -54,12 +54,12 @@ class Enqueteur {
     int? superviseur,
     String? description,
     String? appProfil,
-    int? idActeur,
+    int? id_acteur,
     String? etat,
-    DateTime? dateEnregistrement,
-    String? idPersonnel,
-    DateTime? modifierLe,
-    String? modifierPar,
+    String? date_enregistrement,
+    String? id_personnel,
+    String? modifier_le,
+    String? modifier_par,
   }) {
     return Enqueteur(
       idEnqueteur: idEnqueteur ?? this.idEnqueteur,
@@ -73,12 +73,12 @@ class Enqueteur {
       superviseur: superviseur ?? this.superviseur,
       description: description ?? this.description,
       appProfil: appProfil ?? this.appProfil,
-      idActeur: idActeur ?? this.idActeur,
+      id_acteur: id_acteur ?? this.id_acteur,
       etat: etat ?? this.etat,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      id_personnel: id_personnel ?? this.id_personnel,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
     );
   }
 
@@ -95,12 +95,12 @@ class Enqueteur {
       'superviseur': superviseur,
       'description': description,
       'appProfil': appProfil,
-      'idActeur': idActeur,
+      'id_acteur': id_acteur,
       'etat': etat,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'idPersonnel': idPersonnel,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
+      'date_enregistrement': date_enregistrement,
+      'id_personnel': id_personnel,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
     };
   }
 
@@ -117,12 +117,12 @@ class Enqueteur {
       superviseur: map['superviseur'] != null ? map['superviseur'] as int : null,
       description: map['description'] != null ? map['description'] as String : null,
       appProfil: map['appProfil'] != null ? map['appProfil'] as String : null,
-      idActeur: map['idActeur'] != null ? map['idActeur'] as int : null,
+      id_acteur: map['id_acteur'] != null ? map['id_acteur'] as int : null,
       etat: map['etat'] != null ? map['etat'] as String : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
     );
   }
 
@@ -132,7 +132,7 @@ class Enqueteur {
 
   @override
   String toString() {
-    return 'Enqueteur(idEnqueteur: $idEnqueteur, code: $code, nom: $nom, prenom: $prenom, sexe: $sexe, contact: $contact, localite: $localite, adresse: $adresse, superviseur: $superviseur, description: $description, appProfil: $appProfil, idActeur: $idActeur, etat: $etat, dateEnregistrement: $dateEnregistrement, idPersonnel: $idPersonnel, modifierLe: $modifierLe, modifierPar: $modifierPar)';
+    return 'Enqueteur(idEnqueteur: $idEnqueteur, code: $code, nom: $nom, prenom: $prenom, sexe: $sexe, contact: $contact, localite: $localite, adresse: $adresse, superviseur: $superviseur, description: $description, appProfil: $appProfil, id_acteur: $id_acteur, etat: $etat, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, modifier_le: $modifier_le, modifier_par: $modifier_par)';
   }
 
   @override
@@ -151,12 +151,12 @@ class Enqueteur {
       other.superviseur == superviseur &&
       other.description == description &&
       other.appProfil == appProfil &&
-      other.idActeur == idActeur &&
+      other.id_acteur == id_acteur &&
       other.etat == etat &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.idPersonnel == idPersonnel &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar;
+      other.date_enregistrement == date_enregistrement &&
+      other.id_personnel == id_personnel &&
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par;
   }
 
   @override
@@ -172,11 +172,11 @@ class Enqueteur {
       superviseur.hashCode ^
       description.hashCode ^
       appProfil.hashCode ^
-      idActeur.hashCode ^
+      id_acteur.hashCode ^
       etat.hashCode ^
-      dateEnregistrement.hashCode ^
-      idPersonnel.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode;
+      date_enregistrement.hashCode ^
+      id_personnel.hashCode ^
+      modifier_le.hashCode ^
+      modifier_par.hashCode;
   }
 }

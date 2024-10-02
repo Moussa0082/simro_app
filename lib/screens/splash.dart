@@ -1,7 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Enqueteur.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/add_product.dart';
 import 'package:simro/screens/detail_product.dart';
@@ -24,13 +30,37 @@ class _SplashScreenState extends State<SplashScreen> {
  @override
   void initState() {
     super.initState();
-    Timer(
-        const Duration(seconds: 3),
-        () => Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const PublicHomeScreen()),
-        ),
-      );
+   checkEnqueteurSession();
   }
+
+   void checkEnqueteurSession() async {
+     SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('access_token');
+  final enqueteurJson = prefs.getString('enqueteur');
+
+  if (token != null && enqueteurJson != null) {
+    // Convertir le JSON en objet Enqueteur
+    final enqueteurMap = json.decode(enqueteurJson);
+    final enqueteur = Enqueteur.fromJson(enqueteurMap);
+
+    // Mettre à jour le Provider avec l'objet Enqueteur restauré
+    EnqueteurProvider enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+    enqueteurProvider.setEnqueteur(enqueteur);
+
+    // Rediriger vers la HomeScreen
+     Timer(
+        const Duration(seconds: 3),
+        () => Get.offAll( const HomeScreen(), duration: const Duration(seconds: 1), transition: Transition.rightToLeftWithFade),
+      );
+  } else {
+    // Rediriger vers la LoginScreen si aucune session n'existe
+     Timer(
+        const Duration(seconds: 3),
+     () => Get.offAll( const PublicHomeScreen(), duration: const Duration(seconds: 1), transition: Transition.rightToLeftWithFade),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_loading_dialog/simple_loading_dialog.dart';
 import 'package:simro/models/Enqueteur.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
@@ -21,6 +24,19 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
 
 
   bool isLoading = false;
+
+  void storeUserSession(String token, Enqueteur enqueteur) async {
+  final prefs = await SharedPreferences.getInstance();
+  
+  // Stocker le token
+  await prefs.setString('access_token', token);
+  
+  // Convertir l'objet Enqueteur en JSON
+  String enqueteurJson = json.encode(enqueteur.toJson());
+  
+  // Stocker l'objet Enqueteur sous forme de chaîne JSON
+  await prefs.setString('enqueteur', enqueteurJson);
+}
  
  
  @override
@@ -81,10 +97,11 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
           final token = result['access_token'];
           final enqueteurInfo = result['enqueteur'];
         // Convertir le Map en un objet Enqueteur
-  Enqueteur enqueteur = Enqueteur.fromMap(enqueteurInfo);
+        Enqueteur enqueteur = Enqueteur.fromMap(enqueteurInfo);
 
-  // Mettre à jour le provider avec l'objet Enqueteur
-  enqueteurProvider.setEnqueteur(enqueteur);
+       // Mettre à jour le provider avec l'objet Enqueteur
+         enqueteurProvider.setEnqueteur(enqueteur);
+         storeUserSession(token, enqueteur);
 
           // Mettre à jour les informations nécessaires
           print('Connecté avec succès: $token');
@@ -104,7 +121,7 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
   // Après la future, faire les actions nécessaires avec 'result'
   if (result != null) {
     // Redirection vers la page HomeScreen
-    Get.to(
+    Get.offAll(
       const HomeScreen(),
       transition: Transition.rightToLeft,
       duration: const Duration(seconds: 1),

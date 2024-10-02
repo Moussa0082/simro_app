@@ -1,51 +1,51 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
-
 class CategorieProduit {
-    String? codeCategorieProduit;
-    String? nomCategorieProduit;
-    String? familleProduit;
-    int? idCategorieProduit;
+    String? code_categorie_produit;
+    String? nom_categorie_produit;
+    String? famille_produit;
+    int? id_categorie_produit;
 
     CategorieProduit({
-         this.codeCategorieProduit,
-         this.nomCategorieProduit,
-         this.familleProduit,
-         this.idCategorieProduit,
+         this.code_categorie_produit,
+         this.nom_categorie_produit,
+         this.famille_produit,
+         this.id_categorie_produit,
     });
 
 
+  
+
   CategorieProduit copyWith({
-    String? codeCategorieProduit,
-    String? nomCategorieProduit,
-    String? familleProduit,
-    int? idCategorieProduit,
+    String? code_categorie_produit,
+    String? nom_categorie_produit,
+    String? famille_produit,
+    int? id_categorie_produit,
   }) {
     return CategorieProduit(
-      codeCategorieProduit: codeCategorieProduit ?? this.codeCategorieProduit,
-      nomCategorieProduit: nomCategorieProduit ?? this.nomCategorieProduit,
-      familleProduit: familleProduit ?? this.familleProduit,
-      idCategorieProduit: idCategorieProduit ?? this.idCategorieProduit,
+      code_categorie_produit: code_categorie_produit ?? this.code_categorie_produit,
+      nom_categorie_produit: nom_categorie_produit ?? this.nom_categorie_produit,
+      famille_produit: famille_produit ?? this.famille_produit,
+      id_categorie_produit: id_categorie_produit ?? this.id_categorie_produit,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codeCategorieProduit': codeCategorieProduit,
-      'nomCategorieProduit': nomCategorieProduit,
-      'familleProduit': familleProduit,
-      'idCategorieProduit': idCategorieProduit,
+      'code_categorie_produit': code_categorie_produit,
+      'nom_categorie_produit': nom_categorie_produit,
+      'famille_produit': famille_produit,
+      'id_categorie_produit': id_categorie_produit,
     };
   }
 
   factory CategorieProduit.fromMap(Map<String, dynamic> map) {
     return CategorieProduit(
-      codeCategorieProduit: map['codeCategorieProduit'] != null ? map['codeCategorieProduit'] as String : null,
-      nomCategorieProduit: map['nomCategorieProduit'] != null ? map['nomCategorieProduit'] as String : null,
-      familleProduit: map['familleProduit'] != null ? map['familleProduit'] as String : null,
-      idCategorieProduit: map['idCategorieProduit'] != null ? map['idCategorieProduit'] as int : null,
+      code_categorie_produit: map['code_categorie_produit'] != null ? map['code_categorie_produit'] as String : null,
+      nom_categorie_produit: map['nom_categorie_produit'] != null ? map['nom_categorie_produit'] as String : null,
+      famille_produit: map['famille_produit'] != null ? map['famille_produit'] as String : null,
+      id_categorie_produit: map['id_categorie_produit'] != null ? map['id_categorie_produit'] as int : null,
     );
   }
 
@@ -55,7 +55,7 @@ class CategorieProduit {
 
   @override
   String toString() {
-    return 'CategorieProduit(codeCategorieProduit: $codeCategorieProduit, nomCategorieProduit: $nomCategorieProduit, familleProduit: $familleProduit, idCategorieProduit: $idCategorieProduit)';
+    return 'CategorieProduit(code_categorie_produit: $code_categorie_produit, nom_categorie_produit: $nom_categorie_produit, famille_produit: $famille_produit, id_categorie_produit: $id_categorie_produit)';
   }
 
   @override
@@ -63,17 +63,17 @@ class CategorieProduit {
     if (identical(this, other)) return true;
   
     return 
-      other.codeCategorieProduit == codeCategorieProduit &&
-      other.nomCategorieProduit == nomCategorieProduit &&
-      other.familleProduit == familleProduit &&
-      other.idCategorieProduit == idCategorieProduit;
+      other.code_categorie_produit == code_categorie_produit &&
+      other.nom_categorie_produit == nom_categorie_produit &&
+      other.famille_produit == famille_produit &&
+      other.id_categorie_produit == id_categorie_produit;
   }
 
   @override
   int get hashCode {
-    return codeCategorieProduit.hashCode ^
-      nomCategorieProduit.hashCode ^
-      familleProduit.hashCode ^
-      idCategorieProduit.hashCode;
+    return code_categorie_produit.hashCode ^
+      nom_categorie_produit.hashCode ^
+      famille_produit.hashCode ^
+      id_categorie_produit.hashCode;
   }
 }

@@ -5,8 +5,10 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
+import 'package:simro/models/Produit.dart';
 import 'package:simro/screens/add_product.dart';
 import 'package:simro/screens/detail_product.dart';
+import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -19,16 +21,31 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> {
  
  bool isLoading = true;
+ List<Produit> produitList = [];
+
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+      // Appel pour récupérer les produits au chargement de la page
+     ProduitService().fetchProduit().then((produits) {
+    setState(() {
+      produitList = produits;  // Assigner les produits récupérés à la liste locale
+      isLoading = false;  // Désactiver le chargement
+    });
+  });
+
+  }
+
   
  
 @override
   Widget build(BuildContext context) {
 
   // Simuler un délai de 4 secondes avant de charger les données
-  Timer(const Duration(seconds: 4), () {
-    isLoading = false;
-    if (context.mounted) setState(() {});
-  });
+ 
 
     return Scaffold(
       appBar: AppBar(
@@ -160,9 +177,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   mainAxisSpacing: 10,
                   childAspectRatio: 0.7, // Adjust to get the correct card height
                 ),
-                itemCount: 4, // Example product count
+                itemCount: produitList.length, // Example product count
                 itemBuilder: (context, index) {
-                  return _buildProductCard();
+                  final produit = produitList[index];
+                    return  GestureDetector(
+      onTap: () {
+        Get.to(DetailProductScreen(produit: produit,), transition: Transition.downToUp, duration: Duration(seconds: 1));
+      },
+                      child: _buildProductCard(produit)); // Passer le produit au widget
                 },
               ),
 
@@ -190,65 +212,68 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  Widget _buildProductCard() {
+  Widget _buildProductCard(Produit produit) {
   return Card(
     margin: EdgeInsets.all(2),
     elevation: 2.0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8.0),
     ),
-    child: GestureDetector(
-      onTap: () {
-        Get.to(DetailProductScreen(), transition: Transition.downToUp, duration: Duration(seconds: 1));
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Product image
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
-            child: Image.asset(
-              'assets/images/riz.jpeg', // Path to your product image
-              height: 120,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Product image
+        ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+          child:
+           produit.image != null && produit.image!.isNotEmpty
+              ? Image.network(
+                  produit.image!,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  'assets/images/riz.jpeg',
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                produit.nom_produit ?? "Non defini",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16, // Assurez-vous que la taille du texte est correcte
+                ),
+                maxLines: 1, // Limiter à une ligne si nécessaire
+                overflow: TextOverflow.ellipsis, // Ajouter des points de suspension si le texte dépasse
+              ),
+              Text(
+                'Prix actuel: 2,000 GNF/Kg',
+                style: TextStyle(color: vert),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 4),
+              Text('Disponibilité: 150 tonnes'),
+              Text('Origine: Siguiri'),
+              SizedBox(height: 4),
+              Text(
+                'Date de mise à jour : 15 août 2024',
+                style: TextStyle(color: Colors.red),
+                maxLines: 1, // Limiter le nombre de lignes pour éviter les dépassements
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Riz Paddy',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16, // Assurez-vous que la taille du texte est correcte
-                  ),
-                  maxLines: 1, // Limiter à une ligne si nécessaire
-                  overflow: TextOverflow.ellipsis, // Ajouter des points de suspension si le texte dépasse
-                ),
-                Text(
-                  'Prix actuel: 2,000 GNF/Kg',
-                  style: TextStyle(color: vert),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 4),
-                Text('Disponibilité: 150 tonnes'),
-                Text('Origine: Siguiri'),
-                SizedBox(height: 4),
-                Text(
-                  'Date de mise à jour : 15 août 2024',
-                  style: TextStyle(color: Colors.red),
-                  maxLines: 1, // Limiter le nombre de lignes pour éviter les dépassements
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 }

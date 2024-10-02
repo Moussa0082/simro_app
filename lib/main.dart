@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -6,12 +7,12 @@ import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/splash.dart';
 
 
-void main() {
+void main() async{
+    WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => EnqueteurProvider(),
-      child: const MyApp(),
-    ),
+   MultiProvider(providers: [
+    ChangeNotifierProvider(create: (_) => EnqueteurProvider()),
+  ], child: const MyApp())
   );
 }
 
@@ -49,18 +50,19 @@ Future<void> requestPermissions(BuildContext context) async {
     print('Toutes les permissions ont été accordées');
   } else {
     // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
-    if(mounted)
-    showDialog(
+    if(context.mounted){
+
+     showDialog(
       context: context,
       barrierDismissible: false, // Empêche de fermer le pop-up en cliquant à l'extérieur
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Permissions requises'),
-          content: Text(
+          title:const Text('Permissions requises'),
+          content:const Text(
               'Ces permissions sont nécessaires pour utiliser toutes les fonctionnalités de l\'application. Veuillez accorder les permissions.'),
           actions: <Widget>[
             TextButton(
-              child: Text('Annuler'),
+              child:const Text('Annuler'),
               onPressed: () {
                 Navigator.of(context).pop(); // Ferme le dialogue si l'utilisateur refuse
               },
@@ -76,6 +78,7 @@ Future<void> requestPermissions(BuildContext context) async {
         );
       },
     );
+    }
   }
 }
 
@@ -103,12 +106,12 @@ void _showPermissionDeniedDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Permissions refusées'),
-        content: Text(
+        title: const Text('Permissions refusées'),
+        content: const Text(
             'Les permissions sont nécessaires pour utiliser cette fonctionnalité. L\'application ne pourra pas fonctionner correctement sans ces permissions.'),
         actions: <Widget>[
           TextButton(
-            child: Text('OK'),
+            child: const Text('OK'),
             onPressed: () {
               Navigator.of(context).pop(); // Ferme le dialogue
             },
@@ -122,7 +125,14 @@ void _showPermissionDeniedDialog(BuildContext context) {
    // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+     return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      // Use builder only if you need to use library outside ScreenUtilInit context
+      builder: (_ , child) {
+    
+     return  GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
        
@@ -132,6 +142,8 @@ void _showPermissionDeniedDialog(BuildContext context) {
       home: const SplashScreen(),
       
     );
+     }
+     );
   }
 }
 

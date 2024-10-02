@@ -1,80 +1,80 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class FormeProduit {
-    String? codeFormeProduit;
-    String? nomFormeProduit;
-    String? produitConcerne;
+    String? code_forme_produit;
+    String? nom_forme_produit;
+    String? produit_concerne;
     String? etat;
     String? idPersonnel;
-    DateTime? modifierLe;
-    DateTime? dateEnregistrement;
-    String? modifierPar;
-    int? idFormeProduit;
+    String? modifier_le;
+    String? date_enregistrement;
+    String? modifier_par;
+    int? idForme_produit;
 
     FormeProduit({
-         this.codeFormeProduit,
-         this.nomFormeProduit,
-         this.produitConcerne,
+         this.code_forme_produit,
+         this.nom_forme_produit,
+         this.produit_concerne,
          this.etat,
          this.idPersonnel,
-         this.modifierLe,
-         this.dateEnregistrement,
-         this.modifierPar,
-         this.idFormeProduit,
+         this.modifier_le,
+         this.date_enregistrement,
+         this.modifier_par,
+         this.idForme_produit,
     });
 
 
+
   FormeProduit copyWith({
-    String? codeFormeProduit,
-    String? nomFormeProduit,
-    String? produitConcerne,
+    String? code_forme_produit,
+    String? nom_forme_produit,
+    String? produit_concerne,
     String? etat,
     String? idPersonnel,
-    DateTime? modifierLe,
-    DateTime? dateEnregistrement,
-    String? modifierPar,
-    int? idFormeProduit,
+    String? modifier_le,
+    String? date_enregistrement,
+    String? modifier_par,
+    int? idForme_produit,
   }) {
     return FormeProduit(
-      codeFormeProduit: codeFormeProduit ?? this.codeFormeProduit,
-      nomFormeProduit: nomFormeProduit ?? this.nomFormeProduit,
-      produitConcerne: produitConcerne ?? this.produitConcerne,
+      code_forme_produit: code_forme_produit ?? this.code_forme_produit,
+      nom_forme_produit: nom_forme_produit ?? this.nom_forme_produit,
+      produit_concerne: produit_concerne ?? this.produit_concerne,
       etat: etat ?? this.etat,
       idPersonnel: idPersonnel ?? this.idPersonnel,
-      modifierLe: modifierLe ?? this.modifierLe,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idFormeProduit: idFormeProduit ?? this.idFormeProduit,
+      modifier_le: modifier_le ?? this.modifier_le,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      modifier_par: modifier_par ?? this.modifier_par,
+      idForme_produit: idForme_produit ?? this.idForme_produit,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codeFormeProduit': codeFormeProduit,
-      'nomFormeProduit': nomFormeProduit,
-      'produitConcerne': produitConcerne,
+      'code_forme_produit': code_forme_produit,
+      'nom_forme_produit': nom_forme_produit,
+      'produit_concerne': produit_concerne,
       'etat': etat,
       'idPersonnel': idPersonnel,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idFormeProduit': idFormeProduit,
+      'modifier_le': modifier_le,
+      'date_enregistrement': date_enregistrement,
+      'modifier_par': modifier_par,
+      'idForme_produit': idForme_produit,
     };
   }
 
   factory FormeProduit.fromMap(Map<String, dynamic> map) {
     return FormeProduit(
-      codeFormeProduit: map['codeFormeProduit'] != null ? map['codeFormeProduit'] as String : null,
-      nomFormeProduit: map['nomFormeProduit'] != null ? map['nomFormeProduit'] as String : null,
-      produitConcerne: map['produitConcerne'] != null ? map['produitConcerne'] as String : null,
+      code_forme_produit: map['code_forme_produit'] != null ? map['code_forme_produit'] as String : null,
+      nom_forme_produit: map['nom_forme_produit'] != null ? map['nom_forme_produit'] as String : null,
+      produit_concerne: map['produit_concerne'] != null ? map['produit_concerne'] as String : null,
       etat: map['etat'] != null ? map['etat'] as String : null,
       idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idFormeProduit: map['idFormeProduit'] != null ? map['idFormeProduit'] as int : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      idForme_produit: map['idForme_produit'] != null ? map['idForme_produit'] as int : null,
     );
   }
 
@@ -84,7 +84,7 @@ class FormeProduit {
 
   @override
   String toString() {
-    return 'FormeProduit(codeFormeProduit: $codeFormeProduit, nomFormeProduit: $nomFormeProduit, produitConcerne: $produitConcerne, etat: $etat, idPersonnel: $idPersonnel, modifierLe: $modifierLe, dateEnregistrement: $dateEnregistrement, modifierPar: $modifierPar, idFormeProduit: $idFormeProduit)';
+    return 'FormeProduit(code_forme_produit: $code_forme_produit, nom_forme_produit: $nom_forme_produit, produit_concerne: $produit_concerne, etat: $etat, idPersonnel: $idPersonnel, modifier_le: $modifier_le, date_enregistrement: $date_enregistrement, modifier_par: $modifier_par, idForme_produit: $idForme_produit)';
   }
 
   @override
@@ -92,27 +92,27 @@ class FormeProduit {
     if (identical(this, other)) return true;
   
     return 
-      other.codeFormeProduit == codeFormeProduit &&
-      other.nomFormeProduit == nomFormeProduit &&
-      other.produitConcerne == produitConcerne &&
+      other.code_forme_produit == code_forme_produit &&
+      other.nom_forme_produit == nom_forme_produit &&
+      other.produit_concerne == produit_concerne &&
       other.etat == etat &&
       other.idPersonnel == idPersonnel &&
-      other.modifierLe == modifierLe &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.modifierPar == modifierPar &&
-      other.idFormeProduit == idFormeProduit;
+      other.modifier_le == modifier_le &&
+      other.date_enregistrement == date_enregistrement &&
+      other.modifier_par == modifier_par &&
+      other.idForme_produit == idForme_produit;
   }
 
   @override
   int get hashCode {
-    return codeFormeProduit.hashCode ^
-      nomFormeProduit.hashCode ^
-      produitConcerne.hashCode ^
+    return code_forme_produit.hashCode ^
+      nom_forme_produit.hashCode ^
+      produit_concerne.hashCode ^
       etat.hashCode ^
       idPersonnel.hashCode ^
-      modifierLe.hashCode ^
-      dateEnregistrement.hashCode ^
-      modifierPar.hashCode ^
-      idFormeProduit.hashCode;
+      modifier_le.hashCode ^
+      date_enregistrement.hashCode ^
+      modifier_par.hashCode ^
+      idForme_produit.hashCode;
   }
 }

@@ -1,74 +1,74 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class OriginProduit {
-    String? codeOriginProduit;
-    String? nomOriginProduit;
+    String? code_origin_produit;
+    String? nom_origin_produit;
     String? etat;
-    String? idPersonnel;
-    DateTime? modifierLe;
-    DateTime? dateEnregistrement;
-    String? modifierPar;
-    int? idOriginProduit;
+    String? id_personnel;
+    String? modifier_le;
+    String? date_enregistrement;
+    String? modifier_par;
+    int? id_origin_produit;
 
     OriginProduit({
-         this.codeOriginProduit,
-         this.nomOriginProduit,
+         this.code_origin_produit,
+         this.nom_origin_produit,
          this.etat,
-         this.idPersonnel,
-         this.modifierLe,
-         this.dateEnregistrement,
-         this.modifierPar,
-         this.idOriginProduit,
+         this.id_personnel,
+         this.modifier_le,
+         this.date_enregistrement,
+         this.modifier_par,
+         this.id_origin_produit,
     });
 
 
+
   OriginProduit copyWith({
-    String? codeOriginProduit,
-    String? nomOriginProduit,
+    String? code_origin_produit,
+    String? nom_origin_produit,
     String? etat,
-    String? idPersonnel,
-    DateTime? modifierLe,
-    DateTime? dateEnregistrement,
-    String? modifierPar,
-    int? idOriginProduit,
+    String? id_personnel,
+    String? modifier_le,
+    String? date_enregistrement,
+    String? modifier_par,
+    int? id_origin_produit,
   }) {
     return OriginProduit(
-      codeOriginProduit: codeOriginProduit ?? this.codeOriginProduit,
-      nomOriginProduit: nomOriginProduit ?? this.nomOriginProduit,
+      code_origin_produit: code_origin_produit ?? this.code_origin_produit,
+      nom_origin_produit: nom_origin_produit ?? this.nom_origin_produit,
       etat: etat ?? this.etat,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
-      modifierLe: modifierLe ?? this.modifierLe,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idOriginProduit: idOriginProduit ?? this.idOriginProduit,
+      id_personnel: id_personnel ?? this.id_personnel,
+      modifier_le: modifier_le ?? this.modifier_le,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_origin_produit: id_origin_produit ?? this.id_origin_produit,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codeOriginProduit': codeOriginProduit,
-      'nomOriginProduit': nomOriginProduit,
+      'code_origin_produit': code_origin_produit,
+      'nom_origin_produit': nom_origin_produit,
       'etat': etat,
-      'idPersonnel': idPersonnel,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idOriginProduit': idOriginProduit,
+      'id_personnel': id_personnel,
+      'modifier_le': modifier_le,
+      'date_enregistrement': date_enregistrement,
+      'modifier_par': modifier_par,
+      'id_origin_produit': id_origin_produit,
     };
   }
 
   factory OriginProduit.fromMap(Map<String, dynamic> map) {
     return OriginProduit(
-      codeOriginProduit: map['codeOriginProduit'] != null ? map['codeOriginProduit'] as String : null,
-      nomOriginProduit: map['nomOriginProduit'] != null ? map['nomOriginProduit'] as String : null,
+      code_origin_produit: map['code_origin_produit'] != null ? map['code_origin_produit'] as String : null,
+      nom_origin_produit: map['nom_origin_produit'] != null ? map['nom_origin_produit'] as String : null,
       etat: map['etat'] != null ? map['etat'] as String : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idOriginProduit: map['idOriginProduit'] != null ? map['idOriginProduit'] as int : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_origin_produit: map['id_origin_produit'] != null ? map['id_origin_produit'] as int : null,
     );
   }
 
@@ -78,7 +78,7 @@ class OriginProduit {
 
   @override
   String toString() {
-    return 'OriginProduit(codeOriginProduit: $codeOriginProduit, nomOriginProduit: $nomOriginProduit, etat: $etat, idPersonnel: $idPersonnel, modifierLe: $modifierLe, dateEnregistrement: $dateEnregistrement, modifierPar: $modifierPar, idOriginProduit: $idOriginProduit)';
+    return 'OriginProduit(code_origin_produit: $code_origin_produit, nom_origin_produit: $nom_origin_produit, etat: $etat, id_personnel: $id_personnel, modifier_le: $modifier_le, date_enregistrement: $date_enregistrement, modifier_par: $modifier_par, id_origin_produit: $id_origin_produit)';
   }
 
   @override
@@ -86,25 +86,25 @@ class OriginProduit {
     if (identical(this, other)) return true;
   
     return 
-      other.codeOriginProduit == codeOriginProduit &&
-      other.nomOriginProduit == nomOriginProduit &&
+      other.code_origin_produit == code_origin_produit &&
+      other.nom_origin_produit == nom_origin_produit &&
       other.etat == etat &&
-      other.idPersonnel == idPersonnel &&
-      other.modifierLe == modifierLe &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.modifierPar == modifierPar &&
-      other.idOriginProduit == idOriginProduit;
+      other.id_personnel == id_personnel &&
+      other.modifier_le == modifier_le &&
+      other.date_enregistrement == date_enregistrement &&
+      other.modifier_par == modifier_par &&
+      other.id_origin_produit == id_origin_produit;
   }
 
   @override
   int get hashCode {
-    return codeOriginProduit.hashCode ^
-      nomOriginProduit.hashCode ^
+    return code_origin_produit.hashCode ^
+      nom_origin_produit.hashCode ^
       etat.hashCode ^
-      idPersonnel.hashCode ^
-      modifierLe.hashCode ^
-      dateEnregistrement.hashCode ^
-      modifierPar.hashCode ^
-      idOriginProduit.hashCode;
+      id_personnel.hashCode ^
+      modifier_le.hashCode ^
+      date_enregistrement.hashCode ^
+      modifier_par.hashCode ^
+      id_origin_produit.hashCode;
   }
 }

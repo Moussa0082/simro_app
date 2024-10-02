@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Produit.dart';
+import 'package:simro/screens/detail_product.dart';
 import 'package:simro/screens/enquete_collecte.dart';
 import 'package:simro/screens/enquete_consommation.dart';
 import 'package:simro/screens/enquete_grossiste.dart';
@@ -10,8 +13,10 @@ import 'package:simro/screens/prix_marche_collecte.dart';
 import 'package:simro/screens/prix_marche_consommation.dart';
 import 'package:simro/screens/prix_marche_grossiste.dart';
 import 'package:simro/screens/products.dart';
+import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/pin_code.dart';
 import 'package:simro/widgets/pin_code_login.dart';
+import 'package:simro/widgets/shimmer_effect.dart';
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -27,7 +32,28 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     'assets/images/oignon-culture.jpg',
     'assets/images/mch.jpg',
   ];
-  int _currentIndex = 0;
+  // int _currentIndex = 0;
+   bool isLoading = true;
+    List<Produit> produitList = [];
+
+
+    Future<void> fetchProduit() async {
+    try {
+      final produits = await ProduitService().fetchProduit(); // Assurez-vous que cette méthode retourne bien une liste de produits
+      setState(() {
+        produitList = produits;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Erreur de récupération des produits : $e');
+    }
+    
+  }
+   @override
+  void initState() {
+    fetchProduit();
+    super.initState();
+  }
  
 
   @override
@@ -101,38 +127,43 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             ),
           ),
           // Corps de la page avec les cartes de prix
-          Expanded(
-            child: ListView(
-              children: [
-                buildPriceCard(
-                  'Riz Paddy',
-                  'Sac',
-                  'assets/images/riz.jpeg', // Remplacer par une vraie image
-                  150,
-                  215,
-                  350,
-                  '18/05/2023',
-                  6,
-                ),
-                buildPriceCard(
-                  'Riz Paddy',
-                  'Sachet',
-                  'assets/images/riz.jpeg', // Remplacer par une vraie image
-                  150,
-                  150,
-                  150,
-                  '10/05/2023',
-                  1,
-                ),
-              ],
-            ),
+           Expanded(
+            child: 
+      isLoading ? 
+                ListView.builder(
+                  itemCount: 6, // Nombre de shimmer cards que vous voulez afficher
+                  itemBuilder: (context, index) {
+                    return buildShimmerCardPublicHomme();
+                  },
+                )
+                : ListView.builder(
+  itemCount: produitList.length,
+  itemBuilder: (context, index) {
+    final produit = produitList[index];
+    return GestureDetector(
+      onTap: (){
+        Get.to(DetailProductScreen(produit: produit,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
+      },
+      child: buildPriceCard(
+        produit.nom_produit ?? 'Nom Indisponible',  // Vérification du nom produit
+        // "packagingType",   // Vérification du type de packaging
+        produit.image?.isNotEmpty == true ? produit.image! : '',  // Vérification de l'image
+        150,  // Prix statiques
+        215,  // Prix statiques
+        350,  // Prix statiques
+        produit.date_enregistrement ?? 'Date inconnue',  // Vérification de la date
+        6,  // Nombre de marchés statiques
+      ),
+    );
+  },
+),
+
           ),
         ],
       ),
     );
   }
 
-  // Widget pour les éléments de la barre de catégorie
   Widget categoryItem(String categoryName) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -148,19 +179,19 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  // Fonction pour créer une carte de prix
   Widget buildPriceCard(
-      String productName,
-      String packagingType,
-      String imageUrl,
-      int minPrice,
-      int avgPrice,
-      int maxPrice,
-      String date,
-      int marketCount) {
+    String productName,
+    // String packagingType,
+    String imageUrl,
+    int minPrice,
+    int avgPrice,
+    int maxPrice,
+    String date,
+    int marketCount,
+  ) {
     return Card(
       elevation: 4.0,
-      margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
       ),
@@ -171,18 +202,31 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image produit
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
-                  child: Image.asset(
-                    imageUrl, // Image statique
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
+                  child:
+                  imageUrl.isEmpty ?
+                  Image.asset(
+                                                                  "assets/images/riz.jpeg",
+                                                                  fit: BoxFit
+                                                                      .cover,
+                                                                  height: 80,
+                                                                  width:80,
+                                                                ) :
+                                                                Image.network(imageUrl,fit: BoxFit
+                                                                      .cover,
+                                                                  height: 80,
+                                                                  width:80),
+                  //  CachedNetworkImage(
+                  //   imageUrl: imageUrl, // Image dynamique
+                  //   width: 80,
+                  //   height: 80,
+                  //   fit: BoxFit.cover,
+                  //   placeholder: (context, url) => Center(child: const CircularProgressIndicator(color: vert,)),
+                  //   errorWidget: (context, url, error) => const Icon(Icons.error),
+                  // ),
                 ),
-                SizedBox(width: 12.0),
-                // Détails prix
+              const  SizedBox(width: 12.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,6 +256,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       ),
                       SizedBox(height: 8.0),
                       Text(
+                        overflow:TextOverflow.ellipsis,
                         date,
                         style: TextStyle(
                           color: Colors.red,
@@ -223,26 +268,35 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 8.0),
-            // Nom du produit et type de packaging
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$productName ($packagingType)',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.green,
+          const  SizedBox(height: 8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$productName',
+                      // '$productName ($packagingType)',
+                      overflow:TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.green,
+                      ),
+                    ),
                   ),
-                ),
-                Text(
-                  'Nombre de marché : $marketCount',
-                  style: TextStyle(
-                    color: Colors.grey,
+                  Expanded(
+                    child: Text(
+                      'Nombre de marché : $marketCount',
+                      overflow:TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -250,23 +304,17 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  // Fonction pour construire les infos de prix
   Widget _buildPriceInfo(String label, int price) {
     return Column(
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 4.0),
         Text(
           '$price',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.black,
-          ),
+          style: TextStyle(fontSize: 16, color: Colors.black),
         ),
       ],
     );

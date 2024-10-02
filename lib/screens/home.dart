@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/models/Enqueteur.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
@@ -41,6 +44,18 @@ class _HomeScreenState extends State<HomeScreen> {
       enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false).enqueteur!;
   }
  
+
+ void _storeUserSession(String token, Enqueteur enqueteur) async {
+  final prefs = await SharedPreferences.getInstance();
+  
+  // Stocker le token
+  await prefs.setString('access_token', token);
+  // Convertir l'objet Enqueteur en JSON
+  String enqueteurJson = json.encode(enqueteur.toJson());
+  // Stocker l'objet Enqueteur sous forme de chaîne JSON
+  await prefs.setString('enqueteur', enqueteurJson);
+}
+
   @override
   Widget build(BuildContext context) {
 

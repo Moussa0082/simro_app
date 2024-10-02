@@ -1,117 +1,116 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class Produit {
-    String? codeProduit;
-    int? affichageEcran;
+    String? code_produit;
+    int? affichage_ecran;
     String? filiere;
     String? image;
-    String? nomProduit;
-    int? familleProduit;
-    int? formeProduit;
-    int? origineProduit;
-    int? categorieProduit;
-    DateTime? dateEnregistrement;
-    String? idPersonnel;
+    String? nom_produit;
+    int? famille_produit;
+    int? forme_produit;
+    int? origine_produit;
+    int? categorie_produit;
+    String? date_enregistrement;
+    String? id_personnel;
     String? etat;
-    DateTime? modifierLe;
-    String? modifierPar;
-    int? idProduit;
+    String? modifier_le;
+    String? modifier_par;
+    int? id_produit;
 
     Produit({
-         this.codeProduit,
-         this.affichageEcran,
+         this.code_produit,
+         this.affichage_ecran,
          this.filiere,
          this.image,
-         this.nomProduit,
-         this.familleProduit,
-         this.formeProduit,
-         this.origineProduit,
-         this.categorieProduit,
-         this.dateEnregistrement,
-         this.idPersonnel,
+         this.nom_produit,
+         this.famille_produit,
+         this.forme_produit,
+         this.origine_produit,
+         this.categorie_produit,
+         this.date_enregistrement,
+         this.id_personnel,
          this.etat,
-         this.modifierLe,
-         this.modifierPar,
-         this.idProduit,
+         this.modifier_le,
+         this.modifier_par,
+         this.id_produit,
     });
 
 
 
   Produit copyWith({
-    String? codeProduit,
-    int? affichageEcran,
+    String? code_produit,
+    int? affichage_ecran,
     String? filiere,
     String? image,
-    String? nomProduit,
-    int? familleProduit,
-    int? formeProduit,
-    int? origineProduit,
-    int? categorieProduit,
-    DateTime? dateEnregistrement,
-    String? idPersonnel,
+    String? nom_produit,
+    int? famille_produit,
+    int? forme_produit,
+    int? origine_produit,
+    int? categorie_produit,
+    String? date_enregistrement,
+    String? id_personnel,
     String? etat,
-    DateTime? modifierLe,
-    String? modifierPar,
-    int? idProduit,
+    String? modifier_le,
+    String? modifier_par,
+    int? id_produit,
   }) {
     return Produit(
-      codeProduit: codeProduit ?? this.codeProduit,
-      affichageEcran: affichageEcran ?? this.affichageEcran,
+      code_produit: code_produit ?? this.code_produit,
+      affichage_ecran: affichage_ecran ?? this.affichage_ecran,
       filiere: filiere ?? this.filiere,
       image: image ?? this.image,
-      nomProduit: nomProduit ?? this.nomProduit,
-      familleProduit: familleProduit ?? this.familleProduit,
-      formeProduit: formeProduit ?? this.formeProduit,
-      origineProduit: origineProduit ?? this.origineProduit,
-      categorieProduit: categorieProduit ?? this.categorieProduit,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
+      nom_produit: nom_produit ?? this.nom_produit,
+      famille_produit: famille_produit ?? this.famille_produit,
+      forme_produit: forme_produit ?? this.forme_produit,
+      origine_produit: origine_produit ?? this.origine_produit,
+      categorie_produit: categorie_produit ?? this.categorie_produit,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      id_personnel: id_personnel ?? this.id_personnel,
       etat: etat ?? this.etat,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idProduit: idProduit ?? this.idProduit,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_produit: id_produit ?? this.id_produit,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codeProduit': codeProduit,
-      'affichageEcran': affichageEcran,
+      'code_produit': code_produit,
+      'affichage_ecran': affichage_ecran,
       'filiere': filiere,
       'image': image,
-      'nomProduit': nomProduit,
-      'familleProduit': familleProduit,
-      'formeProduit': formeProduit,
-      'origineProduit': origineProduit,
-      'categorieProduit': categorieProduit,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'idPersonnel': idPersonnel,
+      'nom_produit': nom_produit,
+      'famille_produit': famille_produit,
+      'forme_produit': forme_produit,
+      'origine_produit': origine_produit,
+      'categorie_produit': categorie_produit,
+      'date_enregistrement': date_enregistrement,
+      'id_personnel': id_personnel,
       'etat': etat,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idProduit': idProduit,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
+      'id_produit': id_produit,
     };
   }
 
   factory Produit.fromMap(Map<String, dynamic> map) {
     return Produit(
-      codeProduit: map['codeProduit'] != null ? map['codeProduit'] as String : null,
-      affichageEcran: map['affichageEcran'] != null ? map['affichageEcran'] as int : null,
+      code_produit: map['code_produit'] != null ? map['code_produit'] as String : null,
+      affichage_ecran: map['affichage_ecran'] != null ? map['affichage_ecran'] as int : null,
       filiere: map['filiere'] != null ? map['filiere'] as String : null,
       image: map['image'] != null ? map['image'] as String : null,
-      nomProduit: map['nomProduit'] != null ? map['nomProduit'] as String : null,
-      familleProduit: map['familleProduit'] != null ? map['familleProduit'] as int : null,
-      formeProduit: map['formeProduit'] != null ? map['formeProduit'] as int : null,
-      origineProduit: map['origineProduit'] != null ? map['origineProduit'] as int : null,
-      categorieProduit: map['categorieProduit'] != null ? map['categorieProduit'] as int : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
+      nom_produit: map['nom_produit'] != null ? map['nom_produit'] as String : null,
+      famille_produit: map['famille_produit'] != null ? map['famille_produit'] as int : null,
+      forme_produit: map['forme_produit'] != null ? map['forme_produit'] as int : null,
+      origine_produit: map['origine_produit'] != null ? map['origine_produit'] as int : null,
+      categorie_produit: map['categorie_produit'] != null ? map['categorie_produit'] as int : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
       etat: map['etat'] != null ? map['etat'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idProduit: map['idProduit'] != null ? map['idProduit'] as int : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_produit: map['id_produit'] != null ? map['id_produit'] as int : null,
     );
   }
 
@@ -121,7 +120,7 @@ class Produit {
 
   @override
   String toString() {
-    return 'Produit(codeProduit: $codeProduit, affichageEcran: $affichageEcran, filiere: $filiere, image: $image, nomProduit: $nomProduit, familleProduit: $familleProduit, formeProduit: $formeProduit, origineProduit: $origineProduit, categorieProduit: $categorieProduit, dateEnregistrement: $dateEnregistrement, idPersonnel: $idPersonnel, etat: $etat, modifierLe: $modifierLe, modifierPar: $modifierPar, idProduit: $idProduit)';
+    return 'Produit(code_produit: $code_produit, affichage_ecran: $affichage_ecran, filiere: $filiere, image: $image, nom_produit: $nom_produit, famille_produit: $famille_produit, forme_produit: $forme_produit, origine_produit: $origine_produit, categorie_produit: $categorie_produit, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_produit: $id_produit)';
   }
 
   @override
@@ -129,39 +128,39 @@ class Produit {
     if (identical(this, other)) return true;
   
     return 
-      other.codeProduit == codeProduit &&
-      other.affichageEcran == affichageEcran &&
+      other.code_produit == code_produit &&
+      other.affichage_ecran == affichage_ecran &&
       other.filiere == filiere &&
       other.image == image &&
-      other.nomProduit == nomProduit &&
-      other.familleProduit == familleProduit &&
-      other.formeProduit == formeProduit &&
-      other.origineProduit == origineProduit &&
-      other.categorieProduit == categorieProduit &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.idPersonnel == idPersonnel &&
+      other.nom_produit == nom_produit &&
+      other.famille_produit == famille_produit &&
+      other.forme_produit == forme_produit &&
+      other.origine_produit == origine_produit &&
+      other.categorie_produit == categorie_produit &&
+      other.date_enregistrement == date_enregistrement &&
+      other.id_personnel == id_personnel &&
       other.etat == etat &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar &&
-      other.idProduit == idProduit;
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par &&
+      other.id_produit == id_produit;
   }
 
   @override
   int get hashCode {
-    return codeProduit.hashCode ^
-      affichageEcran.hashCode ^
+    return code_produit.hashCode ^
+      affichage_ecran.hashCode ^
       filiere.hashCode ^
       image.hashCode ^
-      nomProduit.hashCode ^
-      familleProduit.hashCode ^
-      formeProduit.hashCode ^
-      origineProduit.hashCode ^
-      categorieProduit.hashCode ^
-      dateEnregistrement.hashCode ^
-      idPersonnel.hashCode ^
+      nom_produit.hashCode ^
+      famille_produit.hashCode ^
+      forme_produit.hashCode ^
+      origine_produit.hashCode ^
+      categorie_produit.hashCode ^
+      date_enregistrement.hashCode ^
+      id_personnel.hashCode ^
       etat.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode ^
-      idProduit.hashCode;
+      modifier_le.hashCode ^
+      modifier_par.hashCode ^
+      id_produit.hashCode;
   }
 }

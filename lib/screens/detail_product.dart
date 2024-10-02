@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Produit.dart';
 
 class DetailProductScreen extends StatefulWidget {
-  const DetailProductScreen({super.key});
+  Produit? produit;
+   DetailProductScreen({super.key,  this.produit});
 
   @override
   State<DetailProductScreen> createState() => _DetailProductScreenState();
 }
 
+
 class _DetailProductScreenState extends State<DetailProductScreen> {
   
+   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
   
  
  @override
@@ -30,7 +38,17 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
           children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: SizedBox(
+                             child: widget.produit != null && widget.produit!.image != null && 
+                             widget.produit!.image!.isNotEmpty ?
+                            SizedBox(
+                                    height: 200,
+                                    width: double.infinity, // Occupe toute la largeur
+                                    child: Image.network(
+                                      widget.produit!.image!,
+                                      fit: BoxFit.cover, // Permet de s'assurer que l'image couvre tout en respectant le ratio
+                                    ),
+                                  ):
+                            SizedBox(
                                     height: 200,
                                     width: double.infinity, // Occupe toute la largeur
                                     child: Image.asset(
@@ -44,22 +62,20 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildDetailRow("Nom Produit:", "Marché Bamako"),
+                  buildDetailRow("Nom Produit:", widget.produit!.nom_produit!),
                   Divider(thickness: 1),
-                  buildDetailRow("Code Produit :", "01"),
+                  buildDetailRow("Code Produit :" , widget.produit!.code_produit! ),
                   Divider(thickness: 1),
-                  buildDetailRow("Date d'ajout :", "17/07/2024"),
+                  buildDetailRow("Date d'ajout :", widget.produit!.date_enregistrement!),
+                  // Divider(thickness: 1),
+                  // buildDetailRow("Etat :", widget.produit!.etat!),
+                  // Divider(thickness: 1),
+                  // buildDetailRow("Origine Produit :", widget.produit!.origine_produit!.toString()),
+                  // Divider(thickness: 1),
+                  // buildDetailRow("Famille produit :", widget.produit!.forme_produit!.toString()),
                   Divider(thickness: 1),
-                  buildDetailRow("Type Produit :", "Type exemple"),
-                  Divider(thickness: 1),
-                  buildDetailRow("Prix Produit :", "54"),
-                  Divider(thickness: 1),
-                  buildDetailRow("Grossiste :", "Aly Bah"),
-                  Divider(thickness: 1),
-                  buildDetailRow("CategorieProduit :", "Catgeorie"),
-                  Divider(thickness: 1),
-                  buildDetailRow("Origine :", "Bamako"),
-                  Divider(thickness: 1),
+                  // buildDetailRow("Categorie :", widget.produit!.categorie_produit!.toString()),
+                  // Divider(thickness: 1),
                   SizedBox(height: 20),
                   // Center(
                     // child: ElevatedButton(
@@ -88,15 +104,29 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(
-            label,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                label,
+                style:const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
           ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                value.isEmpty ? "Null" : value,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
           ),
         ],
       ),

@@ -1,73 +1,73 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class UniteMesure {
-    String? nomUnite;
+    String? nom_unite;
     String? definition;
-    int? poidsIndicatif;
-    DateTime? dateEnregistrement;
-    String? idPersonnel;
-    DateTime? modifierLe;
-    String? modifierPar;
-    int? idUnite;
+    int? poids_indicatif;
+    DateTime? date_enregistrement;
+    String? id_personnel;
+    String? modifier_le;
+    String? modifier_par;
+    int? id_unite;
 
     UniteMesure({
-         this.nomUnite,
+         this.nom_unite,
          this.definition,
-         this.poidsIndicatif,
-         this.dateEnregistrement,
-         this.idPersonnel,
-         this.modifierLe,
-         this.modifierPar,
-         this.idUnite,
+         this.poids_indicatif,
+         this.date_enregistrement,
+         this.id_personnel,
+         this.modifier_le,
+         this.modifier_par,
+         this.id_unite,
     });
 
+
   UniteMesure copyWith({
-    String? nomUnite,
+    String? nom_unite,
     String? definition,
-    int? poidsIndicatif,
-    DateTime? dateEnregistrement,
-    String? idPersonnel,
-    DateTime? modifierLe,
-    String? modifierPar,
-    int? idUnite,
+    int? poids_indicatif,
+    DateTime? date_enregistrement,
+    String? id_personnel,
+    String? modifier_le,
+    String? modifier_par,
+    int? id_unite,
   }) {
     return UniteMesure(
-      nomUnite: nomUnite ?? this.nomUnite,
+      nom_unite: nom_unite ?? this.nom_unite,
       definition: definition ?? this.definition,
-      poidsIndicatif: poidsIndicatif ?? this.poidsIndicatif,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idUnite: idUnite ?? this.idUnite,
+      poids_indicatif: poids_indicatif ?? this.poids_indicatif,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      id_personnel: id_personnel ?? this.id_personnel,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_unite: id_unite ?? this.id_unite,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'nomUnite': nomUnite,
+      'nom_unite': nom_unite,
       'definition': definition,
-      'poidsIndicatif': poidsIndicatif,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'idPersonnel': idPersonnel,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idUnite': idUnite,
+      'poids_indicatif': poids_indicatif,
+      'date_enregistrement': date_enregistrement?.millisecondsSinceEpoch,
+      'id_personnel': id_personnel,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
+      'id_unite': id_unite,
     };
   }
 
   factory UniteMesure.fromMap(Map<String, dynamic> map) {
     return UniteMesure(
-      nomUnite: map['nomUnite'] != null ? map['nomUnite'] as String : null,
+      nom_unite: map['nom_unite'] != null ? map['nom_unite'] as String : null,
       definition: map['definition'] != null ? map['definition'] as String : null,
-      poidsIndicatif: map['poidsIndicatif'] != null ? map['poidsIndicatif'] as int : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idUnite: map['idUnite'] != null ? map['idUnite'] as int : null,
+      poids_indicatif: map['poids_indicatif'] != null ? map['poids_indicatif'] as int : null,
+      date_enregistrement: map['date_enregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['date_enregistrement'] as int) : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_unite: map['id_unite'] != null ? map['id_unite'] as int : null,
     );
   }
 
@@ -77,7 +77,7 @@ class UniteMesure {
 
   @override
   String toString() {
-    return 'UniteMesure(nomUnite: $nomUnite, definition: $definition, poidsIndicatif: $poidsIndicatif, dateEnregistrement: $dateEnregistrement, idPersonnel: $idPersonnel, modifierLe: $modifierLe, modifierPar: $modifierPar, idUnite: $idUnite)';
+    return 'UniteMesure(nom_unite: $nom_unite, definition: $definition, poids_indicatif: $poids_indicatif, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, modifier_le: $modifier_le, modifier_par: $modifier_par, id_unite: $id_unite)';
   }
 
   @override
@@ -85,25 +85,25 @@ class UniteMesure {
     if (identical(this, other)) return true;
   
     return 
-      other.nomUnite == nomUnite &&
+      other.nom_unite == nom_unite &&
       other.definition == definition &&
-      other.poidsIndicatif == poidsIndicatif &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.idPersonnel == idPersonnel &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar &&
-      other.idUnite == idUnite;
+      other.poids_indicatif == poids_indicatif &&
+      other.date_enregistrement == date_enregistrement &&
+      other.id_personnel == id_personnel &&
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par &&
+      other.id_unite == id_unite;
   }
 
   @override
   int get hashCode {
-    return nomUnite.hashCode ^
+    return nom_unite.hashCode ^
       definition.hashCode ^
-      poidsIndicatif.hashCode ^
-      dateEnregistrement.hashCode ^
-      idPersonnel.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode ^
-      idUnite.hashCode;
+      poids_indicatif.hashCode ^
+      date_enregistrement.hashCode ^
+      id_personnel.hashCode ^
+      modifier_le.hashCode ^
+      modifier_par.hashCode ^
+      id_unite.hashCode;
   }
 }

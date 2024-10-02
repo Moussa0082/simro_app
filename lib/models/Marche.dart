@@ -1,30 +1,29 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class Marche {
-    String? codeMarche;
-    String? nomMarche;
-    String? typeMarche;
-    String? jourMarche;
+    String? code_marche;
+    String? nom_marche;
+    String? type_marche;
+    String? jour_marche;
     String? localite;
     int? longitude;
     int? latitude;
-    int? superficie;
+    double? superficie;
     String? description;
     int? commune;
     String? collecteur;
     String? idPersonnel;
-    DateTime? dateEnregistrement;
-    DateTime? modifierLe;
-    String? modifierPar;
-    int? idMarche;
+    String? date_enregistrement;
+    String? modifier_le;
+    String? modifier_par;
+    int? id_marche;
 
     Marche({
-         this.codeMarche,
-         this.nomMarche,
-         this.typeMarche,
-         this.jourMarche,
+         this.code_marche,
+         this.nom_marche,
+         this.type_marche,
+         this.jour_marche,
          this.localite,
          this.longitude,
          this.latitude,
@@ -33,36 +32,38 @@ class Marche {
          this.commune,
          this.collecteur,
          this.idPersonnel,
-         this.dateEnregistrement,
-         this.modifierLe,
-         this.modifierPar,
-         this.idMarche,
+         this.date_enregistrement,
+         this.modifier_le,
+         this.modifier_par,
+         this.id_marche,
     });
 
 
+
+
   Marche copyWith({
-    String? codeMarche,
-    String? nomMarche,
-    String? typeMarche,
-    String? jourMarche,
+    String? code_marche,
+    String? nom_marche,
+    String? type_marche,
+    String? jour_marche,
     String? localite,
     int? longitude,
     int? latitude,
-    int? superficie,
+    double? superficie,
     String? description,
     int? commune,
     String? collecteur,
     String? idPersonnel,
-    DateTime? dateEnregistrement,
-    DateTime? modifierLe,
-    String? modifierPar,
-    int? idMarche,
+    String? date_enregistrement,
+    String? modifier_le,
+    String? modifier_par,
+    int? id_marche,
   }) {
     return Marche(
-      codeMarche: codeMarche ?? this.codeMarche,
-      nomMarche: nomMarche ?? this.nomMarche,
-      typeMarche: typeMarche ?? this.typeMarche,
-      jourMarche: jourMarche ?? this.jourMarche,
+      code_marche: code_marche ?? this.code_marche,
+      nom_marche: nom_marche ?? this.nom_marche,
+      type_marche: type_marche ?? this.type_marche,
+      jour_marche: jour_marche ?? this.jour_marche,
       localite: localite ?? this.localite,
       longitude: longitude ?? this.longitude,
       latitude: latitude ?? this.latitude,
@@ -71,19 +72,19 @@ class Marche {
       commune: commune ?? this.commune,
       collecteur: collecteur ?? this.collecteur,
       idPersonnel: idPersonnel ?? this.idPersonnel,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idMarche: idMarche ?? this.idMarche,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_marche: id_marche ?? this.id_marche,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codeMarche': codeMarche,
-      'nomMarche': nomMarche,
-      'typeMarche': typeMarche,
-      'jourMarche': jourMarche,
+      'code_marche': code_marche,
+      'nom_marche': nom_marche,
+      'type_marche': type_marche,
+      'jour_marche': jour_marche,
       'localite': localite,
       'longitude': longitude,
       'latitude': latitude,
@@ -92,31 +93,31 @@ class Marche {
       'commune': commune,
       'collecteur': collecteur,
       'idPersonnel': idPersonnel,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idMarche': idMarche,
+      'date_enregistrement': date_enregistrement,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
+      'id_marche': id_marche,
     };
   }
 
   factory Marche.fromMap(Map<String, dynamic> map) {
     return Marche(
-      codeMarche: map['codeMarche'] != null ? map['codeMarche'] as String : null,
-      nomMarche: map['nomMarche'] != null ? map['nomMarche'] as String : null,
-      typeMarche: map['typeMarche'] != null ? map['typeMarche'] as String : null,
-      jourMarche: map['jourMarche'] != null ? map['jourMarche'] as String : null,
+      code_marche: map['code_marche'] != null ? map['code_marche'] as String : null,
+      nom_marche: map['nom_marche'] != null ? map['nom_marche'] as String : null,
+      type_marche: map['type_marche'] != null ? map['type_marche'] as String : null,
+      jour_marche: map['jour_marche'] != null ? map['jour_marche'] as String : null,
       localite: map['localite'] != null ? map['localite'] as String : null,
       longitude: map['longitude'] != null ? map['longitude'] as int : null,
       latitude: map['latitude'] != null ? map['latitude'] as int : null,
-      superficie: map['superficie'] != null ? map['superficie'] as int : null,
+      superficie: map['superficie'] != null ? map['superficie'] as double : null,
       description: map['description'] != null ? map['description'] as String : null,
       commune: map['commune'] != null ? map['commune'] as int : null,
       collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
       idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idMarche: map['idMarche'] != null ? map['idMarche'] as int : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_marche: map['id_marche'] != null ? map['id_marche'] as int : null,
     );
   }
 
@@ -126,7 +127,7 @@ class Marche {
 
   @override
   String toString() {
-    return 'Marche(codeMarche: $codeMarche, nomMarche: $nomMarche, typeMarche: $typeMarche, jourMarche: $jourMarche, localite: $localite, longitude: $longitude, latitude: $latitude, superficie: $superficie, description: $description, commune: $commune, collecteur: $collecteur, idPersonnel: $idPersonnel, dateEnregistrement: $dateEnregistrement, modifierLe: $modifierLe, modifierPar: $modifierPar, idMarche: $idMarche)';
+    return 'Marche(code_marche: $code_marche, nom_marche: $nom_marche, type_marche: $type_marche, jour_marche: $jour_marche, localite: $localite, longitude: $longitude, latitude: $latitude, superficie: $superficie, description: $description, commune: $commune, collecteur: $collecteur, idPersonnel: $idPersonnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_marche: $id_marche)';
   }
 
   @override
@@ -134,10 +135,10 @@ class Marche {
     if (identical(this, other)) return true;
   
     return 
-      other.codeMarche == codeMarche &&
-      other.nomMarche == nomMarche &&
-      other.typeMarche == typeMarche &&
-      other.jourMarche == jourMarche &&
+      other.code_marche == code_marche &&
+      other.nom_marche == nom_marche &&
+      other.type_marche == type_marche &&
+      other.jour_marche == jour_marche &&
       other.localite == localite &&
       other.longitude == longitude &&
       other.latitude == latitude &&
@@ -146,18 +147,18 @@ class Marche {
       other.commune == commune &&
       other.collecteur == collecteur &&
       other.idPersonnel == idPersonnel &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar &&
-      other.idMarche == idMarche;
+      other.date_enregistrement == date_enregistrement &&
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par &&
+      other.id_marche == id_marche;
   }
 
   @override
   int get hashCode {
-    return codeMarche.hashCode ^
-      nomMarche.hashCode ^
-      typeMarche.hashCode ^
-      jourMarche.hashCode ^
+    return code_marche.hashCode ^
+      nom_marche.hashCode ^
+      type_marche.hashCode ^
+      jour_marche.hashCode ^
       localite.hashCode ^
       longitude.hashCode ^
       latitude.hashCode ^
@@ -166,9 +167,9 @@ class Marche {
       commune.hashCode ^
       collecteur.hashCode ^
       idPersonnel.hashCode ^
-      dateEnregistrement.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode ^
-      idMarche.hashCode;
+      date_enregistrement.hashCode ^
+      modifier_le.hashCode ^
+      modifier_par.hashCode ^
+      id_marche.hashCode;
   }
 }

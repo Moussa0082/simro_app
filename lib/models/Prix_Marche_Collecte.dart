@@ -1,55 +1,54 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-
 class PrixMarcheCollecte {
     int? enquete;
     String? produit;
     int? unite;
-    int? poidsUnitaire;
-    int? montantAchat;
-    int? prixFgKg;
-    String? localiteOrigine;
-    int? distanceOrigineMarche;
-    int? montantTransport;
-    String? etatRoute;
-    int? quantiteCollecte;
-    int? clientPrincipal;
-    int? fournisseurPrincipal;
-    int? niveauApprovisionement;
-    int? appMobile;
+    int? poids_unitaire;
+    int? montant_achat;
+    int? prix_fg_kg;
+    String? localite_origine;
+    int? distance_origine_marche;
+    int? montant_transport;
+    String? etat_route;
+    int? quantite_collecte;
+    int? client_principal;
+    int? fournisseur_principal;
+    int? niveau_approvisionement;
+    int? app_mobile;
     String? observation;
     int? statut;
-    String? idPersonnel;
-    DateTime? dateEnregistrement;
-    DateTime? modifierLe;
-    String? modifierPar;
-    int? idFiche;
+    String? id_personnel;
+    String? date_enregistrement;
+    String? modifier_le;
+    String? modifier_par;
+    int? id_fiche;
 
     PrixMarcheCollecte({
          this.enquete,
          this.produit,
          this.unite,
-         this.poidsUnitaire,
-         this.montantAchat,
-         this.prixFgKg,
-         this.localiteOrigine,
-         this.distanceOrigineMarche,
-         this.montantTransport,
-         this.etatRoute,
-         this.quantiteCollecte,
-         this.clientPrincipal,
-         this.fournisseurPrincipal,
-         this.niveauApprovisionement,
-         this.appMobile,
+         this.poids_unitaire,
+         this.montant_achat,
+         this.prix_fg_kg,
+         this.localite_origine,
+         this.distance_origine_marche,
+         this.montant_transport,
+         this.etat_route,
+         this.quantite_collecte,
+         this.client_principal,
+         this.fournisseur_principal,
+         this.niveau_approvisionement,
+         this.app_mobile,
          this.observation,
          this.statut,
-         this.idPersonnel,
-         this.dateEnregistrement,
-         this.modifierLe,
-         this.modifierPar,
-         this.idFiche,
-    });
+         this.id_personnel,
+         this.date_enregistrement,
+         this.modifier_le,
+         this.modifier_par,
+         this.id_fiche,
+    }); 
 
     
 
@@ -57,49 +56,49 @@ class PrixMarcheCollecte {
     int? enquete,
     String? produit,
     int? unite,
-    int? poidsUnitaire,
-    int? montantAchat,
-    int? prixFgKg,
-    String? localiteOrigine,
-    int? distanceOrigineMarche,
-    int? montantTransport,
-    String? etatRoute,
-    int? quantiteCollecte,
-    int? clientPrincipal,
-    int? fournisseurPrincipal,
-    int? niveauApprovisionement,
-    int? appMobile,
+    int? poids_unitaire,
+    int? montant_achat,
+    int? prix_fg_kg,
+    String? localite_origine,
+    int? distance_origine_marche,
+    int? montant_transport,
+    String? etat_route,
+    int? quantite_collecte,
+    int? client_principal,
+    int? fournisseur_principal,
+    int? niveau_approvisionement,
+    int? app_mobile,
     String? observation,
     int? statut,
-    String? idPersonnel,
-    DateTime? dateEnregistrement,
-    DateTime? modifierLe,
-    String? modifierPar,
-    int? idFiche,
+    String? id_personnel,
+    String? date_enregistrement,
+    String? modifier_le,
+    String? modifier_par,
+    int? id_fiche,
   }) {
     return PrixMarcheCollecte(
       enquete: enquete ?? this.enquete,
       produit: produit ?? this.produit,
       unite: unite ?? this.unite,
-      poidsUnitaire: poidsUnitaire ?? this.poidsUnitaire,
-      montantAchat: montantAchat ?? this.montantAchat,
-      prixFgKg: prixFgKg ?? this.prixFgKg,
-      localiteOrigine: localiteOrigine ?? this.localiteOrigine,
-      distanceOrigineMarche: distanceOrigineMarche ?? this.distanceOrigineMarche,
-      montantTransport: montantTransport ?? this.montantTransport,
-      etatRoute: etatRoute ?? this.etatRoute,
-      quantiteCollecte: quantiteCollecte ?? this.quantiteCollecte,
-      clientPrincipal: clientPrincipal ?? this.clientPrincipal,
-      fournisseurPrincipal: fournisseurPrincipal ?? this.fournisseurPrincipal,
-      niveauApprovisionement: niveauApprovisionement ?? this.niveauApprovisionement,
-      appMobile: appMobile ?? this.appMobile,
+      poids_unitaire: poids_unitaire ?? this.poids_unitaire,
+      montant_achat: montant_achat ?? this.montant_achat,
+      prix_fg_kg: prix_fg_kg ?? this.prix_fg_kg,
+      localite_origine: localite_origine ?? this.localite_origine,
+      distance_origine_marche: distance_origine_marche ?? this.distance_origine_marche,
+      montant_transport: montant_transport ?? this.montant_transport,
+      etat_route: etat_route ?? this.etat_route,
+      quantite_collecte: quantite_collecte ?? this.quantite_collecte,
+      client_principal: client_principal ?? this.client_principal,
+      fournisseur_principal: fournisseur_principal ?? this.fournisseur_principal,
+      niveau_approvisionement: niveau_approvisionement ?? this.niveau_approvisionement,
+      app_mobile: app_mobile ?? this.app_mobile,
       observation: observation ?? this.observation,
       statut: statut ?? this.statut,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
-      dateEnregistrement: dateEnregistrement ?? this.dateEnregistrement,
-      modifierLe: modifierLe ?? this.modifierLe,
-      modifierPar: modifierPar ?? this.modifierPar,
-      idFiche: idFiche ?? this.idFiche,
+      id_personnel: id_personnel ?? this.id_personnel,
+      date_enregistrement: date_enregistrement ?? this.date_enregistrement,
+      modifier_le: modifier_le ?? this.modifier_le,
+      modifier_par: modifier_par ?? this.modifier_par,
+      id_fiche: id_fiche ?? this.id_fiche,
     );
   }
 
@@ -108,25 +107,25 @@ class PrixMarcheCollecte {
       'enquete': enquete,
       'produit': produit,
       'unite': unite,
-      'poidsUnitaire': poidsUnitaire,
-      'montantAchat': montantAchat,
-      'prixFgKg': prixFgKg,
-      'localiteOrigine': localiteOrigine,
-      'distanceOrigineMarche': distanceOrigineMarche,
-      'montantTransport': montantTransport,
-      'etatRoute': etatRoute,
-      'quantiteCollecte': quantiteCollecte,
-      'clientPrincipal': clientPrincipal,
-      'fournisseurPrincipal': fournisseurPrincipal,
-      'niveauApprovisionement': niveauApprovisionement,
-      'appMobile': appMobile,
+      'poids_unitaire': poids_unitaire,
+      'montant_achat': montant_achat,
+      'prix_fg_kg': prix_fg_kg,
+      'localite_origine': localite_origine,
+      'distance_origine_marche': distance_origine_marche,
+      'montant_transport': montant_transport,
+      'etat_route': etat_route,
+      'quantite_collecte': quantite_collecte,
+      'client_principal': client_principal,
+      'fournisseur_principal': fournisseur_principal,
+      'niveau_approvisionement': niveau_approvisionement,
+      'app_mobile': app_mobile,
       'observation': observation,
       'statut': statut,
-      'idPersonnel': idPersonnel,
-      'dateEnregistrement': dateEnregistrement?.millisecondsSinceEpoch,
-      'modifierLe': modifierLe?.millisecondsSinceEpoch,
-      'modifierPar': modifierPar,
-      'idFiche': idFiche,
+      'id_personnel': id_personnel,
+      'date_enregistrement': date_enregistrement,
+      'modifier_le': modifier_le,
+      'modifier_par': modifier_par,
+      'id_fiche': id_fiche,
     };
   }
 
@@ -135,25 +134,25 @@ class PrixMarcheCollecte {
       enquete: map['enquete'] != null ? map['enquete'] as int : null,
       produit: map['produit'] != null ? map['produit'] as String : null,
       unite: map['unite'] != null ? map['unite'] as int : null,
-      poidsUnitaire: map['poidsUnitaire'] != null ? map['poidsUnitaire'] as int : null,
-      montantAchat: map['montantAchat'] != null ? map['montantAchat'] as int : null,
-      prixFgKg: map['prixFgKg'] != null ? map['prixFgKg'] as int : null,
-      localiteOrigine: map['localiteOrigine'] != null ? map['localiteOrigine'] as String : null,
-      distanceOrigineMarche: map['distanceOrigineMarche'] != null ? map['distanceOrigineMarche'] as int : null,
-      montantTransport: map['montantTransport'] != null ? map['montantTransport'] as int : null,
-      etatRoute: map['etatRoute'] != null ? map['etatRoute'] as String : null,
-      quantiteCollecte: map['quantiteCollecte'] != null ? map['quantiteCollecte'] as int : null,
-      clientPrincipal: map['clientPrincipal'] != null ? map['clientPrincipal'] as int : null,
-      fournisseurPrincipal: map['fournisseurPrincipal'] != null ? map['fournisseurPrincipal'] as int : null,
-      niveauApprovisionement: map['niveauApprovisionement'] != null ? map['niveauApprovisionement'] as int : null,
-      appMobile: map['appMobile'] != null ? map['appMobile'] as int : null,
+      poids_unitaire: map['poids_unitaire'] != null ? map['poids_unitaire'] as int : null,
+      montant_achat: map['montant_achat'] != null ? map['montant_achat'] as int : null,
+      prix_fg_kg: map['prix_fg_kg'] != null ? map['prix_fg_kg'] as int : null,
+      localite_origine: map['localite_origine'] != null ? map['localite_origine'] as String : null,
+      distance_origine_marche: map['distance_origine_marche'] != null ? map['distance_origine_marche'] as int : null,
+      montant_transport: map['montant_transport'] != null ? map['montant_transport'] as int : null,
+      etat_route: map['etat_route'] != null ? map['etat_route'] as String : null,
+      quantite_collecte: map['quantite_collecte'] != null ? map['quantite_collecte'] as int : null,
+      client_principal: map['client_principal'] != null ? map['client_principal'] as int : null,
+      fournisseur_principal: map['fournisseur_principal'] != null ? map['fournisseur_principal'] as int : null,
+      niveau_approvisionement: map['niveau_approvisionement'] != null ? map['niveau_approvisionement'] as int : null,
+      app_mobile: map['app_mobile'] != null ? map['app_mobile'] as int : null,
       observation: map['observation'] != null ? map['observation'] as String : null,
       statut: map['statut'] != null ? map['statut'] as int : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      dateEnregistrement: map['dateEnregistrement'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dateEnregistrement'] as int) : null,
-      modifierLe: map['modifierLe'] != null ? DateTime.fromMillisecondsSinceEpoch(map['modifierLe'] as int) : null,
-      modifierPar: map['modifierPar'] != null ? map['modifierPar'] as String : null,
-      idFiche: map['idFiche'] != null ? map['idFiche'] as int : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_fiche: map['id_fiche'] != null ? map['id_fiche'] as int : null,
     );
   }
 
@@ -163,7 +162,7 @@ class PrixMarcheCollecte {
 
   @override
   String toString() {
-    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite, poidsUnitaire: $poidsUnitaire, montantAchat: $montantAchat, prixFgKg: $prixFgKg, localiteOrigine: $localiteOrigine, distanceOrigineMarche: $distanceOrigineMarche, montantTransport: $montantTransport, etatRoute: $etatRoute, quantiteCollecte: $quantiteCollecte, clientPrincipal: $clientPrincipal, fournisseurPrincipal: $fournisseurPrincipal, niveauApprovisionement: $niveauApprovisionement, appMobile: $appMobile, observation: $observation, statut: $statut, idPersonnel: $idPersonnel, dateEnregistrement: $dateEnregistrement, modifierLe: $modifierLe, modifierPar: $modifierPar, idFiche: $idFiche)';
+    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite, poids_unitaire: $poids_unitaire, montant_achat: $montant_achat, prix_fg_kg: $prix_fg_kg, localite_origine: $localite_origine, distance_origine_marche: $distance_origine_marche, montant_transport: $montant_transport, etat_route: $etat_route, quantite_collecte: $quantite_collecte, client_principal: $client_principal, fournisseur_principal: $fournisseur_principal, niveau_approvisionement: $niveau_approvisionement, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
   }
 
   @override
@@ -174,25 +173,25 @@ class PrixMarcheCollecte {
       other.enquete == enquete &&
       other.produit == produit &&
       other.unite == unite &&
-      other.poidsUnitaire == poidsUnitaire &&
-      other.montantAchat == montantAchat &&
-      other.prixFgKg == prixFgKg &&
-      other.localiteOrigine == localiteOrigine &&
-      other.distanceOrigineMarche == distanceOrigineMarche &&
-      other.montantTransport == montantTransport &&
-      other.etatRoute == etatRoute &&
-      other.quantiteCollecte == quantiteCollecte &&
-      other.clientPrincipal == clientPrincipal &&
-      other.fournisseurPrincipal == fournisseurPrincipal &&
-      other.niveauApprovisionement == niveauApprovisionement &&
-      other.appMobile == appMobile &&
+      other.poids_unitaire == poids_unitaire &&
+      other.montant_achat == montant_achat &&
+      other.prix_fg_kg == prix_fg_kg &&
+      other.localite_origine == localite_origine &&
+      other.distance_origine_marche == distance_origine_marche &&
+      other.montant_transport == montant_transport &&
+      other.etat_route == etat_route &&
+      other.quantite_collecte == quantite_collecte &&
+      other.client_principal == client_principal &&
+      other.fournisseur_principal == fournisseur_principal &&
+      other.niveau_approvisionement == niveau_approvisionement &&
+      other.app_mobile == app_mobile &&
       other.observation == observation &&
       other.statut == statut &&
-      other.idPersonnel == idPersonnel &&
-      other.dateEnregistrement == dateEnregistrement &&
-      other.modifierLe == modifierLe &&
-      other.modifierPar == modifierPar &&
-      other.idFiche == idFiche;
+      other.id_personnel == id_personnel &&
+      other.date_enregistrement == date_enregistrement &&
+      other.modifier_le == modifier_le &&
+      other.modifier_par == modifier_par &&
+      other.id_fiche == id_fiche;
   }
 
   @override
@@ -200,24 +199,24 @@ class PrixMarcheCollecte {
     return enquete.hashCode ^
       produit.hashCode ^
       unite.hashCode ^
-      poidsUnitaire.hashCode ^
-      montantAchat.hashCode ^
-      prixFgKg.hashCode ^
-      localiteOrigine.hashCode ^
-      distanceOrigineMarche.hashCode ^
-      montantTransport.hashCode ^
-      etatRoute.hashCode ^
-      quantiteCollecte.hashCode ^
-      clientPrincipal.hashCode ^
-      fournisseurPrincipal.hashCode ^
-      niveauApprovisionement.hashCode ^
-      appMobile.hashCode ^
+      poids_unitaire.hashCode ^
+      montant_achat.hashCode ^
+      prix_fg_kg.hashCode ^
+      localite_origine.hashCode ^
+      distance_origine_marche.hashCode ^
+      montant_transport.hashCode ^
+      etat_route.hashCode ^
+      quantite_collecte.hashCode ^
+      client_principal.hashCode ^
+      fournisseur_principal.hashCode ^
+      niveau_approvisionement.hashCode ^
+      app_mobile.hashCode ^
       observation.hashCode ^
       statut.hashCode ^
-      idPersonnel.hashCode ^
-      dateEnregistrement.hashCode ^
-      modifierLe.hashCode ^
-      modifierPar.hashCode ^
-      idFiche.hashCode;
+      id_personnel.hashCode ^
+      date_enregistrement.hashCode ^
+      modifier_le.hashCode ^
+      modifier_par.hashCode ^
+      id_fiche.hashCode;
   }
 }

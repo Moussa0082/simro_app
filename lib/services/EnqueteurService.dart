@@ -1,11 +1,12 @@
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/screens/home.dart';
 
-class EnqueteurService {
+class EnqueteurService extends ChangeNotifier{
   final String baseUrl = "enqueteur";
 
 
@@ -47,6 +48,10 @@ class EnqueteurService {
   } else {
     throw Exception('Échec de la connexion: ${response.body}, code: ${response.statusCode}');
   }
+  }
+
+   void applyChange() {
+    notifyListeners();
   }
 
   
