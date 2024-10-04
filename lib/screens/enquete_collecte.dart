@@ -306,6 +306,10 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     isLoading1 = false;
     enqueteCollecteList = nouvelleListe;
   });
+  numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
 
   // Fermer le dialogue
   Navigator.of(context).pop();
@@ -320,45 +324,42 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                           }else if(formkey.currentState!.validate() && isEditMode) {
                             
                              try {
-                               // Convertir la date de String à DateTime
-      DateTime dateEnquete = DateTime.parse(dateController.text);
-                              await EnqueteService()
-                                  .updateEnqueteCollecte(
-                                    // id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
-                                    id_enquete:enqueteCollecte!.id_enquete!,
-                                    num_fiche:numFicheController.text, 
-                                    marche:marcheController.text, 
-                                    collecteur:collecteurController.text,
-                                    date_enquete: dateEnquete, 
-                                      )
-                                  .then((value) => {
-                                        Provider.of<EnqueteService>(context,
-                                                listen: false)
-                                            .applyChange(),
-                                            setState(() {
-                                              isLoading1 = false;
-                                            }),
-                                        // dateController.clear(),
-                                        // marcheController.clear(),
-                                        // numFicheController.clear(),
-                                        // collecteurController.clear(),
-                                        Navigator.of(context).pop()
-                                      });
-                            } catch (e) {
-                              final String errorMessage = e.toString();
-                              print("erreur m: " + errorMessage);
-                              // Snack.error(titre:"erreur", message:errorMessage);
-                              // ScaffoldMessenger.of(context).showSnackBar(
-                              //   SnackBar(
-                              //     content: Row(
-                              //       children: [
-                              //         Text(errorMessage),
-                              //       ],
-                              //     ),
-                              //     duration: const Duration(seconds: 5),
-                              //   ),
-                              // );
-                            }
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+  
+  print("id_enquete: ${enqueteCollecte!.id_enquete!}");
+  print("num_fiche: ${numFicheController.text}");
+  print("marche: ${marcheController.text}");
+  print("collecteur: ${collecteurController.text}");
+  print("date_enquete: ${dateEnquete}");
+
+  await EnqueteService()
+      .updateEnqueteCollecte(
+        id_enquete: enqueteCollecte.id_enquete!,
+        num_fiche: numFicheController.text,
+        marche: marcheController.text,
+        collecteur: collecteurController.text,
+        date_enquete: dateEnquete,
+      );
+            Provider.of<EnqueteService>(context, listen: false).applyChange();
+           List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteCollecteList = nouvelleListe;
+  });
+   numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
+            Navigator.of(context).pop();
+          
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("erreur m: " + errorMessage);
+}
+
                                 }
                         },
                           style: ElevatedButton.styleFrom(
@@ -434,6 +435,12 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                   Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: TextField(
+                onChanged: (value) {
+                setState(() {
+                  // Mettre à jour l'état à chaque saisie
+                });
+              },
+                  controller:_searchController,
                 decoration: InputDecoration(
                    contentPadding: EdgeInsets.all(10),
                   hintText: "recherche .............",
@@ -452,87 +459,97 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
             ),
     
               Expanded(
-              child: isLoading ? buildShimmerListCorE() :  ListView.builder(
-                itemCount: enqueteCollecteList.length, // Par exemple, 3 fiches pour l'instant
-                itemBuilder: (context, index) {
-                   String searchText = _searchController.text.toLowerCase();
-        // Filter the original list and store the filtered results in a new variable
-        List<EnqueteCollecte> filteredList = enqueteCollecteList.where((enquete) => enquete.num_fiche!.toLowerCase().contains(searchText)).toList();
-    
-                          // Si aucun résultat trouvé
-        if (filteredList.isEmpty) {
-          return const Center(
-            child: Text('Aucun résultat trouvé'),
-          );
-        }
-                  final enquete = filteredList[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'N° fiche: ${enquete.num_fiche!}',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
-                          ),
-                          SizedBox(height: 5),
-                          Text('Marché enquête: ${enquete.marche!}' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          // SizedBox(height: 5),
-                         
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: isLoading ? buildShimmerListCorE() : 
+                
+                  Builder(
+                builder: (context) {
+                  String searchText = _searchController.text.toLowerCase();
+
+                  // Filtrer la liste des enquetes en fonction du texte recherché
+                  List<EnqueteCollecte> filteredList = enqueteCollecteList
+                      .where((enquete) => enquete.num_fiche!.toLowerCase().contains(searchText))
+                      .toList();
+
+                  // Afficher un message si aucun résultat n'est trouvé
+                  if (filteredList.isEmpty) {
+                    return const Center(
+                      child: Text('Aucun résultat trouvé'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
+                    itemBuilder: (context, index) {
+                      
+                      final enquete = filteredList[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-    
-                          Text('Date Enquête: le ${enquete.date_enquete}' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          // Bouton avec trois points
-                          PopupMenuButton<String>(
-                            iconColor:vert,
-                            onSelected: (String result) {
-                              if (result == 'modifier') {
-                                // Action pour modifier
-                                 _openDialog(true,enqueteCollecte:enquete);
-                                print('Modifier sélectionné');
-                              } else if (result == 'detail') {
-                                // Action pour détail
-                                Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
-                                print('Détail sélectionné');
-                              } else if (result == 'supprimer') {
-                                // Action pour supprimer
-                                EnqueteService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
-      // Update the original list used by ListView.builder
-      setState(() {
-        enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
-      });
-    });
-                                print('Supprimer sélectionné');
-                              }
-                            },
-                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'modifier',
-                                child: Text('Modifier'),
+                              Text(
+                                'N° fiche: ${enquete.num_fiche!}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'detail',
-                                child: Text('Détail'),
+                              SizedBox(height: 5),
+                              Text('Marché enquête: ${enquete.marche!}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // SizedBox(height: 5),
+                             
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                      
+                              Text('Date Enquête: le ${enquete.date_enquete}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // Bouton avec trois points
+                              PopupMenuButton<String>(
+                                iconColor:vert,
+                                onSelected: (String result) {
+                                  if (result == 'modifier') {
+                                    // Action pour modifier
+                                     _openDialog(true,enqueteCollecte:enquete);
+                                    print('Modifier sélectionné');
+                                  } else if (result == 'detail') {
+                                    // Action pour détail
+                                    Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
+                                    print('Détail sélectionné');
+                                  } else if (result == 'supprimer') {
+                                    // Action pour supprimer
+                                    EnqueteService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
+                        // Update the original list used by ListView.builder
+                        setState(() {
+                          enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                        });
+                      });
+                                    print('Supprimer sélectionné');
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'modifier',
+                                    child: Text('Modifier'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'detail',
+                                    child: Text('Détail'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'supprimer',
+                                    child: Text('Supprimer'),
+                                  ),
+                                ],
                               ),
-                              PopupMenuItem<String>(
-                                value: 'supprimer',
-                                child: Text('Supprimer'),
+                                ],
                               ),
                             ],
                           ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
-                },
+                }
               ),
             ),
               

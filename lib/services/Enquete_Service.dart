@@ -150,31 +150,39 @@ class EnqueteService extends ChangeNotifier {
   }
 
   Future<void> updateEnqueteCollecte({
-      required int id_enquete,
-      required String num_fiche,
-      required String marche,
-      required String collecteur,
-      required DateTime date_enquete,
-      }) async {
-          String formattedDate = DateFormat('yyyy-MM-dd').format(date_enquete);
+  required int id_enquete,
+  required String num_fiche,
+  required String marche,
+  required String collecteur,
+  required DateTime date_enquete,
+}) async {
+  // Formatter la date correctement
+  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enquete);
 
-    var updateEnqueteCollecte = jsonEncode({
-      'id_enquete': id_enquete,
-      'num_fiche': num_fiche,
-      'collecteur': collecteur,
-      'marche': marche,
-      'date_enquete': formattedDate,
-    });
+  // Créer le JSON pour l'update
+  var updateEnqueteCollecte = jsonEncode({
+    'id_enquete': id_enquete,
+    'num_fiche': num_fiche,
+    'collecteur': collecteur,
+    'marche': marche,
+    'date_enquete': formattedDate,
+  });
 
-    final response = await http.put(Uri.parse("$apiUrl/$baseUrl/update/{$id_enquete}/"),
-        headers: {'Content-Type': 'application/json'}, body: updateEnqueteCollecte);
-    print(updateEnqueteCollecte.toString());
-    if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
-      print(response.body);
-    } else {
-      throw Exception("Une erreur s'est produite lors de la modification d'enquete collecte' : ${response.statusCode}");
-    }
+  // Vérifier le JSON avant de l'envoyer
+  print(updateEnqueteCollecte.toString());
+
+  // Mettre à jour l'URL sans accolades autour de l'id_enquete
+  final response = await http.put(Uri.parse("$apiUrl/$baseUrl/update/$id_enquete/"),
+      headers: {'Content-Type': 'application/json'}, body: updateEnqueteCollecte);
+
+  // Vérifier le statut de la réponse
+  if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+    print("update enquete collecte " + response.body);
+  } else {
+    throw Exception("Une erreur s'est produite lors de la modification d'enquete collecte' : ${response.statusCode}");
   }
+}
+
 
   Future<void> updateEnqueteGrossiste({
       required int id_enquete,
@@ -191,7 +199,7 @@ class EnqueteService extends ChangeNotifier {
       'date_enquete': date_enquete,
     });
 
-    final response = await http.put(Uri.parse("$apiUrl/$baseUrlG/update/{$id_enquete}/"),
+    final response = await http.put(Uri.parse("$apiUrl/$baseUrlG/update/$id_enquete/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteGrossiste);
     print(updateEnqueteGrossiste.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
@@ -216,7 +224,7 @@ class EnqueteService extends ChangeNotifier {
       'date_enquete': date_enquete,
     });
 
-    final response = await http.put(Uri.parse("$apiUrl/$baseUrlC/update/{$id_enquete}/"),
+    final response = await http.put(Uri.parse("$apiUrl/$baseUrlC/update/$id_enquete/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteConsommation);
     print(updateEnqueteConsommation.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
