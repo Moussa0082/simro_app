@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/splash.dart';
+import 'package:simro/services/Enquete_Service.dart';
 
 
 void main() async{
@@ -12,6 +13,8 @@ void main() async{
   runApp(
    MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => EnqueteurProvider()),
+    ChangeNotifierProvider(create: (_) => EnqueteService()),
+
   ], child: const MyApp())
   );
 }
@@ -28,7 +31,7 @@ class _MyAppState extends State<MyApp> {
     @override
   void initState() {
     super.initState();
-    // requestPermissions(); // Demander les permissions dès l'init
+    requestPermissions(); // Demander les permissions dès l'init
   }
 
   // Demande de permissions pour la caméra, la galerie et d'autres services si nécessaire
@@ -50,6 +53,11 @@ Future<void> requestPermissions() async {
     print('Toutes les permissions ont été accordées');
   } else {
     // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
+    _showDialog();
+  }
+}
+
+  void _showDialog(){
     if(context.mounted){
 
      showDialog(
@@ -80,7 +88,6 @@ Future<void> requestPermissions() async {
     );
     }
   }
-}
 
 void _retryPermissions(BuildContext context) async {
   // Redemander les permissions une deuxième fois

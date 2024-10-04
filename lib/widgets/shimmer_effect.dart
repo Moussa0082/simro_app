@@ -21,117 +21,115 @@ import 'package:shimmer/shimmer.dart';
 //  Crad public home shimmer 
  // Widget pour représenter une carte shimmer
   Widget buildShimmerCardPublicHomme() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Card(
-      elevation: 4.0,
-      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Shimmer effect for product image
-                Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: 80,
+return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image shimmer
+                  Container(
                     height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12.0),
-                // Shimmer effect for text details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          width: double.infinity,
-                          height: 20.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 8.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildShimmerPriceBox(),
-                          _buildShimmerPriceBox(),
-                          _buildShimmerPriceBox(),
-                        ],
-                      ),
-                      SizedBox(height: 8.0),
-                      Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          width: 100.0,
-                          height: 15.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.0),
-            // Shimmer effect for bottom text
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: 150.0,
-                    height: 20.0,
-                    color: Colors.white
-                  ),
-                ),
-                Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: 120.0,
-                    height: 15.0,
+                    width: 80,
+                    margin: EdgeInsets.all(10),
                     color: Colors.white,
                   ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Price header shimmer
+                          Container(
+                            height: 20,
+                            width: 150,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 10),
+                          // Price row shimmer
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Container(
+                                height: 20,
+                                width: 50,
+                                color: Colors.white,
+                              ),
+                              Container(
+                                height: 20,
+                                width: 50,
+                                color: Colors.white,
+                              ),
+                              Container(
+                                height: 20,
+                                width: 50,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          // Date shimmer
+                          Container(
+                            height: 20,
+                            width: 120,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product name shimmer
+                    Container(
+                      height: 20,
+                      width: 200,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 5),
+                    // Market count shimmer
+                    Container(
+                      height: 20,
+                      width: 180,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 10),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
-    )
     );
   }
 
-  Widget _buildShimmerPriceBox() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        width: 50.0,
-        height: 20.0,
-        color: Colors.grey[300],
-      ),
-    );
-  }
+
 
 
 // end 

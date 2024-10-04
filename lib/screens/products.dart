@@ -33,7 +33,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
      ProduitService().fetchProduit().then((produits) {
     setState(() {
       produitList = produits;  // Assigner les produits récupérés à la liste locale
+      // Future.delayed(const Duration(seconds: 5), () {
       isLoading = false;  // Désactiver le chargement
+// });
     });
   });
 

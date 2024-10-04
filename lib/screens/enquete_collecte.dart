@@ -11,10 +11,13 @@ import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Marche.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/detail_enquete.dart';
 import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 import 'detail_marche.dart';
@@ -39,6 +42,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     TextEditingController collecteurController = TextEditingController();
     TextEditingController dateEnqueteController = TextEditingController();
     bool isLoading =true;
+    bool isLoading1 =false;
     late Marche marche;
     late Future _marcheList;
     late Collecteur collecteur;
@@ -47,7 +51,6 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     // Controller pour gérer la date sélectionnée
     TextEditingController dateController = TextEditingController();
 
-   // Méthode pour afficher le DatePicker
   Future<void> _selectDate(BuildContext context) async {
   DateTime currentDate = DateTime.now();
   DateTime? picked = await showDatePicker(
@@ -67,11 +70,31 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
   );
 
   if (picked != null && picked != currentDate) {
-    // Si une date a été sélectionnée, l'afficher dans le TextFormField
-    dateController.text = "${picked.day}/${picked.month}/${picked.year}";
+    // Si une date a été sélectionnée, formater le mois et le jour avec deux chiffres
+    String formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+
+    // Afficher la date formatée dans le TextFormField
+    dateController.text = formattedDate;
   }
 }
 
+ Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
+  try {
+    // Appel du service pour récupérer les données d'enquêtes
+    List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte();
+    
+    // Mettre à jour la liste locale avec les nouvelles données
+    enqueteCollecteList = fetchedList;
+    
+    // Retourner la liste mise à jour
+    return enqueteCollecteList;
+  } catch (e) {
+    print("Erreur lors de la récupération des enquêtes : $e");
+    return [];
+  }
+}
+
+ 
  @override
   void initState() {
     super.initState();
@@ -89,8 +112,14 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
   });
   }
 
-   Future<void> _openDialog() async {
-
+   Future<void> _openDialog(bool isEditMode,{EnqueteCollecte? enqueteCollecte}) async {
+  if(isEditMode){
+  numFicheController.text = enqueteCollecte!.num_fiche!;
+  marcheController.text = enqueteCollecte.marche!;
+  collecteurController.text = enqueteCollecte.collecteur!;
+  dateController.text = enqueteCollecte.date_enquete!;
+  }
+ final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
   showModalBottomSheet(
     isScrollControlled: true,
     context: context,
@@ -119,11 +148,11 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                   ),
                   
                   // Title of the form
-                  const Center(
+                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 20),
                       child: Text(
-                        "Ajout d'enquête de collecte",
+                       !isEditMode ? "Ajout d'enquête de collecte" : "Modifier d'enquête de collecte",
                           maxLines:1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -181,7 +210,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                       decoration: InputDecoration(
                         suffixIcon: Icon(Icons.arrow_drop_down,
                             color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un marché",
+                        hintText: "Sélectionner un marché" ,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                         border: OutlineInputBorder(
@@ -236,7 +265,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                         decoration: InputDecoration(
                           suffixIcon: Icon(Icons.calendar_today,
                               color: Colors.blueGrey[400]),
-                          hintText: "Sélectionner une date",
+                          hintText:  "Sélectionner une date",
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 10, horizontal: 20),
                           border: OutlineInputBorder(
@@ -251,39 +280,86 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (formkey.currentState!.validate()) {
-                            try {
+                          if (formkey.currentState!.validate() && !isEditMode) {
+                          //   print("valid");
+                          try {
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnqueteCollecte(
+    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: numFicheController.text,
+    marche: marche.id_marche!.toString(),
+    collecteur: collecteur.id!.toString(),
+    date_enquete: dateEnquete,
+  );
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteCollecteList = nouvelleListe;
+  });
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+
+                          }else if(formkey.currentState!.validate() && isEditMode) {
+                            
+                             try {
+                               // Convertir la date de String à DateTime
+      DateTime dateEnquete = DateTime.parse(dateController.text);
                               await EnqueteService()
-                                  .addEnqueteCollecte(
+                                  .updateEnqueteCollecte(
+                                    // id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+                                    id_enquete:enqueteCollecte!.id_enquete!,
                                     num_fiche:numFicheController.text, 
                                     marche:marcheController.text, 
                                     collecteur:collecteurController.text,
-                                    date_enquete: dateController.text, 
+                                    date_enquete: dateEnquete, 
                                       )
                                   .then((value) => {
                                         Provider.of<EnqueteService>(context,
                                                 listen: false)
                                             .applyChange(),
-                                        dateController.clear(),
-                                        marcheController.clear(),
-                                        numFicheController.clear(),
-                                        collecteurController.clear(),
+                                            setState(() {
+                                              isLoading1 = false;
+                                            }),
+                                        // dateController.clear(),
+                                        // marcheController.clear(),
+                                        // numFicheController.clear(),
+                                        // collecteurController.clear(),
                                         Navigator.of(context).pop()
                                       });
                             } catch (e) {
                               final String errorMessage = e.toString();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Text("Une erreur s'est produit"),
-                                    ],
-                                  ),
-                                  duration: const Duration(seconds: 5),
-                                ),
-                              );
+                              print("erreur m: " + errorMessage);
+                              // Snack.error(titre:"erreur", message:errorMessage);
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   SnackBar(
+                              //     content: Row(
+                              //       children: [
+                              //         Text(errorMessage),
+                              //       ],
+                              //     ),
+                              //     duration: const Duration(seconds: 5),
+                              //   ),
+                              // );
                             }
-                          }
+                                }
                         },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code
@@ -293,7 +369,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                             minimumSize: const Size(310, 45),
                           ),
                           child: Text(
-                            "Enregistrer",
+                           !isEditMode ? "Enregistrer" : "Modifier",
                             style: TextStyle(
                               fontSize: 20,
                               color: Colors.white,
@@ -330,7 +406,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                             iconColor:blanc,
                             onSelected: (String result) {
                               if (result == 'ajouter') {
-                              _openDialog();
+                              _openDialog(false);
                               }
                                  if (result == 'synchroniser') {
                                showSyncDialog(context);
@@ -348,7 +424,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                             ],
                           ),
               ],
-
+    
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -374,12 +450,22 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
               'Liste des enquête de collecte',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
+    
               Expanded(
               child: isLoading ? buildShimmerListCorE() :  ListView.builder(
                 itemCount: enqueteCollecteList.length, // Par exemple, 3 fiches pour l'instant
                 itemBuilder: (context, index) {
-                  final enquete = enqueteCollecteList[index];
+                   String searchText = _searchController.text.toLowerCase();
+        // Filter the original list and store the filtered results in a new variable
+        List<EnqueteCollecte> filteredList = enqueteCollecteList.where((enquete) => enquete.num_fiche!.toLowerCase().contains(searchText)).toList();
+    
+                          // Si aucun résultat trouvé
+        if (filteredList.isEmpty) {
+          return const Center(
+            child: Text('Aucun résultat trouvé'),
+          );
+        }
+                  final enquete = filteredList[index];
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: Padding(
@@ -399,7 +485,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-
+    
                           Text('Date Enquête: le ${enquete.date_enquete}' ,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                           // Bouton avec trois points
@@ -408,6 +494,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                             onSelected: (String result) {
                               if (result == 'modifier') {
                                 // Action pour modifier
+                                 _openDialog(true,enqueteCollecte:enquete);
                                 print('Modifier sélectionné');
                               } else if (result == 'detail') {
                                 // Action pour détail
@@ -415,6 +502,12 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                                 print('Détail sélectionné');
                               } else if (result == 'supprimer') {
                                 // Action pour supprimer
+                                EnqueteService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
+      // Update the original list used by ListView.builder
+      setState(() {
+        enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+      });
+    });
                                 print('Supprimer sélectionné');
                               }
                             },

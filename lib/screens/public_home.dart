@@ -37,7 +37,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // int _currentIndex = 0;
    bool isLoading = true;
     List<Produit> produitList = [];
-      int selectedCategoryIndex = 0;
+      int? selectedCategoryIndex ;
      List<CategorieProduit> categorieList = [];
 
 
@@ -302,41 +302,40 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-   Widget categoryItem(String categoryName, int index) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedCategoryIndex = index;
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              categoryName,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: selectedCategoryIndex == index
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-              ),
+  Widget categoryItem(String categoryName, int index) {
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        selectedCategoryIndex = index; // Met à jour lorsque l'utilisateur sélectionne
+      });
+    },
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            categoryName,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: selectedCategoryIndex == index
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
-            SizedBox(height: 4.0),
-            selectedCategoryIndex == index
-                ? Container(
-                    height: 2.0,
-                    width: 20.0,
-                    color: Colors.white,
-                  )
-                : Container(), // The white underline if selected
-          ],
-        ),
+          ),
+          SizedBox(height: 4.0), // Espace entre le texte et le trait
+          if (selectedCategoryIndex == index)
+            Container(
+              height: 2.0,
+              width: double.infinity, // Occupe toute la largeur disponible
+              color: Colors.white, // Couleur du trait
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
 
   Widget _buildPriceInfo(String label, int price) {

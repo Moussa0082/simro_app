@@ -1,13 +1,16 @@
 
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart'; // Assure-toi d'importer intl
 import 'package:http/http.dart' as http;
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/models/Categorie_Produit.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/screens/home.dart';
+import 'package:simro/widgets/Snackbar.dart';
 
 class EnqueteService extends ChangeNotifier {
   final String baseUrl = "enquete-collecte";
@@ -53,28 +56,50 @@ class EnqueteService extends ChangeNotifier {
   }
 
 
-  Future<void> addEnqueteCollecte({
-      required String num_fiche,
-      required String marche,
-      required String collecteur,
-      required String date_enquete,
-      }) async {
-    var addEnqueteCollecte = jsonEncode({
-      'id_enquete': null,
-      'num_fiche': num_fiche,
-      'collecteur': collecteur,
-      'date_enquete': date_enquete,
-    });
+ Future<void> addEnqueteCollecte({
+  required String num_fiche,
+  required String marche,
+  required String collecteur,
+  required DateTime date_enquete,  // Utilisation de DateTime
+  required String id_personnel,
+}) async {
+  // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
+  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enquete);
+  // String formattedDate = DateTime.parse(json['date_enquete']);
 
-    final response = await http.post(Uri.parse("$apiUrl/$baseUrl/create"),
-        headers: {'Content-Type': 'application/json'}, body: addEnqueteCollecte);
-    print(addEnqueteCollecte.toString());
+
+  var addEnqueteCollecte = jsonEncode({
+    'id_personnel': id_personnel,
+    'num_fiche': num_fiche,
+    'collecteur': collecteur,
+    'marche': marche,
+    'date_enquete': formattedDate,  // Envoyer la date formatée
+  });
+
+  try {
+    final response = await http.post(
+      Uri.parse("$apiUrl/$baseUrl/create/"),
+      headers: {'Content-Type': 'application/json'},
+      body: addEnqueteCollecte,
+    );
+
+    print('Request Body: ${addEnqueteCollecte.toString()}');
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
-      print(response.body);
+      print("Objet enquete collecte envoyé avec succès");
     } else {
-      throw Exception("Une erreur s'est produite lors de l'ajout denquete collecte' : ${response.statusCode}");
+      Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
+      throw Exception("Erreur: ${response.body}");
     }
+  } catch (e) {
+      Snack.error(titre: "Erreur catch", message: "une erreur s'est produite veuillez réessayer plus tard");
+    print('Erreur lors de l\'ajout: $e');
   }
+}
+
+
 
   Future<void> addEnqueteConsommation({
       required String num_fiche,
@@ -86,6 +111,7 @@ class EnqueteService extends ChangeNotifier {
       'id_enquete': null,
       'num_fiche': num_fiche,
       'collecteur': collecteur,
+      'marche': marche,
       'date_enquete': date_enquete,
     });
 
@@ -109,6 +135,7 @@ class EnqueteService extends ChangeNotifier {
       'id_enquete': null,
       'num_fiche': num_fiche,
       'collecteur': collecteur,
+      'marche': marche,
       'date_enquete': date_enquete,
     });
 
@@ -127,16 +154,19 @@ class EnqueteService extends ChangeNotifier {
       required String num_fiche,
       required String marche,
       required String collecteur,
-      required String date_enquete,
+      required DateTime date_enquete,
       }) async {
+          String formattedDate = DateFormat('yyyy-MM-dd').format(date_enquete);
+
     var updateEnqueteCollecte = jsonEncode({
       'id_enquete': id_enquete,
       'num_fiche': num_fiche,
       'collecteur': collecteur,
-      'date_enquete': date_enquete,
+      'marche': marche,
+      'date_enquete': formattedDate,
     });
 
-    final response = await http.post(Uri.parse("$apiUrl/$baseUrl/update/{$id_enquete}"),
+    final response = await http.put(Uri.parse("$apiUrl/$baseUrl/update/{$id_enquete}/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteCollecte);
     print(updateEnqueteCollecte.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
@@ -157,10 +187,11 @@ class EnqueteService extends ChangeNotifier {
       'id_enquete': id_enquete,
       'num_fiche': num_fiche,
       'collecteur': collecteur,
+      'marche': marche,
       'date_enquete': date_enquete,
     });
 
-    final response = await http.post(Uri.parse("$apiUrl/$baseUrlG/update/{$id_enquete}"),
+    final response = await http.put(Uri.parse("$apiUrl/$baseUrlG/update/{$id_enquete}/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteGrossiste);
     print(updateEnqueteGrossiste.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
@@ -181,10 +212,11 @@ class EnqueteService extends ChangeNotifier {
       'id_enquete': id_enquete,
       'num_fiche': num_fiche,
       'collecteur': collecteur,
+      'marche': marche,
       'date_enquete': date_enquete,
     });
 
-    final response = await http.post(Uri.parse("$apiUrl/$baseUrlC/update/{$id_enquete}"),
+    final response = await http.put(Uri.parse("$apiUrl/$baseUrlC/update/{$id_enquete}/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteConsommation);
     print(updateEnqueteConsommation.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
@@ -195,18 +227,31 @@ class EnqueteService extends ChangeNotifier {
   }
 
 
-   Future deleteEnqueteCollecte(String id_enquete) async {
-    final response = await http.delete(Uri.parse('$apiUrl/$baseUrl/delete/$id_enquete'));
+   Future<void> deleteEnqueteCollecte(int id) async {
+    try {
+    final response = await http.delete(Uri.parse('$apiUrl/$baseUrl/delete/$id/'));
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       applyChange();
     } else {
-      print("Échec de la requête lors de la suppression d'enquete collecte avec le code d\'état: ${response.statusCode}");
-      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))["message"]);
+      // Vérifiez si le corps de la réponse n'est pas vide avant de le décoder
+      if (response.body.isNotEmpty) {
+        final decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        throw Exception(decodedResponse["message"]);
+      } else {
+        print("Échec de la requête lors de la suppression d'enquete collecte avec le code d'état: ${response.statusCode}");
+        throw Exception("Erreur lors de la suppression, aucune réponse du serveur.");
+      }
     }
+  } catch (e) {
+    print("Erreur : $e");
+    throw Exception("Une erreur s'est produite lors de la suppression.");
   }
+}
+
+   
    Future deleteEnqueteGrossiste(String id_enquete) async {
-    final response = await http.delete(Uri.parse('$apiUrl/$baseUrlG/delete/$id_enquete'));
+    final response = await http.delete(Uri.parse('$apiUrl/$baseUrlG/delete/$id_enquete/'));
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       applyChange();
@@ -215,8 +260,9 @@ class EnqueteService extends ChangeNotifier {
       throw Exception(jsonDecode(utf8.decode(response.bodyBytes))["message"]);
     }
   }
+
    Future deleteEnqueteConsommation(String id_enquete) async {
-    final response = await http.delete(Uri.parse('$apiUrl/$baseUrlC/delete/$id_enquete'));
+    final response = await http.delete(Uri.parse('$apiUrl/$baseUrlC/delete/$id_enquete/'));
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       applyChange();

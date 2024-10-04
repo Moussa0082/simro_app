@@ -134,13 +134,13 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
   });
 },
 
-                centerBottomWidget: IconButton(
-                  icon: const Icon(
-                    Icons.fingerprint,
-                    size: 40,
-                  ),
-                  onPressed: () {},
-                ),
+                // centerBottomWidget: IconButton(
+                //   icon: const Icon(
+                //     Icons.fingerprint,
+                //     size: 40,
+                //   ),
+                //   onPressed: () {},
+                // ),
               ),
             ),
           ],

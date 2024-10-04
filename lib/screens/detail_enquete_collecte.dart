@@ -34,7 +34,7 @@ class _DetailEnqueteCollecteScreenState extends State<DetailEnqueteCollecteScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDetailRow("Nom Marché:", widget.enqueteCollecte!.marche!),
+              buildDetailRow("Marché:", widget.enqueteCollecte!.marche!),
               Divider(thickness: 1),
               buildDetailRow("N° Fiche :",  widget.enqueteCollecte!.num_fiche!),
               Divider(thickness: 1),

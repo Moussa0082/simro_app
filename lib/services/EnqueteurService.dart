@@ -10,45 +10,57 @@ class EnqueteurService extends ChangeNotifier{
   final String baseUrl = "enqueteur";
 
 
-  Future<Map<String, dynamic>> loginWithPin(String pin) async {
+Future<Map<String, dynamic>> loginWithPin(String pin) async {
   final String url = '$apiUrl/$baseUrl/login/';
   print('URL de la requête: $url');
 
-  final response = await http.post(
-    Uri.parse(url),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: json.encode({'code': pin}),
-  );
-
-  // Gérer le statut de la réponse
-    print( "code par url " + pin);
-  if (response.statusCode == 200) {
-    return json.decode(response.body);
-  } else if (response.statusCode == 307) {
-    // Obtenir l'URL de redirection
-    final redirectUrl = response.headers['location'];
-    print('Redirection vers: $redirectUrl');
-
-    // Effectuer une nouvelle requête vers l'URL de redirection
-    final redirectResponse = await http.post(
-      Uri.parse(redirectUrl!),
+  try {
+    final response = await http.post(
+      Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
       },
       body: json.encode({'code': pin}),
     );
 
-    if (redirectResponse.statusCode == 200) {
-      return json.decode(redirectResponse.body);
+    // Gérer le statut de la réponse
+    print("Code par URL: $pin");
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else if (response.statusCode == 307) {
+      // Obtenir l'URL de redirection
+      final redirectUrl = response.headers['location'];
+      print('Redirection vers: $redirectUrl');
+
+      // Effectuer une nouvelle requête vers l'URL de redirection
+      final redirectResponse = await http.post(
+        Uri.parse(redirectUrl!),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'code': pin}),
+      );
+
+      if (redirectResponse.statusCode == 200) {
+        return json.decode(redirectResponse.body);
+      } else {
+        // Gestion de l'erreur pour la redirection
+        print('Échec de la connexion après redirection: ${redirectResponse.body}');
+        throw Exception('Échec de la connexion: ${redirectResponse.body}, code: ${redirectResponse.statusCode}');
+      }
     } else {
-      throw Exception('Échec de la connexion: ${redirectResponse.body}, code: ${redirectResponse.statusCode}');
+      // Gestion de l'erreur pour la première requête
+      print('Échec de la connexion: ${response.body}');
+      throw Exception('Échec de la connexion: ${response.body}, code: ${response.statusCode}');
     }
-  } else {
-    throw Exception('Échec de la connexion: ${response.body}, code: ${response.statusCode}');
+  } catch (e) {
+    // Gestion des exceptions
+    print('Erreur lors de la tentative de connexion: $e');
+    // Vous pouvez choisir de retourner un message d'erreur ou un objet vide
+    return Future.error('Une erreur s\'est produite lors de la connexion: $e');
   }
-  }
+}
+
 
    void applyChange() {
     notifyListeners();

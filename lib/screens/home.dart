@@ -185,13 +185,12 @@ class _HomeScreenState extends State<HomeScreen> {
                crossAxisCount: 3, // 3 colonnes
                crossAxisSpacing: 10,
                mainAxisSpacing: 10,
+               shrinkWrap: true,
+               physics: NeverScrollableScrollPhysics(), // Désactive le scroll du GridView
                children: [
                  buildGridItem(Icons.bar_chart, 'Enquête de collecte', EnqueteCollecteScreen()),
                  buildGridItem(Icons.attach_money, 'Enquête de consommation', EnqueteConsommationScreen()),
                  buildGridItem(Icons.people, 'Enquête grossiste',EnqueteGrossisteScreen()),
-
-          
-             
                  buildGridItem(Icons.attach_money, 'Prix Marché Consommation', PrixMarcheConsommationScreen()),
                  buildGridItem(Icons.bar_chart, 'Prix Marché Collecte', PrixMarcheCollecteScreen()),
                  buildGridItem(Icons.people, 'Prix Marché Grossiste', PrixMarcheGrossisteScreen()),
@@ -219,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Icon(Icons.storage_outlined, color: vert,),
                               ),
                               ),
-                  const SizedBox(height:5),
+                  // const SizedBox(height:5),
                   Row(
                     mainAxisAlignment:MainAxisAlignment.spaceBetween,
                     children: [

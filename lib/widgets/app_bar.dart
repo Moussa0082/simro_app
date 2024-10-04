@@ -33,8 +33,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
                               cornerRadius: 50,
                               color: Colors.black,
                               image: const AssetImage('assets/images/profil.jpg'),
-                            )
-                , // Icône de profil
+                            ), // Icône de profil
                 SizedBox(width: 10), // Espacement entre l'icône et le texte
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
