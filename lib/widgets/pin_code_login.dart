@@ -119,7 +119,7 @@ class _PinCodeLoginScreenState extends State<PinCodeLoginScreen> {
   );
 
   // Après la future, faire les actions nécessaires avec 'result'
-  if (result != null) {
+  if (result.containsKey("access_token")) {
     // Redirection vers la page HomeScreen
     Get.offAll(
       const HomeScreen(),

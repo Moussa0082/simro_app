@@ -140,6 +140,11 @@ void _showPermissionDeniedDialog(BuildContext context) {
       builder: (_ , child) {
     
      return  GetMaterialApp(
+      // initialRoute: '/splash', // Ou votre route initiale
+      // getPages: [
+      //   GetPage(name: '/splash', page: () => SplashScreen()),
+        // Ajoutez d'autres pages ici
+      // ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
        
