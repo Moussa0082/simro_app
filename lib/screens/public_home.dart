@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/models/Categorie_Produit.dart';
 import 'package:simro/models/Produit.dart';
+import 'package:simro/models/Produit_Info.dart';
+import 'package:simro/models/Produit_With_Price.dart';
 import 'package:simro/screens/detail_product.dart';
 import 'package:simro/screens/enquete_collecte.dart';
 import 'package:simro/screens/enquete_consommation.dart';
@@ -15,6 +17,7 @@ import 'package:simro/screens/prix_marche_consommation.dart';
 import 'package:simro/screens/prix_marche_grossiste.dart';
 import 'package:simro/screens/products.dart';
 import 'package:simro/services/Categorie_Produit_Service.dart';
+import 'package:simro/services/Prix_Marche_Service.dart';
 import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/pin_code.dart';
 import 'package:simro/widgets/pin_code_login.dart';
@@ -36,28 +39,58 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   ];
   // int _currentIndex = 0;
    bool isLoading = true;
-    List<Produit> produitList = [];
+    // List<Produit> produitList = [];
       int? selectedCategoryIndex ;
      List<CategorieProduit> categorieList = [];
 
+  List<ProduitAvecPrix> produitList = [];
+
+ Future<void> loadData() async {
+  List<Produit> produits = await ProduitService().fetchProduit();
+  List<PrixInfo> prixProduits = await PrixMarcheService().fetchPrixInfo();
+
+  setState(() {
+    produitList = produits.map((produit) {
+      // Trouver les prix correspondants au produit
+      PrixInfo? prixAssocie = prixProduits.firstWhere(
+        (prix) => prix.produit == produit.nom_produit,
+        orElse: () => PrixInfo(prix_min: 0, prix_max: 0, prix_moy: 0),
+      );
+
+      // Retourne un ProduitAvecPrix
+      return ProduitAvecPrix(
+        produit: produit,
+        prixInfo: prixAssocie,
+      );
+    }).toList();
+  });
+}
+
+  
 
 
 
-    Future<void> fetchProduit() async {
-    try {
-      final produits = await ProduitService().fetchProduit(); // Assurez-vous que cette méthode retourne bien une liste de produits
-      setState(() {
-        produitList = produits;
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Erreur de récupération des produits : $e');
-    }
+  //   Future<void> fetchProduit() async {
+  //   try {
+  //     final produits = await ProduitService().fetchProduit(); // Assurez-vous que cette méthode retourne bien une liste de produits
+  //     setState(() {
+  //       produitList = produits;
+  //       isLoading = false;
+  //     });
+  //   } catch (e) {
+  //     print('Erreur de récupération des produits : $e');
+  //   }
     
-  }
+  // }
+
+
    @override
   void initState() {
-    fetchProduit();
+    loadData().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+    });
     CategorieProduitService().fetchCategorie().then((value) => {
   setState(() {
       categorieList = value;
@@ -158,14 +191,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         Get.to(DetailProductScreen(produit: produit,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
       },
       child: buildPriceCard(
-        produit.nom_produit ?? 'Nom Indisponible',  // Vérification du nom produit
+        produit.produit.nom_produit ?? 'Nom Indisponible',  // Vérification du nom produit
         // "packagingType",   // Vérification du type de packaging
-        produit.image?.isNotEmpty == true ? produit.image! : '',  // Vérification de l'image
-        150,  // Prix statiques
-        215,  // Prix statiques
-        350,  // Prix statiques
-        produit.date_enregistrement ?? 'Date inconnue',  // Vérification de la date
-        6,  // Nombre de marchés statiques
+        produit.produit.image?.isNotEmpty == true ? produit.produit.image! : '',  // Vérification de l'image
+        produit.prixInfo.prix_min!.toInt(),  // Prix statiques
+        produit.prixInfo.prix_moy!.toInt(),  // Prix statiques
+        produit.prixInfo.prix_max!.toInt(),  // Prix statiques
+        produit.prixInfo.dernier_date ?? 'Date inconnue',  // Vérification de la date
+        produit.prixInfo.nb_marche ?? 0,  // Nombre de marchés statiques
       ),
     );
   },
@@ -194,7 +227,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             Row(

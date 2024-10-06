@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/models/Produit.dart';
+import 'package:simro/models/Produit_Info.dart';
+import 'package:simro/models/Produit_With_Price.dart';
 
 class DetailProductScreen extends StatefulWidget {
-  Produit? produit;
-   DetailProductScreen({super.key,  this.produit});
+  ProduitAvecPrix? produit;
+  Produit? produits;
+   DetailProductScreen({super.key,  this.produit, this.produits});
 
   @override
   State<DetailProductScreen> createState() => _DetailProductScreenState();
@@ -38,13 +41,13 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
           children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                             child: widget.produit != null && widget.produit!.image != null && 
-                             widget.produit!.image!.isNotEmpty ?
+                             child: widget.produit != null && widget.produit!.produit.image != null && 
+                             widget.produit!.produit.image!.isNotEmpty ?
                             SizedBox(
                                     height: 200,
                                     width: double.infinity, // Occupe toute la largeur
                                     child: Image.network(
-                                      widget.produit!.image!,
+                                      widget.produit!.produit.image!,
                                       fit: BoxFit.cover, // Permet de s'assurer que l'image couvre tout en respectant le ratio
                                     ),
                                   ):
@@ -62,21 +65,23 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  buildDetailRow("Nom Produit:", widget.produit!.nom_produit!),
-                  Divider(thickness: 1),
-                  buildDetailRow("Code Produit :" , widget.produit!.code_produit! ),
-                  Divider(thickness: 1),
-                  buildDetailRow("Date d'ajout :", widget.produit!.date_enregistrement!),
-                  // Divider(thickness: 1),
-                  // buildDetailRow("Etat :", widget.produit!.etat!),
-                  // Divider(thickness: 1),
-                  // buildDetailRow("Origine Produit :", widget.produit!.origine_produit!.toString()),
-                  // Divider(thickness: 1),
-                  // buildDetailRow("Famille produit :", widget.produit!.forme_produit!.toString()),
-                  Divider(thickness: 1),
-                  // buildDetailRow("Categorie :", widget.produit!.categorie_produit!.toString()),
-                  // Divider(thickness: 1),
-                  SizedBox(height: 20),
+                  buildDetailRow("Nom Produit:", widget.produit != null ? widget.produit!.produit.nom_produit! : widget.produits!.nom_produit! ?? "Inconnu"),
+                  const Divider(thickness: 1),
+                  buildDetailRow("Code Produit :" , widget.produit != null ? widget.produit!.produit.code_produit! : widget.produits!.code_produit! ?? "Inconnu"),
+                 const Divider(thickness: 1),
+                  buildDetailRow("Date d'ajout :", widget.produit != null ? widget.produit!.produit.date_enregistrement! : widget.produits!.date_enregistrement! ?? "Inconnu"),
+                 const Divider(thickness: 1),
+                  buildDetailRow("Prix Minimum :", widget.produit != null && widget.produit!.prixInfo.prix_min != null ? widget.produit!.prixInfo.prix_min.toString() : "0"),
+                  buildDetailRow("Prix Moyen :", widget.produit != null && widget.produit!.prixInfo.prix_moy != null ? widget.produit!.prixInfo.prix_moy.toString() : "0"),
+                  buildDetailRow("Prix Maximum :", widget.produit != null && widget.produit!.prixInfo.prix_max != null ? widget.produit!.prixInfo.prix_max.toString() : "0"),
+                 const Divider(thickness: 1),
+                  buildDetailRow("Origine Produit :", widget.produit != null && widget.produit!.produit.origine_produit != null ? widget.produit!.produit.origine_produit.toString() : widget.produits != null && widget.produits!.origine_produit != null ? widget.produits!.origine_produit.toString() : "Inconnu"),
+                const  Divider(thickness: 1),
+                  buildDetailRow("Famille produit :", widget.produit != null && widget.produit!.produit.famille_produit != null ? widget.produit!.produit.famille_produit.toString() : widget.produits != null && widget.produits!.famille_produit != null ? widget.produits!.famille_produit.toString() : "Inconnu"),
+                 const Divider(thickness: 1),
+                  buildDetailRow("Categorie :", widget.produit != null && widget.produit!.produit.categorie_produit != null ? widget.produit!.produit.categorie_produit.toString() : widget.produits != null && widget.produits!.categorie_produit != null ? widget.produits!.categorie_produit.toString() : "Inconnu"),
+                const  Divider(thickness: 1),
+                 const SizedBox(height: 20),
                   // Center(
                     // child: ElevatedButton(
                     //   onPressed: () {

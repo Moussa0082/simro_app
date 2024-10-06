@@ -6,8 +6,11 @@ import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Produit.dart';
+import 'package:simro/models/Produit_Info.dart';
+import 'package:simro/models/Produit_With_Price.dart';
 import 'package:simro/screens/add_product.dart';
 import 'package:simro/screens/detail_product.dart';
+import 'package:simro/services/Prix_Marche_Service.dart';
 import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -21,8 +24,28 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> {
  
  bool isLoading = true;
- List<Produit> produitList = [];
+  List<ProduitAvecPrix> produitList = [];
 
+  Future<void> loadData() async {
+  List<Produit> produits = await ProduitService().fetchProduit();
+  List<PrixInfo> prixProduits = await PrixMarcheService().fetchPrixInfo();
+
+  setState(() {
+    produitList = produits.map((produit) {
+      // Trouver les prix correspondants au produit
+      PrixInfo? prixAssocie = prixProduits.firstWhere(
+        (prix) => prix.produit == produit.nom_produit,
+        orElse: () => PrixInfo(prix_min: 0, prix_max: 0, prix_moy: 0),
+      );
+
+      // Retourne un ProduitAvecPrix
+      return ProduitAvecPrix(
+        produit: produit,
+        prixInfo: prixAssocie,
+      );
+    }).toList();
+  });
+}
 
 
   @override
@@ -30,14 +53,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     // TODO: implement initState
     super.initState();
       // Appel pour récupérer les produits au chargement de la page
-     ProduitService().fetchProduit().then((produits) {
-    setState(() {
-      produitList = produits;  // Assigner les produits récupérés à la liste locale
-      // Future.delayed(const Duration(seconds: 5), () {
-      isLoading = false;  // Désactiver le chargement
-// });
+    loadData().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
     });
-  });
 
   }
 
@@ -214,7 +234,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  Widget _buildProductCard(Produit produit) {
+  Widget _buildProductCard(ProduitAvecPrix produit) {
   return Card(
     // margin: EdgeInsets.all(2),
     elevation: 2.0,
@@ -228,9 +248,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ClipRRect(
           borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
           child:
-           produit.image != null && produit.image!.isNotEmpty
+           produit.produit.image != null && produit.produit.image!.isNotEmpty
               ? Image.network(
-                  produit.image!,
+                  produit.produit.image!,
                   height: 120,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -248,7 +268,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                produit.nom_produit ?? "Non defini",
+                produit.produit.nom_produit ?? "Non defini",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16, // Assurez-vous que la taille du texte est correcte
@@ -267,8 +287,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
               maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              Text('Origine: Siguiri'),
-              SizedBox(height: 4),
+            Text(
+                "Origine  ${produit.produit.origine_produit != null ? produit.produit.origine_produit.toString()  : "Inconnu"}",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16, // Assurez-vous que la taille du texte est correcte
+                ),
+                maxLines: 1, // Limiter à une ligne si nécessaire
+                overflow: TextOverflow.ellipsis, // Ajouter des points de suspension si le texte dépasse
+              ),
               
             ],
           ),
