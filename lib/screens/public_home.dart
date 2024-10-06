@@ -157,20 +157,39 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: shimmerEffectCatPubHome(),
           ) :
-          Container(
-              color: Colors.green[800],
-              width: double.infinity,
-              height: 50.0,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(
-                    categorieList.length,
-                    (index) => categoryItem(categorieList[index].nom_categorie_produit!, index),
-                  ),
-                ),
-              ),
-            ),
+          // Container(
+          //     color: Colors.green[800],
+          //     width: double.infinity,
+          //     height: 50.0,
+          //     child: SingleChildScrollView(
+          //       scrollDirection: Axis.horizontal,
+          //       child: Row(
+          //         children: List.generate(
+          //           categorieList.length,
+          //           (index) => categoryItem(categorieList[index].nom_categorie_produit!, index),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+         Container(
+  color: Colors.green[800],
+  width: MediaQuery.of(context).size.width,  // Occuper toute la largeur de l'écran
+  height: 50.0,
+  child: SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: List.generate(
+        categorieList.length,
+        (index) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1.0),
+          child: categoryItem(categorieList[index].nom_categorie_produit!, index),
+        ),
+      ),
+    ),
+  ),
+),
+
+
   
           // Corps de la page avec les cartes de prix
            Expanded(
@@ -262,20 +281,30 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        color: Colors.yellow,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Text(
-                            'Prix (Fcfa)',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
+                     Center(
+  child: Container(
+    width: double.infinity,
+    decoration: BoxDecoration(
+      color: Colors.yellow, // Définir la couleur ici
+      border: Border.all(color: Colors.yellow),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Center(
+        child: Text(
+          'Prix (Fcfa)',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    ),
+  ),
+),
+
                       SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -335,40 +364,68 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  Widget categoryItem(String categoryName, int index) {
+//   Widget categoryItem(String categoryName, int index) {
+//   return GestureDetector(
+//     onTap: () {
+//       setState(() {
+//         selectedCategoryIndex = index; // Met à jour lorsque l'utilisateur sélectionne
+//       });
+//     },
+//     child: Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 12.0),
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           Text(
+//             categoryName,
+//             style: TextStyle(
+//               color: Colors.white,
+//               fontSize: 18,
+//               fontWeight: selectedCategoryIndex == index
+//                   ? FontWeight.bold
+//                   : FontWeight.normal,
+//             ),
+//           ),
+//           SizedBox(height: 4.0), // Espace entre le texte et le trait
+//           if (selectedCategoryIndex == index)
+//             Container(
+//               height: 2.0,
+//               width: double.infinity, // Occupe toute la largeur disponible
+//               color: Colors.white, // Couleur du trait
+//             ),
+//         ],
+//       ),
+//     ),
+//   );
+// }
+
+ Widget categoryItem(String categoryName, int index) {
   return GestureDetector(
     onTap: () {
       setState(() {
-        selectedCategoryIndex = index; // Met à jour lorsque l'utilisateur sélectionne
+        print("nom" + categoryName);
+        selectedCategoryIndex = index;  // Supposons que tu utilises un index pour marquer la sélection
       });
     },
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            categoryName,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: selectedCategoryIndex == index
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-            ),
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      // decoration: BoxDecoration(
+      //   color: selectedCategoryIndex == index ? Colors.yellow : Colors.green[600],
+        // borderRadius: BorderRadius.circular(20.0),
+      // ),
+      child: Center(
+        child: Text(
+          categoryName,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 4.0), // Espace entre le texte et le trait
-          if (selectedCategoryIndex == index)
-            Container(
-              height: 2.0,
-              width: double.infinity, // Occupe toute la largeur disponible
-              color: Colors.white, // Couleur du trait
-            ),
-        ],
+        ),
       ),
     ),
   );
 }
+
 
 
   Widget _buildPriceInfo(String label, int price) {
