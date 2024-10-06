@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                physics: NeverScrollableScrollPhysics(), // Désactive le scroll du GridView
                children: [
                  buildGridItem(Icons.bar_chart, 'Enquête de collecte', EnqueteCollecteScreen()),
-                 buildGridItem(Icons.attach_money, 'Enquête de consommation', EnqueteConsommationScreen()),
+                 buildGridItem(Icons.attach_money, 'Enquête ', EnqueteScreen()),
                  buildGridItem(Icons.people, 'Enquête grossiste',EnqueteGrossisteScreen()),
                  buildGridItem(Icons.attach_money, 'Prix Marché Consommation', PrixMarcheConsommationScreen()),
                  buildGridItem(Icons.bar_chart, 'Prix Marché Collecte', PrixMarcheCollecteScreen()),

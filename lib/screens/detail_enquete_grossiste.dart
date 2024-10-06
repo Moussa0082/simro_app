@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Enquete_Grossiste.dart';
 
-class DetailEnqueteScreen extends StatefulWidget {
-  const DetailEnqueteScreen({super.key});
+class DetailEnqueteGrossisteScreen extends StatefulWidget {
+   EnqueteGrossiste? enqueteGrossiste;
+   DetailEnqueteGrossisteScreen({super.key, this.enqueteGrossiste});
 
   @override
-  State<DetailEnqueteScreen> createState() => _DetailEnqueteScreenState();
+  State<DetailEnqueteGrossisteScreen> createState() => _DetailEnqueteGrossisteScreenState();
 }
 
-class _DetailEnqueteScreenState extends State<DetailEnqueteScreen> {
+class _DetailEnqueteGrossisteScreenState extends State<DetailEnqueteGrossisteScreen> {
   
   
   
@@ -17,7 +19,7 @@ class _DetailEnqueteScreenState extends State<DetailEnqueteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Détails" ,style: TextStyle(color: blanc),),
+        title: Text("Détails enquete grossiste" ,style: TextStyle(color: blanc),),
         centerTitle: true,
         backgroundColor: vert,
                 leading: IconButton(
@@ -32,19 +34,13 @@ class _DetailEnqueteScreenState extends State<DetailEnqueteScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDetailRow("Nom :", "Marché Bamako"),
+              buildDetailRow("Marché :", widget.enqueteGrossiste!.marche!),
               Divider(thickness: 1),
-              buildDetailRow("N° Fiche :", "01"),
+              buildDetailRow("N° Fiche :", widget.enqueteGrossiste!.num_fiche!),
               Divider(thickness: 1),
-              buildDetailRow("Date Enquête :", "17/07/2024"),
+              buildDetailRow("Date Enquête :", widget.enqueteGrossiste!.date_enquete!),
               Divider(thickness: 1),
-              buildDetailRow("Type Enquête :", "Consommation"),
-              Divider(thickness: 1),
-              buildDetailRow("Total Collectes :", "54"),
-              Divider(thickness: 1),
-              buildDetailRow("Collectes Grossiste :", "12"),
-              Divider(thickness: 1),
-              buildDetailRow("Collectes Consommateur :", "42"),
+              buildDetailRow("Collecteur :", widget.enqueteGrossiste!.collecteur!),
               Divider(thickness: 1),
               buildDetailRow("Statut :", "Terminé"),
               Divider(thickness: 1),

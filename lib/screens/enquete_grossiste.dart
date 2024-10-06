@@ -8,11 +8,13 @@ import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
+import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
-import 'detail_enquete.dart';
+import 'detail_enquete_grossiste.dart';
 
 class EnqueteGrossisteScreen extends StatefulWidget {
   const EnqueteGrossisteScreen({super.key});
@@ -24,22 +26,26 @@ class EnqueteGrossisteScreen extends StatefulWidget {
 class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
  
         final GlobalKey<FormState> formkey = GlobalKey<FormState>();
-       late TextEditingController _searchController;
- TextEditingController numFicheController = TextEditingController();
+
+    TextEditingController numFicheController = TextEditingController();
+    late TextEditingController _searchController;
+    List<EnqueteGrossiste> enqueteGrossisteList = [];
+
+
     TextEditingController marcheController = TextEditingController();
     TextEditingController collecteurController = TextEditingController();
     TextEditingController dateEnqueteController = TextEditingController();
     bool isLoading =true;
-     late Marche marche;
+    bool isLoading1 =false;
+    late Marche marche;
     late Future _marcheList;
     late Collecteur collecteur;
     late Future _collecteurList;
 
     // Controller pour gérer la date sélectionnée
-TextEditingController dateController = TextEditingController();
+    TextEditingController dateController = TextEditingController();
 
-// Méthode pour afficher le DatePicker
-Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context) async {
   DateTime currentDate = DateTime.now();
   DateTime? picked = await showDatePicker(
     context: context,
@@ -58,179 +64,64 @@ Future<void> _selectDate(BuildContext context) async {
   );
 
   if (picked != null && picked != currentDate) {
-    // Si une date a été sélectionnée, l'afficher dans le TextFormField
-    dateController.text = "${picked.day}/${picked.month}/${picked.year}";
+    // Si une date a été sélectionnée, formater le mois et le jour avec deux chiffres
+    String formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+
+    // Afficher la date formatée dans le TextFormField
+    dateController.text = formattedDate;
   }
 }
 
+ Future<List<EnqueteGrossiste>> fetchEnqueteGrossiste() async {
+  try {
+    // Appel du service pour récupérer les données d'enquêtes
+    List<EnqueteGrossiste> fetchedList = await EnqueteService().fetchEnqueteGrossiste();
+    
+    // Mettre à jour la liste locale avec les nouvelles données
+    enqueteGrossisteList = fetchedList;
+    
+    // Retourner la liste mise à jour
+    return enqueteGrossisteList;
+  } catch (e) {
+    print("Erreur lors de la récupération des enquêtes : $e");
+    return [];
+  }
+}
 
+ 
  @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _searchController = TextEditingController();
     _marcheList =
         http.get(Uri.parse('$apiUrl/all-marche/'));
     _collecteurList =
         http.get(Uri.parse('$apiUrl/all-collecteur/'));
+             // Appel pour récupérer les produits au chargement de la page
+     EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
+    setState(() {
+      enqueteGrossisteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      isLoading = false;  // Désactiver le chargement
+    });
+  });
   }
 
-
-   
- 
-@override
-  Widget build(BuildContext context) {
-  
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Enquête de grossiste", style: TextStyle(color:blanc),),
-        centerTitle: true,
-        backgroundColor: vert,
-        leading: IconButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              icon: const Icon(Icons.arrow_back_ios, color: blanc)),
-                actions:[
-                // Bouton avec trois points
-                          PopupMenuButton<String>(
-                            iconColor:blanc,
-                            onSelected: (String result) {
-                              if (result == 'ajouter') {
-                              _openDialog();
-                              }
-                                if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
-                            },
-                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'ajouter',
-                                child: Text('Ajouter'),
-                              ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
-                            ],
-                          ),
-              ],
-
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            // Zone de recherche
-                  Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: TextField(
-                decoration: InputDecoration(
-                   contentPadding: EdgeInsets.all(10),
-                  hintText: "recherche .............",
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            // Liste des prix de marché de consommation
-            Text(
-              'Liste des enquête de grossiste',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-             Expanded(
-               child: isLoading ? buildShimmerListCorE() :  ListView.builder(
-                  itemCount: 3, // Par exemple, 3 fiches pour l'instant
-                  itemBuilder: (context, index) {
-                    return Card(
-                      margin: EdgeInsets.symmetric(vertical: 10),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'N° fiche: 01',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
-                            ),
-                            SizedBox(height: 5),
-                            Text('Marché enquête: Bamako' ,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                            SizedBox(height: 5),
-                            Text('Date Enquête: le 17/07/2024' ,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                            // SizedBox(height: 5),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                
-                            Text('Date Enquête: le 17/07/2024' ,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                            // Bouton avec trois points
-                            PopupMenuButton<String>(
-                              iconColor:vert,
-                              onSelected: (String result) {
-                                if (result == 'modifier') {
-                                  // Action pour modifier
-                                  print('Modifier sélectionné');
-                                } else if (result == 'detail') {
-                                  // Action pour détail
-                                  Get.to(DetailEnqueteScreen());
-                                  print('Détail sélectionné');
-                                } else if (result == 'supprimer') {
-                                  // Action pour supprimer
-                                  print('Supprimer sélectionné');
-                                }
-                              },
-                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                PopupMenuItem<String>(
-                                  value: 'modifier',
-                                  child: Text('Modifier'),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'detail',
-                                  child: Text('Détail'),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'supprimer',
-                                  child: Text('Supprimer'),
-                                ),
-                              ],
-                            ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-             ),
-              
-            
-          ],
-        ),
-      ),
-   
-    );
+   Future<void> _openDialog(bool isEditMode,{EnqueteGrossiste? enqueteCollecte}) async {
+  if(isEditMode){
+  numFicheController.text = enqueteCollecte!.num_fiche!;
+  marcheController.text = enqueteCollecte.marche!;
+  collecteurController.text = enqueteCollecte.collecteur!;
+  dateController.text = enqueteCollecte.date_enquete!;
   }
-
-    
-
-
-    Future<void> _openDialog() async {
-    showModalBottomSheet(
+ final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+  showModalBottomSheet(
     isScrollControlled: true,
     context: context,
     builder: (BuildContext context) {
       return SafeArea(
         child: SingleChildScrollView(
           child: Form(
+            key: formkey,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -251,11 +142,11 @@ Future<void> _selectDate(BuildContext context) async {
                   ),
                   
                   // Title of the form
-                  const Center(
+                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 20),
                       child: Text(
-                        "Ajout d'enquête de grossiste",
+                       !isEditMode ? "Ajout d'enquête grossiste" : "Modifier d'enquête grossiste",
                           maxLines:1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -267,7 +158,7 @@ Future<void> _selectDate(BuildContext context) async {
                     ),
                   ),
                   
-                 // Numéro de fiche
+                  // Numéro de fiche
                   const Padding(
                     padding: EdgeInsets.only(left: 10),
                     child: Text(
@@ -313,7 +204,7 @@ Future<void> _selectDate(BuildContext context) async {
                       decoration: InputDecoration(
                         suffixIcon: Icon(Icons.arrow_drop_down,
                             color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un marché",
+                        hintText: "Sélectionner un marché" ,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                         border: OutlineInputBorder(
@@ -368,7 +259,7 @@ Future<void> _selectDate(BuildContext context) async {
                         decoration: InputDecoration(
                           suffixIcon: Icon(Icons.calendar_today,
                               color: Colors.blueGrey[400]),
-                          hintText: "Sélectionner une date",
+                          hintText:  "Sélectionner une date",
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 10, horizontal: 20),
                           border: OutlineInputBorder(
@@ -383,39 +274,87 @@ Future<void> _selectDate(BuildContext context) async {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (formkey.currentState!.validate()) {
-                            try {
-                              await EnqueteService()
-                                  .addEnqueteGrossiste(
-                                    num_fiche:numFicheController.text, 
-                                    marche:marcheController.text, 
-                                    collecteur:collecteurController.text,
-                                    date_enquete: dateController.text, 
-                                      )
-                                  .then((value) => {
-                                        Provider.of<EnqueteService>(context,
-                                                listen: false)
-                                            .applyChange(),
-                                        dateController.clear(),
-                                        marcheController.clear(),
-                                        numFicheController.clear(),
-                                        collecteurController.clear(),
-                                        Navigator.of(context).pop()
-                                      });
-                            } catch (e) {
-                              final String errorMessage = e.toString();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Text("Une erreur s'est produit"),
-                                    ],
-                                  ),
-                                  duration: const Duration(seconds: 5),
-                                ),
-                              );
-                            }
-                          }
+                          if (formkey.currentState!.validate() && !isEditMode) {
+                          //   print("valid");
+                          try {
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnqueteGrossiste(
+    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: numFicheController.text,
+    marche: marche.id_marche!.toString(),
+    collecteur: collecteur.id!.toString(),
+    date_enquete: dateEnquete,
+  );
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes grossiste
+  List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteGrossisteList = nouvelleListe;
+  });
+  numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+
+                          }else if(formkey.currentState!.validate() && isEditMode) {
+                            
+                             try {
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+  
+  print("id_enquete: ${enqueteCollecte!.id_enquete!}");
+  print("num_fiche: ${numFicheController.text}");
+  print("marche: ${marcheController.text}");
+  print("collecteur: ${collecteurController.text}");
+  print("date_enquete: ${dateEnquete}");
+
+  await EnqueteService()
+      .updateEnqueteGrossiste(
+        id_enquete: enqueteCollecte.id_enquete!,
+        num_fiche: numFicheController.text,
+        marche: marcheController.text,
+        collecteur: collecteurController.text,
+        date_enquete: dateEnquete,
+      );
+            Provider.of<EnqueteService>(context, listen: false).applyChange();
+           List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteGrossisteList = nouvelleListe;
+  });
+   numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
+            Navigator.of(context).pop();
+          
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("erreur m: " + errorMessage);
+}
+
+                                }
                         },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code
@@ -425,7 +364,7 @@ Future<void> _selectDate(BuildContext context) async {
                             minimumSize: const Size(310, 45),
                           ),
                           child: Text(
-                            "Enregistrer",
+                           !isEditMode ? "Enregistrer" : "Modifier",
                             style: TextStyle(
                               fontSize: 20,
                               color: Colors.white,
@@ -442,7 +381,179 @@ Future<void> _selectDate(BuildContext context) async {
     },
   );
 }
+   
+  @override
+  Widget build(BuildContext context) {
 
+    return Scaffold(
+      appBar: AppBar(
+        title:const Text("Enquête grossiste", style: TextStyle(color:blanc),),
+        centerTitle: true,
+        backgroundColor: vert,
+       leading: IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(Icons.arrow_back_ios, color: blanc)),
+                actions:[
+                // Bouton avec trois points
+                          PopupMenuButton<String>(
+                            iconColor:blanc,
+                            onSelected: (String result) {
+                              if (result == 'ajouter') {
+                              _openDialog(false);
+                              }
+                                 if (result == 'synchroniser') {
+                               showSyncDialog(context);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(
+                                value: 'ajouter',
+                                child: Text('Ajouter'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'synchroniser',
+                                child: Text('Synchroniser'),
+                              ),
+                            ],
+                          ),
+              ],
+    
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            // Zone de recherche
+                  Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: TextField(
+                onChanged: (value) {
+                setState(() {
+                  // Mettre à jour l'état à chaque saisie
+                });
+              },
+                  controller:_searchController,
+                decoration: InputDecoration(
+                   contentPadding: EdgeInsets.all(10),
+                  hintText: "recherche .............",
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            // Liste des prix de marché de consommation
+            Text(
+              'Liste des enquête grossiste',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+    
+              Expanded(
+              child: isLoading ? buildShimmerListCorE() : 
+                
+                  Builder(
+                builder: (context) {
+                  String searchText = _searchController.text.toLowerCase();
+
+                  // Filtrer la liste des enquetes en fonction du texte recherché
+                  List<EnqueteGrossiste> filteredList = enqueteGrossisteList
+                      .where((enquete) => enquete.num_fiche!.toLowerCase().contains(searchText))
+                      .toList();
+
+                  // Afficher un message si aucun résultat n'est trouvé
+                  if (filteredList.isEmpty) {
+                    return const Center(
+                      child: Text('Aucun résultat trouvé'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
+                    itemBuilder: (context, index) {
+                      
+                      final enquete = filteredList[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'N° fiche: ${enquete.num_fiche!}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
+                              ),
+                              SizedBox(height: 5),
+                              Text('Marché enquête: ${enquete.marche!}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // SizedBox(height: 5),
+                             
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                      
+                              Text('Date Enquête: le ${enquete.date_enquete}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // Bouton avec trois points
+                              PopupMenuButton<String>(
+                                iconColor:vert,
+                                onSelected: (String result) {
+                                  if (result == 'modifier') {
+                                    // Action pour modifier
+                                     _openDialog(true,enqueteCollecte:enquete);
+                                    print('Modifier sélectionné');
+                                  } else if (result == 'detail') {
+                                    // Action pour détail
+                                    Get.to(DetailEnqueteGrossisteScreen(enqueteGrossiste: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
+                                    print('Détail sélectionné');
+                                  } else if (result == 'supprimer') {
+                                    // Action pour supprimer
+                                    EnqueteService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
+                        // Update the original list used by ListView.builder
+                        setState(() {
+                          enqueteGrossisteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                        });
+                      });
+                                    print('Supprimer sélectionné');
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'modifier',
+                                    child: Text('Modifier'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'detail',
+                                    child: Text('Détail'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'supprimer',
+                                    child: Text('Supprimer'),
+                                  ),
+                                ],
+                              ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              ),
+            ),
+              
+            
+          ],
+        ),
+      ),
+     
+    );
+  }
 
    // Fonction pour récupérer la liste des marchés depuis l'API
 
@@ -743,6 +854,9 @@ Future<void> _selectDate(BuildContext context) async {
       },
     );
   }
+
+
+   
 
 
 }

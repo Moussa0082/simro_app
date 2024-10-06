@@ -12,7 +12,7 @@ import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
-import 'package:simro/screens/detail_enquete.dart';
+import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Marche_Service.dart';

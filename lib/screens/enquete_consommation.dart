@@ -1,33 +1,52 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
-import 'package:simro/screens/detail_enquete.dart';
+import 'package:simro/models/Collecteur.dart';
+import 'package:simro/models/Enquete.dart';
+import 'package:simro/models/Marche.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
+import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
-class EnqueteConsommationScreen extends StatefulWidget {
-  const EnqueteConsommationScreen({super.key});
+class EnqueteScreen extends StatefulWidget {
+  const EnqueteScreen({super.key});
 
   @override
-  State<EnqueteConsommationScreen> createState() => _EnqueteConsommationScreenState();
+  State<EnqueteScreen> createState() => _EnqueteScreenState();
 }
 
-class _EnqueteConsommationScreenState extends State<EnqueteConsommationScreen> {
+class _EnqueteScreenState extends State<EnqueteScreen> {
 
-    TextEditingController numFicheController = TextEditingController();
+
+      final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+
+    TextEditingController observationController = TextEditingController();
+    TextEditingController statutController = TextEditingController();
     TextEditingController marcheController = TextEditingController();
     TextEditingController collecteurController = TextEditingController();
     TextEditingController dateEnqueteController = TextEditingController();
     bool isLoading =true;
+        late TextEditingController _searchController;
+    List<Enquete> enqueteList = [];
+     late Collecteur collecteur;
+    late Future _collecteurList;
+       late Marche marche;
+    late Future _marcheList;
+
 
     // Controller pour gérer la date sélectionnée
 TextEditingController dateController = TextEditingController();
 
 // Méthode pour afficher le DatePicker
-Future<void> _selectDate(BuildContext context) async {
+ Future<void> _selectDate(BuildContext context) async {
   DateTime currentDate = DateTime.now();
   DateTime? picked = await showDatePicker(
     context: context,
@@ -46,27 +65,57 @@ Future<void> _selectDate(BuildContext context) async {
   );
 
   if (picked != null && picked != currentDate) {
-    // Si une date a été sélectionnée, l'afficher dans le TextFormField
-    dateController.text = "${picked.day}/${picked.month}/${picked.year}";
+    // Si une date a été sélectionnée, formater le mois et le jour avec deux chiffres
+    String formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+
+    // Afficher la date formatée dans le TextFormField
+    dateController.text = formattedDate;
   }
 }
 
 
- 
+ Future<List<Enquete>> fetchEnquete() async {
+  try {
+    // Appel du service pour récupérer les données d'enquêtes
+    List<Enquete> fetchedList = await EnqueteService().fetchEnquete();
+    
+    // Mettre à jour la liste locale avec les nouvelles données
+    enqueteList = fetchedList;
+    
+    // Retourner la liste mise à jour
+    return enqueteList;
+  } catch (e) {
+    print("Erreur lors de la récupération des enquêtes : $e");
+    return [];
+  }
+}
+
+   @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _marcheList =
+        http.get(Uri.parse('$apiUrl/all-marche/'));
+    _collecteurList =
+        http.get(Uri.parse('$apiUrl/all-collecteur/'));
+             // Appel pour récupérer les produits au chargement de la page
+     EnqueteService().fetchEnquete().then((enquetes) {
+    setState(() {
+      enqueteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      isLoading = false;  // Désactiver le chargement
+    });
+  });
+  }
   
  
   @override
   Widget build(BuildContext context) {
 
-  // Simuler un délai de 4 secondes avant de charger les données
-  Timer(const Duration(seconds: 4), () {
-    isLoading = false;
-    if (context.mounted) setState(() {});
-  });
+  
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Enquête de consommation", style: TextStyle(color:blanc),),
+        title: Text("Enquête ", style: TextStyle(color:blanc),),
         centerTitle: true,
         backgroundColor: vert,
         leading: IconButton(
@@ -80,7 +129,7 @@ Future<void> _selectDate(BuildContext context) async {
                             iconColor:blanc,
                             onSelected: (String result) {
                               if (result == 'ajouter') {
-                              _openDialog();
+                              _openDialog(false);
                               }
                                if (result == 'synchroniser') {
                                showSyncDialog(context);
@@ -104,9 +153,16 @@ Future<void> _selectDate(BuildContext context) async {
         child: Column(
           children: [
             // Zone de recherche
-            Padding(
+             // Zone de recherche
+                  Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: TextField(
+                onChanged: (value) {
+                setState(() {
+                  // Mettre à jour l'état à chaque saisie
+                });
+              },
+                  controller:_searchController,
                 decoration: InputDecoration(
                    contentPadding: EdgeInsets.all(10),
                   hintText: "recherche .............",
@@ -120,76 +176,104 @@ Future<void> _selectDate(BuildContext context) async {
             SizedBox(height: 10),
             // Liste des prix de marché de consommation
             Text(
-              'Liste des enquête de consommation',
+              'Liste des enquêtes',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+    
+              Expanded(
+              child: isLoading ? buildShimmerListCorE() : 
+                
+                  Builder(
+                builder: (context) {
+                  String searchText = _searchController.text.toLowerCase();
 
-               Expanded(
-              child: isLoading ? buildShimmerListCorE() :  ListView.builder(
-                itemCount: 3, // Par exemple, 3 fiches pour l'instant
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'N° fiche: 01',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
-                          ),
-                          SizedBox(height: 5),
-                          Text('Marché enquête: Bamako' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          SizedBox(height: 5),
-                          Text('Date Enquête: le 17/07/2024' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          // SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Filtrer la liste des enquetes en fonction du texte recherché
+                  List<Enquete> filteredList = enqueteList
+                      .where((enquete) => enquete.date_enquete!.toLowerCase().contains(searchText))
+                      .toList();
+
+                  // Afficher un message si aucun résultat n'est trouvé
+                  if (filteredList.isEmpty) {
+                    return const Center(
+                      child: Text('Aucun résultat trouvé'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
+                    itemBuilder: (context, index) {
+                      
+                      final enquete = filteredList[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
-                          Text('Date Enquête: le 17/07/2024' ,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                          // Bouton avec trois points
-                          PopupMenuButton<String>(
-                            iconColor:vert,
-                            onSelected: (String result) {
-                              if (result == 'modifier') {
-                                // Action pour modifier
-                                print('Modifier sélectionné');
-                              } else if (result == 'detail') {
-                                // Action pour détail
-                                Get.to(DetailEnqueteScreen());
-                                print('Détail sélectionné');
-                              } else if (result == 'supprimer') {
-                                // Action pour supprimer
-                                print('Supprimer sélectionné');
-                              }
-                            },
-                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'modifier',
-                                child: Text('Modifier'),
+                              Text(
+                                'Observation: ${enquete.observation!}',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'detail',
-                                child: Text('Détail'),
+                              SizedBox(height: 5),
+                              Text('Marché enquête: ${enquete.marche!}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              SizedBox(height: 5),
+                              Text('Statut: ${enquete.statut!}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // SizedBox(height: 5),
+                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                      
+                              Text('Date Enquête: le ${enquete.date_enquete}' ,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                              // Bouton avec trois points
+                              PopupMenuButton<String>(
+                                iconColor:vert,
+                                onSelected: (String result) {
+                                  if (result == 'modifier') {
+                                    // Action pour modifier
+                                     _openDialog(true,enquete:enquete);
+                                    print('Modifier sélectionné');
+                                  } else if (result == 'detail') {
+                                    // Action pour détail
+                                    // Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
+                                    print('Détail sélectionné');
+                                  } else if (result == 'supprimer') {
+                                    // Action pour supprimer
+                                    EnqueteService().deleteEnquete(enquete.id_enquete!).then((value) {
+                        // Update the original list used by ListView.builder
+                        setState(() {
+                          enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                        });
+                      });
+                                    print('Supprimer sélectionné');
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'modifier',
+                                    child: Text('Modifier'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'detail',
+                                    child: Text('Détail'),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'supprimer',
+                                    child: Text('Supprimer'),
+                                  ),
+                                ],
                               ),
-                              PopupMenuItem<String>(
-                                value: 'supprimer',
-                                child: Text('Supprimer'),
+                                ],
                               ),
                             ],
                           ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
-                },
+                }
               ),
             ),
               
@@ -201,123 +285,17 @@ Future<void> _selectDate(BuildContext context) async {
     );
   }
 
-    void _showMarche() {
-  final BuildContext context = this.context;
-  final TextEditingController _searchController = TextEditingController();
-  List<String> marcheList = [
-    'Marché Central',
-    'Marché Local',
-    'Marché Virtuel',
-    'Marché International',
-  ];
-  List<String> filteredList = marcheList;
-  
+   
 
-  // Simuler un délai de 4 secondes avant de charger les données
-  Timer(const Duration(seconds: 4), () {
-    isLoading = false;
-    if (context.mounted) setState(() {});
-  });
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  if (mounted) {
-                    setState(() {
-                      filteredList = marcheList
-                          .where((marche) => marche
-                              .toLowerCase()
-                              .contains(value.toLowerCase()))
-                          .toList();
-                    });
-                  }
-                },
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un marché',
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey[300]!,
-                      width: 1,
-                    ),
-                  ),
-                  suffixIcon: const Icon(Icons.search),
-                ),
-              ),
-            ),
-            content: isLoading
-                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
-                : filteredList.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucun marché trouvé")),
-                      )
-                    : SizedBox(
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          itemCount: filteredList.length,
-                          itemBuilder: (context, index) {
-                            final marche = filteredList[index];
-                            return Column(
-                              children: [
-                                ListTile(
-                                  title: Text(
-                                    marche,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      print('Marché sélectionné: $marche');
-                                    });
-                                  },
-                                ),
-                                const Divider(),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text(
-                  'Annuler',
-                  style: TextStyle(color: Colors.orange, fontSize: 16),
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text(
-                  'Valider',
-                  style: TextStyle(color: vert, fontSize: 16),
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
-
-    Future<void> _openDialog() async {
+     Future<void> _openDialog(bool isEditMode,{Enquete? enquete}) async {
+  if(isEditMode){
+  observationController.text = enquete!.observation!;
+  statutController.text = enquete.statut!;
+  marcheController.text = enquete.marche!;
+  collecteurController.text = enquete.collecteur!.toString();
+  dateController.text = enquete.date_enquete!;
+  }
+ final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
   showModalBottomSheet(
     isScrollControlled: true,
     context: context,
@@ -325,6 +303,7 @@ Future<void> _selectDate(BuildContext context) async {
       return SafeArea(
         child: SingleChildScrollView(
           child: Form(
+            key: formkey,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -345,11 +324,11 @@ Future<void> _selectDate(BuildContext context) async {
                   ),
                   
                   // Title of the form
-                  const Center(
+                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 20),
                       child: Text(
-                        "Ajout d'enquête de consommation",
+                       !isEditMode ? "Ajout d'enquête" : "Modifier d'enquête",
                           maxLines:1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -365,16 +344,16 @@ Future<void> _selectDate(BuildContext context) async {
                   const Padding(
                     padding: EdgeInsets.only(left: 10),
                     child: Text(
-                      "Numéro de fiche*",
+                      "Observation*",
                       style: TextStyle(color: (Colors.black), fontSize: 18),
                     ),
                   ),
                   TextFormField(
-                    controller: numFicheController,
+                    controller: observationController,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 20),
-                      hintText: "Entrez le numéro de fiche",
+                      hintText: "Entrez l'observation",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -382,7 +361,36 @@ Future<void> _selectDate(BuildContext context) async {
                     keyboardType: TextInputType.text,
                     validator: (val) {
                       if (val == null || val.isEmpty) {
-                        return "Veuillez entrer le numéro de fiche";
+                        return "Veuillez entrer l'observation";
+                      } else {
+                        return null;
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const Padding(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Text(
+                      "Statut*",
+                      style: TextStyle(color: (Colors.black), fontSize: 18),
+                    ),
+                  ),
+                  TextFormField(
+                    controller: statutController,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
+                      hintText: "Entrez le statut",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    keyboardType: TextInputType.text,
+                    validator: (val) {
+                      if (val == null || val.isEmpty) {
+                        return "Veuillez entrer le statut";
                       } else {
                         return null;
                       }
@@ -399,15 +407,15 @@ Future<void> _selectDate(BuildContext context) async {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _showMarche,
+                    onTap: showMarche,
                     child: TextFormField(
-                      onTap: _showMarche,
+                      onTap: showMarche,
                       controller: marcheController,
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(
                         suffixIcon: Icon(Icons.arrow_drop_down,
                             color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un marché",
+                        hintText: "Sélectionner un marché" ,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 20),
                         border: OutlineInputBorder(
@@ -427,9 +435,9 @@ Future<void> _selectDate(BuildContext context) async {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _showMarche,
+                    onTap: showCollecteur,
                     child: TextFormField(
-                      onTap: _showMarche,
+                      onTap: showCollecteur,
                       controller: collecteurController,
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(
@@ -462,7 +470,7 @@ Future<void> _selectDate(BuildContext context) async {
                         decoration: InputDecoration(
                           suffixIcon: Icon(Icons.calendar_today,
                               color: Colors.blueGrey[400]),
-                          hintText: "Sélectionner une date",
+                          hintText:  "Sélectionner une date",
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 10, horizontal: 20),
                           border: OutlineInputBorder(
@@ -475,9 +483,94 @@ Future<void> _selectDate(BuildContext context) async {
                   const SizedBox(height: 15),
                         Center(
         child: ElevatedButton(
-                          onPressed: () async {
+                          onPressed: () async  {
+                          
+                          if (formkey.currentState!.validate() && !isEditMode) {
+                          //   print("valid");
+                          try {
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnquete(
+    statut: statutController.text,
+    observation: observationController.text,
+    marche: marche.id_marche!.toString(),
+    collecteur: collecteur.id!,
+    date_enquete: dateEnquete,
+  );
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<Enquete> nouvelleListe = await fetchEnquete();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    enqueteList = nouvelleListe;
+  });
+  observationController.clear();
+  statutController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+
+                          }else if(formkey.currentState!.validate() && isEditMode) {
                             
-                          },
+                             try {
+  // Convertir la date de String à DateTime
+  DateTime dateEnquete = DateTime.parse(dateController.text);
+  
+  print("id_enquete: ${enquete!.id_enquete!}");
+  print("observation: ${observationController.text}");
+  print("statut: ${statutController.text}");
+  print("marche: ${marcheController.text}");
+  print("collecteur: ${collecteurController.text}");
+  print("date_enquete: ${dateEnquete}");
+
+  await EnqueteService()
+      .updateEnquete(
+        id_enquete: enquete.id_enquete!,
+        statut: statutController.text,
+        observation: observationController.text,
+        marche: marcheController.text,
+        collecteur: int.parse(collecteurController.text),
+        date_enquete: dateEnquete,
+      );
+            Provider.of<EnqueteService>(context, listen: false).applyChange();
+           List<Enquete> nouvelleListe = await fetchEnquete();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    enqueteList = nouvelleListe;
+  });
+   observationController.clear();
+   statutController.clear();
+  dateController.clear();
+  marcheController.clear();
+  collecteurController.clear();
+            Navigator.of(context).pop();
+          
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("erreur m: " + errorMessage);
+}
+
+                                }
+                        },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code
                             shape: RoundedRectangleBorder(
@@ -486,7 +579,7 @@ Future<void> _selectDate(BuildContext context) async {
                             minimumSize: const Size(310, 45),
                           ),
                           child: Text(
-                            "Enregistrer",
+                           !isEditMode ? "Enregistrer" : "Modifier",
                             style: TextStyle(
                               fontSize: 20,
                               color: Colors.white,
@@ -504,5 +597,306 @@ Future<void> _selectDate(BuildContext context) async {
   );
 }
 
+     // Fonction pour récupérer la liste des marchés depuis l'API
 
+  void showMarche() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un marché',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _marcheList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Marche> typeListe = responseData
+                          .map((e) => Marche.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Marche> filteredSearch = typeListe
+                          .where((type) => type.nom_marche!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return filteredSearch.isEmpty
+                          ? const Text(
+                              'Aucun marché trouvée',
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 17),
+                            )
+                          : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = marcheController.text ==
+                                      type.nom_marche!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_marche!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            marche = type;
+                                            marcheController.text =
+                                                type.nom_marche!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  //collecteur  de données
+
+  void showCollecteur() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un collecteur',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _collecteurList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Collecteur> typeListe = responseData
+                          .map((e) => Collecteur.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun collecteur trouvé")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Collecteur> filteredSearch = typeListe
+                          .where((type) => "${type.prenom!} ${type.nom!}"
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return filteredSearch.isEmpty
+                          ? const Text(
+                              'Aucun collecteur trouvée',
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 17),
+                            )
+                          : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = collecteurController.text ==
+                                      "${type.prenom!} ${type.nom!}";
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          "${type.prenom!} ${type.nom!}",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            collecteur = type;
+                                            collecteurController.text =
+                                                "${type.prenom!} ${type.nom!}";
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  
+    
 }
