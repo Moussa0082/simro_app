@@ -110,7 +110,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   if(isEditMode){
   numFicheController.text = enqueteCollecte!.num_fiche!;
   marcheController.text = enqueteCollecte.marche!;
-  collecteurController.text = enqueteCollecte.collecteur!;
   dateController.text = enqueteCollecte.date_enquete!;
   }
  final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
@@ -215,33 +214,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                   ),
                   const SizedBox(height: 10),
           
-                  // Collecteur
-                  const Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Collecteur *",
-                      style: TextStyle(color: (Colors.black), fontSize: 18),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: showCollecteur,
-                    child: TextFormField(
-                      onTap: showCollecteur,
-                      controller: collecteurController,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.arrow_drop_down,
-                            color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un collecteur",
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
           
                   // Date d'enquête
                   const Padding(
@@ -285,7 +257,7 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
     num_fiche: numFicheController.text,
     marche: marche.id_marche!.toString(),
-    collecteur: collecteur.id!.toString(),
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
     date_enquete: dateEnquete,
   );
 
@@ -303,7 +275,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   numFicheController.clear();
   dateController.clear();
   marcheController.clear();
-  collecteurController.clear();
 
   // Fermer le dialogue
   Navigator.of(context).pop();
@@ -321,18 +292,14 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
   
-  print("id_enquete: ${enqueteCollecte!.id_enquete!}");
-  print("num_fiche: ${numFicheController.text}");
-  print("marche: ${marcheController.text}");
-  print("collecteur: ${collecteurController.text}");
-  print("date_enquete: ${dateEnquete}");
+
 
   await EnqueteService()
       .updateEnqueteGrossiste(
-        id_enquete: enqueteCollecte.id_enquete!,
+        id_enquete: enqueteCollecte!.id_enquete!,
         num_fiche: numFicheController.text,
         marche: marcheController.text,
-        collecteur: collecteurController.text,
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
         date_enquete: dateEnquete,
       );
             Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -346,7 +313,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
    numFicheController.clear();
   dateController.clear();
   marcheController.clear();
-  collecteurController.clear();
             Navigator.of(context).pop();
           
 } catch (e) {
@@ -707,156 +673,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
 
   //collecteur  de données
 
-  void showCollecteur() async {
-    final BuildContext context = this.context;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un collecteur',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    suffixIcon: const Icon(Icons.search),
-                  ),
-                ),
-              ),
-              content: FutureBuilder(
-                future: _collecteurList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
-                    );
-                  }
-
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Collecteur> typeListe = responseData
-                          .map((e) => Collecteur.fromMap(e))
-                          .toList();
-
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun collecteur trouvé")),
-                        );
-                      }
-
-                      String searchText = _searchController.text.toLowerCase();
-                      List<Collecteur> filteredSearch = typeListe
-                          .where((type) => "${type.prenom!} ${type.nom!}"
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return filteredSearch.isEmpty
-                          ? const Text(
-                              'Aucun collecteur trouvée',
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 17),
-                            )
-                          : SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                itemCount: filteredSearch.length,
-                                itemBuilder: (context, index) {
-                                  final type = filteredSearch[index];
-                                  final isSelected = collecteurController.text ==
-                                      "${type.prenom!} ${type.nom!}";
-
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          "${type.prenom!} ${type.nom!}",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check_box_outlined,
-                                                color: vert,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            collecteur = type;
-                                            collecteurController.text =
-                                                "${type.prenom!} ${type.nom!}";
-                                          });
-                                        },
-                                      ),
-                                      Divider()
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
-                    }
-                  }
-
-                  return const SizedBox(height: 8);
-                },
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $marche');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-
-   
 
 
 }

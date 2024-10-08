@@ -276,22 +276,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 maxLines: 1, // Limiter à une ligne si nécessaire
                 overflow: TextOverflow.ellipsis, // Ajouter des points de suspension si le texte dépasse
               ),
+
+              SizedBox(height: 4),
               Text(
-                'Prix actuel: 2,000 GNF/Kg',
-                style: TextStyle(color: vert),
+                "Unité: ${produit.prixInfo.unite != null ? produit.prixInfo.unite : "Inconnu" }",
+                style: TextStyle(fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               SizedBox(height: 4),
-              Text('Disponibilité: 150 tonnes',
+              Text('Nobre de marché: ${produit.prixInfo.nb_marche != null ? produit.prixInfo.nb_marche : "Inconnu" }',
               maxLines: 1,
+              style: TextStyle(fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
+              SizedBox(height: 4),
             Text(
                 "Origine  ${produit.produit.origine_produit != null ? produit.produit.origine_produit.toString()  : "Inconnu"}",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16, // Assurez-vous que la taille du texte est correcte
+                  fontSize: 14, // Assurez-vous que la taille du texte est correcte
                 ),
                 maxLines: 1, // Limiter à une ligne si nécessaire
                 overflow: TextOverflow.ellipsis, // Ajouter des points de suspension si le texte dépasse

@@ -39,6 +39,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   ];
   // int _currentIndex = 0;
    bool isLoading = true;
+   bool isLoadingP = true;
     // List<Produit> produitList = [];
       int? selectedCategoryIndex ;
      List<CategorieProduit> categorieList = [];
@@ -88,7 +89,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   void initState() {
     loadData().then((value) => {
       setState(() {
-        isLoading = false;
+        isLoadingP = false;
       })
     });
     CategorieProduitService().fetchCategorie().then((value) => {
@@ -194,7 +195,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           // Corps de la page avec les cartes de prix
            Expanded(
             child: 
-      isLoading ? 
+      isLoadingP ? 
                 ListView.builder(
                   itemCount: 6, // Nombre de shimmer cards que vous voulez afficher
                   itemBuilder: (context, index) {

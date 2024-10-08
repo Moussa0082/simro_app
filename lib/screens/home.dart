@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:profile_photo/profile_photo.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
@@ -19,6 +20,7 @@ import 'package:simro/screens/prix_marche_collecte.dart';
 import 'package:simro/screens/prix_marche_consommation.dart';
 import 'package:simro/screens/prix_marche_grossiste.dart';
 import 'package:simro/screens/products.dart';
+import 'package:simro/screens/profil.dart';
 import 'package:simro/widgets/app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -37,10 +39,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   int _currentIndex = 0;
   late Enqueteur enqueteurProvider;
+      late TextEditingController _searchController;
+
 
    @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
       enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false).enqueteur!;
   }
  
@@ -64,10 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: background,
-      appBar: ResponsiveAppBar(
-    firstName: "${enqueteurProvider.prenom}",
-    lastName: "${enqueteurProvider.nom}",
-  ),
+      appBar:  _appBar(),
+  //     ResponsiveAppBar(
+  //   firstName: "${enqueteurProvider.prenom}",
+  //   lastName: "${enqueteurProvider.nom}",
+  // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -343,5 +349,154 @@ Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
 }
 
 
+    PreferredSize _appBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(60),
+      child: Container(
+        margin: const EdgeInsets.only(top: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: _boxDecoration(),
+        child: GestureDetector(
+          onTap:(){
+             Get.to(ProfilScreen(),transition: Transition.upToDown);
+          },
+          child: SafeArea(
+            child: Column(
+              children: [
+                _topBar(),
+                const SizedBox(height: 5),
+                // _searchBox(),
+                // _tabBar(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration _boxDecoration() {
+    return BoxDecoration(
+      borderRadius: const BorderRadius.vertical(
+        bottom: Radius.circular(20),
+      ),
+      gradient: LinearGradient(
+        colors: [Colors.white, vert],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+    );
+  }
+
+ Widget _topBar() {
+  return Row(
+    children: [
+      ProfilePhoto(
+         onTap: () {
+          print("Image de profil tapée !"); // More specific message
+          Get.to(() => ProfilScreen(), transition: Transition.upToDown);
+        },
+        totalWidth: 50,
+        cornerRadius: 50,
+        color: Colors.white,
+        image: AssetImage('assets/images/logo-simro.png'),
+      ),
+      Expanded(
+        child: Text(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          "${enqueteurProvider.prenom!} ${enqueteurProvider.nom!}",
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: blanc, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      // ProfilePhoto(
+      //    onTap: () {
+      //     print("Image de profil tapée !"); // More specific message
+      //     Get.to(() => ProfilScreen(), transition: Transition.upToDown);
+      //   },
+      //   totalWidth: 50,
+      //   cornerRadius: 50,
+      //   color: Colors.black,
+      //   image: AssetImage('assets/images/profil.jpg'),
+      // ),
+    ],
+  );
+}
+
+
+  Widget _searchBox() {
+    return SizedBox(
+      height: 35,
+      child: TextFormField(
+        textAlign: TextAlign.start,
+        controller: _searchController,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: InkWell(
+            child: const Icon(Icons.close),
+            onTap: () {
+              _searchController.clear();
+            },
+          ),
+          hintText: 'Search...',
+          contentPadding: const EdgeInsets.all(0),
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget _tabBar() {
+  //   return TabBar(
+  //     labelPadding: const EdgeInsets.all(0),
+  //     labelColor: Colors.black,
+  //     indicatorColor: Colors.black,
+  //     unselectedLabelColor: Colors.teal.shade800,
+  //     tabs: const [
+  //       Tab(
+  //         iconMargin: EdgeInsets.all(0),
+  //         icon: Icon(Icons.home),
+  //         text: 'Home',
+  //       ),
+  //       Tab(
+  //         iconMargin: EdgeInsets.all(0),
+  //         icon: Icon(Icons.group),
+  //         text: 'Group',
+  //       ),
+  //       Tab(
+  //         iconMargin: EdgeInsets.all(0),
+  //         icon: Icon(Icons.notifications),
+  //         text: 'Notifications',
+  //       ),
+  //       Tab(
+  //         iconMargin: EdgeInsets.all(0),
+  //         icon: Icon(Icons.menu),
+  //         text: 'Menu',
+  //       ),
+  //     ],
+  //   );
+  // }
+
+  Widget _tabBarViewItem(IconData icon, String name) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 100,
+        ),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 40),
+        ),
+      ],
+    );
+  }
+  
 
 }

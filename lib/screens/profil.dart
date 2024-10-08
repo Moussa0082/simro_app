@@ -86,6 +86,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     ListTile(
                       leading:const Icon(Icons.person, color: vert),
                       title: Text('${enqueteurProvider.enqueteur!.prenom}'),
+                      // title: Text('${enqueteurProvider.enqueteur!.prenom}'),
                       // trailing: Icon(Icons.arrow_forward_ios),
                       onTap: () {
                         // Action sur 'My Account'

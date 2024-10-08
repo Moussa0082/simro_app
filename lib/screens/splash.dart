@@ -25,12 +25,39 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMixin{
+
+   late AnimationController _controller1;
+  late AnimationController _controller2;
+  late AnimationController _controller3;
 
  @override
   void initState() {
+    // Initialiser les trois contrôleurs d'animation avec des durées différentes
+    _controller1 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true);
+
+    _controller2 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true, period: const Duration(milliseconds: 250));
+
+    _controller3 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
    checkEnqueteurSession();
+  }
+
+   @override
+  void dispose() {
+    _controller1.dispose();
+    _controller2.dispose();
+    _controller3.dispose();
+    super.dispose();
   }
 
    void checkEnqueteurSession() async {
@@ -78,11 +105,68 @@ class _SplashScreenState extends State<SplashScreen> {
             const  SizedBox(height: 30,),
             Image.asset('assets/images/logo-simro.png'),
             const SizedBox(height: 60,),
-            const CircularProgressIndicator(color: vert,),
+            // const CircularProgressIndicator(color: vert,),
+            Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _controller1,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _controller1.value,
+                  child: child,
+                );
+              },
+              child: _buildDot(),
+            ),
+            const SizedBox(width: 8),
+            AnimatedBuilder(
+              animation: _controller2,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _controller2.value,
+                  child: child,
+                );
+              },
+              child: _buildDot(),
+            ),
+            const SizedBox(width: 8),
+            AnimatedBuilder(
+              animation: _controller3,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _controller3.value,
+                  child: child,
+                );
+              },
+              child: _buildDot(),
+            ),
+          ],
+        ),
+      ),
             ],
           ),
         ),
       ),
     );
   }
+
+
+     // Fonction pour créer les points
+  Widget _buildDot() {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: vert,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+
+
+
+
 }

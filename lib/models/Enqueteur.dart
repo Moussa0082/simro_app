@@ -2,7 +2,7 @@
 import 'dart:convert';
 
 class Enqueteur {
-    int? idEnqueteur;
+    int? id_enqueteur;
     String? code;
     String? nom;
     String? prenom;
@@ -21,7 +21,7 @@ class Enqueteur {
     String? modifier_par;
 
   Enqueteur({
-    this.idEnqueteur,
+    this.id_enqueteur,
     this.code,
     this.nom,
     this.prenom,
@@ -43,7 +43,7 @@ class Enqueteur {
 
 
   Enqueteur copyWith({
-    int? idEnqueteur,
+    int? id_enqueteur,
     String? code,
     String? nom,
     String? prenom,
@@ -62,7 +62,7 @@ class Enqueteur {
     String? modifier_par,
   }) {
     return Enqueteur(
-      idEnqueteur: idEnqueteur ?? this.idEnqueteur,
+      id_enqueteur: id_enqueteur ?? this.id_enqueteur,
       code: code ?? this.code,
       nom: nom ?? this.nom,
       prenom: prenom ?? this.prenom,
@@ -84,7 +84,7 @@ class Enqueteur {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'idEnqueteur': idEnqueteur,
+      'id_enqueteur': id_enqueteur,
       'code': code,
       'nom': nom,
       'prenom': prenom,
@@ -106,7 +106,7 @@ class Enqueteur {
 
   factory Enqueteur.fromMap(Map<String, dynamic> map) {
     return Enqueteur(
-      idEnqueteur: map['idEnqueteur'] != null ? map['idEnqueteur'] as int : null,
+      id_enqueteur: map['id_enqueteur'] != null ? map['id_enqueteur'] as int : null,
       code: map['code'] != null ? map['code'] as String : null,
       nom: map['nom'] != null ? map['nom'] as String : null,
       prenom: map['prenom'] != null ? map['prenom'] as String : null,
@@ -132,7 +132,7 @@ class Enqueteur {
 
   @override
   String toString() {
-    return 'Enqueteur(idEnqueteur: $idEnqueteur, code: $code, nom: $nom, prenom: $prenom, sexe: $sexe, contact: $contact, localite: $localite, adresse: $adresse, superviseur: $superviseur, description: $description, appProfil: $appProfil, id_acteur: $id_acteur, etat: $etat, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, modifier_le: $modifier_le, modifier_par: $modifier_par)';
+    return 'Enqueteur(id_enqueteur: $id_enqueteur, code: $code, nom: $nom, prenom: $prenom, sexe: $sexe, contact: $contact, localite: $localite, adresse: $adresse, superviseur: $superviseur, description: $description, appProfil: $appProfil, id_acteur: $id_acteur, etat: $etat, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, modifier_le: $modifier_le, modifier_par: $modifier_par)';
   }
 
   @override
@@ -140,7 +140,7 @@ class Enqueteur {
     if (identical(this, other)) return true;
   
     return 
-      other.idEnqueteur == idEnqueteur &&
+      other.id_enqueteur == id_enqueteur &&
       other.code == code &&
       other.nom == nom &&
       other.prenom == prenom &&
@@ -161,7 +161,7 @@ class Enqueteur {
 
   @override
   int get hashCode {
-    return idEnqueteur.hashCode ^
+    return id_enqueteur.hashCode ^
       code.hashCode ^
       nom.hashCode ^
       prenom.hashCode ^

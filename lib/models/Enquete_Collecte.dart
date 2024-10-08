@@ -3,6 +3,7 @@ import 'dart:convert';
 
 class EnqueteCollecte {
     String? num_fiche;
+    int? isSynced;
     String? marche;
     String? collecteur;
     String? date_enquete;
@@ -13,23 +14,27 @@ class EnqueteCollecte {
     String? modifier_par;
     int? id_enquete;
 
-    EnqueteCollecte({
-         this.num_fiche,
-         this.marche,
-         this.collecteur,
-         this.date_enquete,
-         this.date_enregistrement,
-         this.id_personnel,
-         this.etat,
-         this.modifier_le,
-         this.modifier_par,
-         this.id_enquete,
-    });
+  EnqueteCollecte({
+    this.num_fiche,
+    this.isSynced,
+    this.marche,
+    this.collecteur,
+    this.date_enquete,
+    this.date_enregistrement,
+    this.id_personnel,
+    this.etat,
+    this.modifier_le,
+    this.modifier_par,
+    this.id_enquete,
+  });
 
 
+
+ 
 
   EnqueteCollecte copyWith({
     String? num_fiche,
+    int? isSynced,
     String? marche,
     String? collecteur,
     String? date_enquete,
@@ -42,6 +47,7 @@ class EnqueteCollecte {
   }) {
     return EnqueteCollecte(
       num_fiche: num_fiche ?? this.num_fiche,
+      isSynced: isSynced ?? this.isSynced,
       marche: marche ?? this.marche,
       collecteur: collecteur ?? this.collecteur,
       date_enquete: date_enquete ?? this.date_enquete,
@@ -57,6 +63,7 @@ class EnqueteCollecte {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'num_fiche': num_fiche,
+      'isSynced': isSynced,
       'marche': marche,
       'collecteur': collecteur,
       'date_enquete': date_enquete,
@@ -72,6 +79,7 @@ class EnqueteCollecte {
   factory EnqueteCollecte.fromMap(Map<String, dynamic> map) {
     return EnqueteCollecte(
       num_fiche: map['num_fiche'] != null ? map['num_fiche'] as String : null,
+      isSynced: map['isSynced'] ,
       marche: map['marche'] != null ? map['marche'] as String : null,
       collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
       date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,
@@ -90,7 +98,7 @@ class EnqueteCollecte {
 
   @override
   String toString() {
-    return 'EnqueteCollecte(num_fiche: $num_fiche, marche: $marche, collecteur: $collecteur, date_enquete: $date_enquete, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_enquete: $id_enquete)';
+    return 'EnqueteCollecte(num_fiche: $num_fiche, isSynced: $isSynced, marche: $marche, collecteur: $collecteur, date_enquete: $date_enquete, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_enquete: $id_enquete)';
   }
 
   @override
@@ -99,6 +107,7 @@ class EnqueteCollecte {
   
     return 
       other.num_fiche == num_fiche &&
+      other.isSynced == isSynced &&
       other.marche == marche &&
       other.collecteur == collecteur &&
       other.date_enquete == date_enquete &&
@@ -113,6 +122,7 @@ class EnqueteCollecte {
   @override
   int get hashCode {
     return num_fiche.hashCode ^
+      isSynced.hashCode ^
       marche.hashCode ^
       collecteur.hashCode ^
       date_enquete.hashCode ^

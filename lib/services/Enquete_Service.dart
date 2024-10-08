@@ -239,7 +239,7 @@ class EnqueteService extends ChangeNotifier {
 
     final response = await http.put(Uri.parse("$apiUrl/$baseUrlC/update/$id_enquete/"),
         headers: {'Content-Type': 'application/json'}, body: updateEnqueteGrossiste);
-    print(updateEnqueteGrossiste.toString());
+    print("ipdate " +updateEnqueteGrossiste.toString());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print(response.body);
       Snack.success(titre: "Succès", message: "Modifier avec succès");

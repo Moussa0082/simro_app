@@ -36,8 +36,7 @@ class _EnqueteScreenState extends State<EnqueteScreen> {
     bool isLoading =true;
         late TextEditingController _searchController;
     List<Enquete> enqueteList = [];
-     late Collecteur collecteur;
-    late Future _collecteurList;
+
        late Marche marche;
     late Future _marcheList;
 
@@ -96,8 +95,7 @@ TextEditingController dateController = TextEditingController();
     _searchController = TextEditingController();
     _marcheList =
         http.get(Uri.parse('$apiUrl/all-marche/'));
-    _collecteurList =
-        http.get(Uri.parse('$apiUrl/all-collecteur/'));
+
              // Appel pour récupérer les produits au chargement de la page
      EnqueteService().fetchEnquete().then((enquetes) {
     setState(() {
@@ -292,7 +290,6 @@ TextEditingController dateController = TextEditingController();
   observationController.text = enquete!.observation!;
   statutController.text = enquete.statut!;
   marcheController.text = enquete.marche!;
-  collecteurController.text = enquete.collecteur!.toString();
   dateController.text = enquete.date_enquete!;
   }
  final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
@@ -426,34 +423,6 @@ TextEditingController dateController = TextEditingController();
                   ),
                   const SizedBox(height: 10),
           
-                  // Collecteur
-                  const Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Collecteur *",
-                      style: TextStyle(color: (Colors.black), fontSize: 18),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: showCollecteur,
-                    child: TextFormField(
-                      onTap: showCollecteur,
-                      controller: collecteurController,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.arrow_drop_down,
-                            color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un collecteur",
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-          
                   // Date d'enquête
                   const Padding(
                     padding: EdgeInsets.only(left: 10),
@@ -496,7 +465,7 @@ TextEditingController dateController = TextEditingController();
     statut: statutController.text,
     observation: observationController.text,
     marche: marche.id_marche!.toString(),
-    collecteur: collecteur.id!,
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
     date_enquete: dateEnquete,
   );
 
@@ -515,7 +484,6 @@ TextEditingController dateController = TextEditingController();
   statutController.clear();
   dateController.clear();
   marcheController.clear();
-  collecteurController.clear();
 
   // Fermer le dialogue
   Navigator.of(context).pop();
@@ -529,45 +497,48 @@ TextEditingController dateController = TextEditingController();
 
                           }else if(formkey.currentState!.validate() && isEditMode) {
                             
-                             try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
-  
-  print("id_enquete: ${enquete!.id_enquete!}");
-  print("observation: ${observationController.text}");
-  print("statut: ${statutController.text}");
-  print("marche: ${marcheController.text}");
-  print("collecteur: ${collecteurController.text}");
-  print("date_enquete: ${dateEnquete}");
+                            try {
+  // Vérifiez que enqueteurProvider.enqueteur et enquete ne sont pas nulls
+  if (enqueteurProvider.enqueteur != null && enquete != null) {
+    // Convertir la date de String à DateTime
+    DateTime dateEnquete = DateTime.parse(dateController.text);
 
-  await EnqueteService()
-      .updateEnquete(
-        id_enquete: enquete.id_enquete!,
-        statut: statutController.text,
-        observation: observationController.text,
-        marche: marcheController.text,
-        collecteur: int.parse(collecteurController.text),
-        date_enquete: dateEnquete,
-      );
-            Provider.of<EnqueteService>(context, listen: false).applyChange();
-           List<Enquete> nouvelleListe = await fetchEnquete();
+    print("id collecteur: " + enqueteurProvider.enqueteur!.id_enqueteur!.toString());
 
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading = false;
-    enqueteList = nouvelleListe;
-  });
-   observationController.clear();
-   statutController.clear();
-  dateController.clear();
-  marcheController.clear();
-  collecteurController.clear();
-            Navigator.of(context).pop();
-          
+    await EnqueteService().updateEnquete(
+      collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
+      id_enquete: enquete.id_enquete!,
+      statut: statutController.text,
+      observation: observationController.text,
+      marche: marcheController.text,
+      date_enquete: dateEnquete,
+    );
+
+    // Rafraîchir la liste
+    Provider.of<EnqueteService>(context, listen: false).applyChange();
+    List<Enquete> nouvelleListe = await fetchEnquete();
+
+    // Mettre à jour l'état avec la nouvelle liste
+    setState(() {
+      isLoading = false;
+      enqueteList = nouvelleListe;
+    });
+
+    // Vider les contrôleurs
+    observationController.clear();
+    statutController.clear();
+    dateController.clear();
+    marcheController.clear();
+
+    Navigator.of(context).pop();
+  } else {
+    print("Erreur : enqueteur ou enquete est null");
+  }
 } catch (e) {
   final String errorMessage = e.toString();
-  print("erreur m: " + errorMessage);
+  print("Erreur m: " + errorMessage);
 }
+
 
                                 }
                         },
@@ -747,156 +718,6 @@ TextEditingController dateController = TextEditingController();
     );
   }
 
-  //collecteur  de données
 
-  void showCollecteur() async {
-    final BuildContext context = this.context;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un collecteur',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    suffixIcon: const Icon(Icons.search),
-                  ),
-                ),
-              ),
-              content: FutureBuilder(
-                future: _collecteurList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
-                    );
-                  }
-
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Collecteur> typeListe = responseData
-                          .map((e) => Collecteur.fromMap(e))
-                          .toList();
-
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun collecteur trouvé")),
-                        );
-                      }
-
-                      String searchText = _searchController.text.toLowerCase();
-                      List<Collecteur> filteredSearch = typeListe
-                          .where((type) => "${type.prenom!} ${type.nom!}"
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return filteredSearch.isEmpty
-                          ? const Text(
-                              'Aucun collecteur trouvée',
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 17),
-                            )
-                          : SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                itemCount: filteredSearch.length,
-                                itemBuilder: (context, index) {
-                                  final type = filteredSearch[index];
-                                  final isSelected = collecteurController.text ==
-                                      "${type.prenom!} ${type.nom!}";
-
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          "${type.prenom!} ${type.nom!}",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check_box_outlined,
-                                                color: vert,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            collecteur = type;
-                                            collecteurController.text =
-                                                "${type.prenom!} ${type.nom!}";
-                                          });
-                                        },
-                                      ),
-                                      Divider()
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
-                    }
-                  }
-
-                  return const SizedBox(height: 8);
-                },
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $marche');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  
     
 }

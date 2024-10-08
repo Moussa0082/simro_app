@@ -1,12 +1,16 @@
+// ignore_for_file: unrelated_type_equality_checks
+
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
@@ -15,6 +19,7 @@ import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/services/Enquete_Service.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Marche_Service.dart';
 import 'package:simro/widgets/Snackbar.dart';
 import 'package:simro/widgets/loading_over_lay.dart';
@@ -45,11 +50,55 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     bool isLoading1 =false;
     late Marche marche;
     late Future _marcheList;
-    late Collecteur collecteur;
-    late Future _collecteurList;
+  bool isOffline = false;
+
+     bool isConnected = false;
 
     // Controller pour gérer la date sélectionnée
     TextEditingController dateController = TextEditingController();
+
+     void checkConnectivity() async {
+ final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+// This condition is for demo purposes only to explain every connection type.
+// Use conditions which work for your requirements.
+// if (connectivityResult.contains(ConnectivityResult.mobile)) {
+//   print("mobile");
+//   // Mobile network available.
+// } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
+//   // Wi-fi is available.
+//    print("wifi");
+//   // Note for Android:
+//   // When both mobile and Wi-Fi are turned on system will return Wi-Fi only as active network type
+// } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
+//    print("ethernet");
+//   // Ethernet connection available.
+// } else if (connectivityResult.contains(ConnectivityResult.vpn)) {
+//    print("vpn");
+//   // Vpn connection active.
+//   // Note for iOS and macOS:
+//   // There is no separate network interface type for [vpn].
+//   // It returns [other] on any device (also simulator)
+// } else if (connectivityResult.contains(ConnectivityResult.bluetooth)) {
+//    print("blutooth");
+//   // Bluetooth connection available.
+// } else if (connectivityResult.contains(ConnectivityResult.other)) {
+//    print("autres ");
+//   // Connected to a network which is not in the above mentioned networks.
+// } else 
+if (connectivityResult.contains(ConnectivityResult.none)) {
+   print("hors connexion ");
+  // No available network types
+}else{
+   print(" connexion établie");
+
+}
+}
+// Vérification de la connectivité
+ 
+
+
+
+
 
   Future<void> _selectDate(BuildContext context) async {
   DateTime currentDate = DateTime.now();
@@ -81,7 +130,21 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
  Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
-    List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte();
+   
+     
+    List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+     LocalDatabaseService().getAllEnquetes().then((enquetes) {
+    setState(() {
+      enqueteCollecteList = enquetes;
+      isLoading = false;
+    });
+  });
+    setState(() {
+      enqueteCollecteList.addAll(enquetes);
+      isLoading = false;
+    });
+    return enqueteCollecteList;
+  });
     
     // Mettre à jour la liste locale avec les nouvelles données
     enqueteCollecteList = fetchedList;
@@ -101,22 +164,39 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     _searchController = TextEditingController();
     _marcheList =
         http.get(Uri.parse('$apiUrl/all-marche/'));
-    _collecteurList =
-        http.get(Uri.parse('$apiUrl/all-collecteur/'));
+
              // Appel pour récupérer les produits au chargement de la page
-     EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+  //    EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+  //   setState(() {
+  //     enqueteCollecteList = enquetes;  // Assigner les produits récupérés à la liste locale
+  //     isLoading = false;  // Désactiver le chargement
+  //   });
+  // });
+   // Charger les enquêtes locales au démarrage
+
+  // Tenter de synchroniser avec l'API si connecté
+   LocalDatabaseService().getAllEnquetes().then((enquetes) {
     setState(() {
-      enqueteCollecteList = enquetes;  // Assigner les produits récupérés à la liste locale
-      isLoading = false;  // Désactiver le chargement
+      enqueteCollecteList = enquetes;
+      isLoading = false;
     });
   });
+     EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+    setState(() {
+      enqueteCollecteList.addAll(enquetes);
+      isLoading = false;
+    });
+  });
+ 
+
+
+
   }
 
    Future<void> _openDialog(bool isEditMode,{EnqueteCollecte? enqueteCollecte}) async {
   if(isEditMode){
   numFicheController.text = enqueteCollecte!.num_fiche!;
   marcheController.text = enqueteCollecte.marche!;
-  collecteurController.text = enqueteCollecte.collecteur!;
   dateController.text = enqueteCollecte.date_enquete!;
   }
  final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
@@ -150,13 +230,13 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                   // Title of the form
                    Center(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.only(bottom: 20),
                       child: Text(
                        !isEditMode ? "Ajout d'enquête de collecte" : "Modifier d'enquête de collecte",
                           maxLines:1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
@@ -219,34 +299,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-          
-                  // Collecteur
-                  const Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text(
-                      "Collecteur *",
-                      style: TextStyle(color: (Colors.black), fontSize: 18),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: showCollecteur,
-                    child: TextFormField(
-                      onTap: showCollecteur,
-                      controller: collecteurController,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.arrow_drop_down,
-                            color: Colors.blueGrey[400]),
-                        hintText: "Sélectionner un collecteur",
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
+                 
                   const SizedBox(height: 10),
           
                   // Date d'enquête
@@ -280,8 +333,38 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (formkey.currentState!.validate() && !isEditMode) {
-                          //   print("valid");
+                          if (!isEditMode) {
+                          // if (formkey.currentState!.validate() && !isEditMode) {
+//  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+ final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+// This condition is for demo purposes only to explain every connection type.
+// Use conditions which work for your requirements.
+   if (st == false) {
+   print("hors ligne");
+  // Mobile network available.
+    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    EnqueteCollecte enquete = EnqueteCollecte(
+      collecteur:enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: numFicheController.text,
+    marche: marcheController.text,
+    date_enquete: dateController.text,
+    isSynced: 0,
+  );
+    await LocalDatabaseService().insertEnquete(enquete).then((value) => {
+        LocalDatabaseService().getAllEnquetes().then((enquetes) {
+    setState(() {
+      enqueteCollecteList = enquetes;
+      isLoading = false;
+    });
+  })
+    });
+  }else{
+      print("en ligne");
+
+  
+                 
+                                            //   print("valid");
                           try {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
@@ -291,7 +374,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
     num_fiche: numFicheController.text,
     marche: marche.id_marche!.toString(),
-    collecteur: collecteur.id!.toString(),
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
     date_enquete: dateEnquete,
   );
 
@@ -309,7 +392,6 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
   numFicheController.clear();
   dateController.clear();
   marcheController.clear();
-  collecteurController.clear();
 
   // Fermer le dialogue
   Navigator.of(context).pop();
@@ -320,26 +402,22 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
 
   // Gérer l'erreur ici
 }
+}
 
-                          }else if(formkey.currentState!.validate() && isEditMode) {
+                          }else if(formkey.currentState!.validate() && isEditMode ) {
                             
                              try {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
-  
-  print("id_enquete: ${enqueteCollecte!.id_enquete!}");
-  print("num_fiche: ${numFicheController.text}");
-  print("marche: ${marcheController.text}");
-  print("collecteur: ${collecteurController.text}");
-  print("date_enquete: ${dateEnquete}");
+
 
   await EnqueteService()
       .updateEnqueteCollecte(
-        id_enquete: enqueteCollecte.id_enquete!,
+        id_enquete: enqueteCollecte!.id_enquete!,
         num_fiche: numFicheController.text,
         marche: marcheController.text,
-        collecteur: collecteurController.text,
         date_enquete: dateEnquete,
+      collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
       );
             Provider.of<EnqueteService>(context, listen: false).applyChange();
            List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
@@ -352,7 +430,6 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
    numFicheController.clear();
   dateController.clear();
   marcheController.clear();
-  collecteurController.clear();
             Navigator.of(context).pop();
           
 } catch (e) {
@@ -371,7 +448,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                           ),
                           child: Text(
                            !isEditMode ? "Enregistrer" : "Modifier",
-                            style: TextStyle(
+                            style:const TextStyle(
                               fontSize: 20,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -414,11 +491,11 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                               }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
+                             const PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
+                             const PopupMenuItem<String>(
                                 value: 'synchroniser',
                                 child: Text('Synchroniser'),
                               ),
@@ -442,18 +519,18 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
               },
                   controller:_searchController,
                 decoration: InputDecoration(
-                   contentPadding: EdgeInsets.all(10),
+                   contentPadding: const EdgeInsets.all(10),
                   hintText: "recherche .............",
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 10),
+           const SizedBox(height: 10),
             // Liste des prix de marché de consommation
-            Text(
+           const Text(
               'Liste des enquête de collecte',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -481,69 +558,162 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                     itemBuilder: (context, index) {
                       
                       final enquete = filteredList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 10),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'N° fiche: ${enquete.num_fiche!}',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
-                              ),
-                              SizedBox(height: 5),
-                              Text('Marché enquête: ${enquete.marche!}' ,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                              // SizedBox(height: 5),
-                             
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                      
-                              Text('Date Enquête: le ${enquete.date_enquete}' ,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                              // Bouton avec trois points
-                              PopupMenuButton<String>(
-                                iconColor:vert,
-                                onSelected: (String result) {
-                                  if (result == 'modifier') {
-                                    // Action pour modifier
-                                     _openDialog(true,enqueteCollecte:enquete);
-                                    print('Modifier sélectionné');
-                                  } else if (result == 'detail') {
-                                    // Action pour détail
-                                    Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
-                                    print('Détail sélectionné');
-                                  } else if (result == 'supprimer') {
-                                    // Action pour supprimer
-                                    EnqueteService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
-                        // Update the original list used by ListView.builder
-                        setState(() {
-                          enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                      return GestureDetector(
+                        onTap:(){
+                          if(enquete.isSynced != 1){
+                            print("non sync");
+                          }else{
+                            print("sync");
+                            
+                          }
+                        },
+                        child: Card(
+                          margin: EdgeInsets.symmetric(vertical: 10),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: enquete.isSynced != null &&  enquete.isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: enquete.isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
+                                Text(
+                                  'N° fiche: ${enquete.num_fiche!}',
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
+                                ),
+                             const   SizedBox(height: 5),
+                                Text('Marché enquête: ${enquete.marche!}' ,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                                // SizedBox(height: 5),
+                               
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                        
+                                Text('Date Enquête: le ${enquete.date_enquete}' ,
+                                  style:const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
+                                // Bouton avec trois points
+                                PopupMenuButton<String>(
+                                  iconColor:vert,
+                                  onSelected: (String result) async{
+                                     final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+                                    if (result == 'modifier') {
+                                      // Action pour modifier
+                                       _openDialog(true,enqueteCollecte:enquete);
+                                      print('Modifier sélectionné');
+                                    } 
+                                    else if (result == 'detail') {
+                                      // Action pour détail
+                                      Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
+                                      print('Détail sélectionné');
+                                    } 
+
+                                    else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                                       try {
+       final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  // Convertir la date de String à DateTime
+   DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnqueteCollecte(
+    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: enquete.num_fiche!,
+    marche: enquete.marche!,
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
+    date_enquete:parsedDate,
+  ).then((value) => {
+    LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!)
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteCollecteList = nouvelleListe;
+  });
+  numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                    else if (result == 'supprimer') {
+                                      // Action pour supprimer
+                                      EnqueteService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                          });
                         });
-                      });
-                                    print('Supprimer sélectionné');
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'modifier',
-                                    child: Text('Modifier'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'detail',
-                                    child: Text('Détail'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'supprimer',
-                                    child: Text('Supprimer'),
-                                  ),
-                                ],
-                              ),
-                                ],
-                              ),
-                            ],
+                                      print('Supprimer sélectionné');
+                                    }
+                                    else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                          });
+                        });
+                                      print('Supprimer sélectionné');
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimer',
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ] 
+                                  ,
+                                ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -641,7 +811,6 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
                                   final type = filteredSearch[index];
                                   final isSelected = marcheController.text ==
                                       type.nom_marche!;
-
                                   return Column(
                                     children: [
                                       ListTile(
@@ -713,156 +882,7 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
 
   //collecteur  de données
 
-  void showCollecteur() async {
-    final BuildContext context = this.context;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un collecteur',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    suffixIcon: const Icon(Icons.search),
-                  ),
-                ),
-              ),
-              content: FutureBuilder(
-                future: _collecteurList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
-                    );
-                  }
-
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Collecteur> typeListe = responseData
-                          .map((e) => Collecteur.fromMap(e))
-                          .toList();
-
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun collecteur trouvé")),
-                        );
-                      }
-
-                      String searchText = _searchController.text.toLowerCase();
-                      List<Collecteur> filteredSearch = typeListe
-                          .where((type) => "${type.prenom!} ${type.nom!}"
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return filteredSearch.isEmpty
-                          ? const Text(
-                              'Aucun collecteur trouvée',
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 17),
-                            )
-                          : SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                itemCount: filteredSearch.length,
-                                itemBuilder: (context, index) {
-                                  final type = filteredSearch[index];
-                                  final isSelected = collecteurController.text ==
-                                      "${type.prenom!} ${type.nom!}";
-
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          "${type.prenom!} ${type.nom!}",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check_box_outlined,
-                                                color: vert,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            collecteur = type;
-                                            collecteurController.text =
-                                                "${type.prenom!} ${type.nom!}";
-                                          });
-                                        },
-                                      ),
-                                      Divider()
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
-                    }
-                  }
-
-                  return const SizedBox(height: 8);
-                },
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $marche');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-
-   
+  
 
 
 }
