@@ -314,20 +314,22 @@ return Padding(
  
 
  Widget buildShimmerSelectList() {
-  return Shimmer.fromColors(
-    baseColor: Colors.grey[300]!,
-    highlightColor: Colors.grey[100]!,
-    child: Column(
-      children: List.generate(12, (index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Container(
-            width: double.infinity,
-            height: 20.0,
-            color: Colors.grey[300],
-          ),
-        );
-      }),
+  return SingleChildScrollView(
+    child: Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: List.generate(12, (index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Container(
+              width: double.infinity,
+              height: 20.0,
+              color: Colors.grey[300],
+            ),
+          );
+        }),
+      ),
     ),
   );
   

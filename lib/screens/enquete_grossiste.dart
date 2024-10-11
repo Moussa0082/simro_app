@@ -39,8 +39,7 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
     bool isLoading1 =false;
     late Marche marche;
     late Future _marcheList;
-    late Collecteur collecteur;
-    late Future _collecteurList;
+
 
     // Controller pour gérer la date sélectionnée
     TextEditingController dateController = TextEditingController();
@@ -93,10 +92,10 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+     final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
     _marcheList =
-        http.get(Uri.parse('$apiUrl/all-marche/'));
-    _collecteurList =
-        http.get(Uri.parse('$apiUrl/all-collecteur/'));
+        http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
+
              // Appel pour récupérer les produits au chargement de la page
      EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
     setState(() {
@@ -555,7 +554,7 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                 future: _marcheList,
                 builder: (_, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return buildShimmerSelectList();
                   }
 
                   if (snapshot.hasError) {

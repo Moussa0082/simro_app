@@ -93,8 +93,9 @@ TextEditingController dateController = TextEditingController();
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+     final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
     _marcheList =
-        http.get(Uri.parse('$apiUrl/all-marche/'));
+        http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
              // Appel pour récupérer les produits au chargement de la page
      EnqueteService().fetchEnquete().then((enquetes) {
@@ -602,7 +603,7 @@ TextEditingController dateController = TextEditingController();
                 future: _marcheList,
                 builder: (_, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return buildShimmerSelectList();
                   }
 
                   if (snapshot.hasError) {

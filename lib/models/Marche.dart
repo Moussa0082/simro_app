@@ -13,7 +13,7 @@ class Marche {
     String? description;
     int? commune;
     String? collecteur;
-    String? idPersonnel;
+    String? id_personnel;
     String? date_enregistrement;
     String? modifier_le;
     String? modifier_par;
@@ -31,7 +31,7 @@ class Marche {
          this.description,
          this.commune,
          this.collecteur,
-         this.idPersonnel,
+         this.id_personnel,
          this.date_enregistrement,
          this.modifier_le,
          this.modifier_par,
@@ -53,7 +53,7 @@ class Marche {
     String? description,
     int? commune,
     String? collecteur,
-    String? idPersonnel,
+    String? id_personnel,
     String? date_enregistrement,
     String? modifier_le,
     String? modifier_par,
@@ -71,7 +71,7 @@ class Marche {
       description: description ?? this.description,
       commune: commune ?? this.commune,
       collecteur: collecteur ?? this.collecteur,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
+      id_personnel: id_personnel ?? this.id_personnel,
       date_enregistrement: date_enregistrement ?? this.date_enregistrement,
       modifier_le: modifier_le ?? this.modifier_le,
       modifier_par: modifier_par ?? this.modifier_par,
@@ -92,7 +92,7 @@ class Marche {
       'description': description,
       'commune': commune,
       'collecteur': collecteur,
-      'idPersonnel': idPersonnel,
+      'id_personnel': id_personnel,
       'date_enregistrement': date_enregistrement,
       'modifier_le': modifier_le,
       'modifier_par': modifier_par,
@@ -102,22 +102,22 @@ class Marche {
 
   factory Marche.fromMap(Map<String, dynamic> map) {
     return Marche(
-      code_marche: map['code_marche'] != null ? map['code_marche'] as String : null,
-      nom_marche: map['nom_marche'] != null ? map['nom_marche'] as String : null,
-      type_marche: map['type_marche'] != null ? map['type_marche'] as String : null,
-      jour_marche: map['jour_marche'] != null ? map['jour_marche'] as String : null,
-      localite: map['localite'] != null ? map['localite'] as String : null,
-      longitude: map['longitude'] != null ? map['longitude'] as int : null,
-      latitude: map['latitude'] != null ? map['latitude'] as int : null,
-      superficie: map['superficie'] != null ? map['superficie'] as double : null,
-      description: map['description'] != null ? map['description'] as String : null,
-      commune: map['commune'] != null ? map['commune'] as int : null,
-      collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
-      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
-      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
-      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
-      id_marche: map['id_marche'] != null ? map['id_marche'] as int : null,
+      code_marche: map['code_marche'] != null ? map['code_marche'] as String? : null,
+      nom_marche: map['nom_marche'] != null ? map['nom_marche'] as String? : null,
+      type_marche: map['type_marche'] != null ? map['type_marche'] as String? : null,
+      jour_marche: map['jour_marche'] != null ? map['jour_marche'] as String? : null,
+      localite: map['localite'] != null ? map['localite'] as String? : null,
+      longitude: map['longitude'] != null ? map['longitude'] as int? : null,
+      latitude: map['latitude'] != null ? map['latitude'] as int? : null,
+      superficie: map['superficie'] != null ? map['superficie'] as double? : null,
+      description: map['description'] != null ? map['description'] as String? : null,
+      commune: map['commune'] != null ? map['commune'] as int? : null,
+      collecteur: map['collecteur'] != null ? map['collecteur'] as String? : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String? : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String? : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String? : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String? : null,
+      id_marche: map['id_marche'] != null ? map['id_marche'] as int? : null,
     );
   }
 
@@ -127,7 +127,7 @@ class Marche {
 
   @override
   String toString() {
-    return 'Marche(code_marche: $code_marche, nom_marche: $nom_marche, type_marche: $type_marche, jour_marche: $jour_marche, localite: $localite, longitude: $longitude, latitude: $latitude, superficie: $superficie, description: $description, commune: $commune, collecteur: $collecteur, idPersonnel: $idPersonnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_marche: $id_marche)';
+    return 'Marche(code_marche: $code_marche, nom_marche: $nom_marche, type_marche: $type_marche, jour_marche: $jour_marche, localite: $localite, longitude: $longitude, latitude: $latitude, superficie: $superficie, description: $description, commune: $commune, collecteur: $collecteur, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_marche: $id_marche)';
   }
 
   @override
@@ -146,7 +146,7 @@ class Marche {
       other.description == description &&
       other.commune == commune &&
       other.collecteur == collecteur &&
-      other.idPersonnel == idPersonnel &&
+      other.id_personnel == id_personnel &&
       other.date_enregistrement == date_enregistrement &&
       other.modifier_le == modifier_le &&
       other.modifier_par == modifier_par &&
@@ -166,7 +166,7 @@ class Marche {
       description.hashCode ^
       commune.hashCode ^
       collecteur.hashCode ^
-      idPersonnel.hashCode ^
+      id_personnel.hashCode ^
       date_enregistrement.hashCode ^
       modifier_le.hashCode ^
       modifier_par.hashCode ^

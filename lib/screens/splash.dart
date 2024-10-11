@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
@@ -49,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
-   checkEnqueteurSession();
+   
   }
 
    @override
@@ -89,8 +90,118 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
 }
 
 
+  // Demande de permissions pour la caméra, la galerie et d'autres services si nécessaire
+Future<bool> requestPermissions() async {
+  // Demander les permissions à l'utilisateur
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.camera,
+    Permission.storage,
+    Permission.location,
+  ].request();
+
+  // Vérifier si toutes les permissions sont accordées
+  bool allPermissionsGranted = statuses[Permission.camera]!.isGranted &&
+      statuses[Permission.location]!.isGranted &&
+      statuses[Permission.storage]!.isGranted;
+
+  if (allPermissionsGranted) {
+    print('Toutes les permissions ont été accordées');
+  } else {
+    // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
+    _showDialog();
+  }
+  return allPermissionsGranted;
+}
+
+void _showDialog() {
+  if (context.mounted) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Empêche de fermer le pop-up en cliquant à l'extérieur
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Permissions requises'),
+          content: const Text(
+              'Ces permissions sont nécessaires pour utiliser toutes les fonctionnalités de l\'application. Veuillez accorder les permissions.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme le dialogue si l'utilisateur refuse
+              },
+            ),
+            TextButton(
+              child: const Text('Réessayer'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Ferme le dialogue
+                await _retryPermissions(context);  // Redemande les permissions
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+Future<void> _retryPermissions(BuildContext context) async {
+  // Redemander les permissions une deuxième fois
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.camera,
+    Permission.storage,
+    Permission.location,
+  ].request();
+
+  bool allPermissionsGranted = statuses[Permission.camera]!.isGranted &&
+      statuses[Permission.location]!.isGranted &&
+      statuses[Permission.storage]!.isGranted;
+
+  if (allPermissionsGranted) {
+    print('Toutes les permissions ont été accordées lors de la seconde demande.');
+  } else if (context.mounted) {
+    // Si encore refusé, afficher un autre message ou rediriger l'utilisateur vers les paramètres
+    _showPermissionDeniedDialog(context);
+  }
+}
+
+void _showPermissionDeniedDialog(BuildContext context) {
+  if (context.mounted) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Permissions refusées'),
+          content: const Text(
+              'Les permissions sont nécessaires pour utiliser cette fonctionnalité. Vous pouvez accorder les permissions depuis les paramètres de l\'application.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Ferme le dialogue
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
+        // Simuler une attente avant la navigation
+    Future.delayed(const Duration(seconds: 2), () async {
+  // Attendre que la méthode asynchrone finisse de s'exécuter
+  bool permissionsGranted = await requestPermissions();
+
+  if (permissionsGranted) {
+    // Si les permissions sont accordées, naviguer vers la page suivante
+    checkEnqueteurSession();
+  }
+});
+
+
     return  Scaffold(
       backgroundColor: Colors.white,
       body: Center(

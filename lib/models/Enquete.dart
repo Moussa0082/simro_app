@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class Enquete {
     String? marche;
-    int? collecteur;
+    String? collecteur;
     String? statut;
     String? date_enquete;
     String? observation;
@@ -19,9 +19,11 @@ class Enquete {
   });
 
 
+ 
+
   Enquete copyWith({
     String? marche,
-    int? collecteur,
+    String? collecteur,
     String? statut,
     String? date_enquete,
     String? observation,
@@ -51,7 +53,7 @@ class Enquete {
   factory Enquete.fromMap(Map<String, dynamic> map) {
     return Enquete(
       marche: map['marche'] != null ? map['marche'] as String : null,
-      collecteur: map['collecteur'] != null ? map['collecteur'] as int : null,
+      collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
       statut: map['statut'] != null ? map['statut'] as String : null,
       date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,
       observation: map['observation'] != null ? map['observation'] as String : null,

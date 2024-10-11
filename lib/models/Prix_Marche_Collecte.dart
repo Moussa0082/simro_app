@@ -5,14 +5,14 @@ class PrixMarcheCollecte {
     int? enquete;
     String? produit;
     int? unite;
-    int? poids_unitaire;
-    int? montant_achat;
-    int? prix_fg_kg;
+    double? poids_unitaire;
+    double? montant_achat;
+    double? prix_fg_kg;
     String? localite_origine;
-    int? distance_origine_marche;
+    double? distance_origine_marche;
     int? montant_transport;
     String? etat_route;
-    int? quantite_collecte;
+    double? quantite_collecte;
     int? client_principal;
     int? fournisseur_principal;
     int? niveau_approvisionement;
@@ -56,14 +56,14 @@ class PrixMarcheCollecte {
     int? enquete,
     String? produit,
     int? unite,
-    int? poids_unitaire,
-    int? montant_achat,
-    int? prix_fg_kg,
+    double? poids_unitaire,
+    double? montant_achat,
+    double? prix_fg_kg,
     String? localite_origine,
-    int? distance_origine_marche,
+    double? distance_origine_marche,
     int? montant_transport,
     String? etat_route,
-    int? quantite_collecte,
+    double? quantite_collecte,
     int? client_principal,
     int? fournisseur_principal,
     int? niveau_approvisionement,
@@ -134,14 +134,14 @@ class PrixMarcheCollecte {
       enquete: map['enquete'] != null ? map['enquete'] as int : null,
       produit: map['produit'] != null ? map['produit'] as String : null,
       unite: map['unite'] != null ? map['unite'] as int : null,
-      poids_unitaire: map['poids_unitaire'] != null ? map['poids_unitaire'] as int : null,
-      montant_achat: map['montant_achat'] != null ? map['montant_achat'] as int : null,
-      prix_fg_kg: map['prix_fg_kg'] != null ? map['prix_fg_kg'] as int : null,
+      poids_unitaire: map['poids_unitaire'] != null ? map['poids_unitaire'] as double : null,
+      montant_achat: map['montant_achat'] != null ? map['montant_achat'] as double : null,
+      prix_fg_kg: map['prix_fg_kg'] != null ? map['prix_fg_kg'] as double : null,
       localite_origine: map['localite_origine'] != null ? map['localite_origine'] as String : null,
-      distance_origine_marche: map['distance_origine_marche'] != null ? map['distance_origine_marche'] as int : null,
+      distance_origine_marche: map['distance_origine_marche'] != null ? map['distance_origine_marche'] as double : null,
       montant_transport: map['montant_transport'] != null ? map['montant_transport'] as int : null,
       etat_route: map['etat_route'] != null ? map['etat_route'] as String : null,
-      quantite_collecte: map['quantite_collecte'] != null ? map['quantite_collecte'] as int : null,
+      quantite_collecte: map['quantite_collecte'] != null ? map['quantite_collecte'] as double : null,
       client_principal: map['client_principal'] != null ? map['client_principal'] as int : null,
       fournisseur_principal: map['fournisseur_principal'] != null ? map['fournisseur_principal'] as int : null,
       niveau_approvisionement: map['niveau_approvisionement'] != null ? map['niveau_approvisionement'] as int : null,

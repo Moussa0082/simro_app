@@ -207,44 +207,44 @@ class _HomeScreenState extends State<HomeScreen> {
              ),
                    ),
           
-             GestureDetector(onTap:(){
+            //  GestureDetector(onTap:(){
 
-              Get.to(ProductsScreen(), transition: Transition.downToUp, duration: Duration(seconds: 1)) ;
-             },
-               child: Card(
-                        // color:griss,
-                           child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: Icon(Icons.storage_outlined, color: vert,),
-                              ),
-                              ),
-                  // const SizedBox(height:5),
-                  Row(
-                    mainAxisAlignment:MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text('Produit', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          height: 30,
-                          width:30,
-                          child: Image.asset("assets/images/db.png")),
-                      ),
-                    ],
-                  ),
-                            ],
-                           ),
-                          ),
-             ),
+            //   Get.to(ProductsScreen(), transition: Transition.downToUp, duration: Duration(seconds: 1)) ;
+            //  },
+            //    child: Card(
+            //             // color:griss,
+            //                child: Column(
+            //             crossAxisAlignment: CrossAxisAlignment.start,
+            //                 children: [
+            //                   Padding(
+            //       padding: const EdgeInsets.all(8.0),
+            //       child: SizedBox(
+            //         height: 20,
+            //         width: 20,
+            //         child: Icon(Icons.storage_outlined, color: vert,),
+            //                   ),
+            //                   ),
+            //       // const SizedBox(height:5),
+            //       Row(
+            //         mainAxisAlignment:MainAxisAlignment.spaceBetween,
+            //         children: [
+            //           Padding(
+            //             padding: const EdgeInsets.all(8.0),
+            //             child: Text('Produit', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
+            //           ),
+            //           Padding(
+            //             padding: const EdgeInsets.all(8.0),
+            //             child: SizedBox(
+            //               height: 30,
+            //               width:30,
+            //               child: Image.asset("assets/images/db.png")),
+            //           ),
+            //         ],
+            //       ),
+            //                 ],
+            //                ),
+            //               ),
+            //  ),
              
             ],
           ),

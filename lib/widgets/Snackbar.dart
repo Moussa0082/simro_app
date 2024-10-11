@@ -5,7 +5,7 @@ import 'package:simro/constant/constantes.dart';
 class Snack{
 
   static success({required String titre,required String message}){
-    Get.snackbar(titre, message,  backgroundColor:  vert,duration: Duration(seconds: 5 ) 
+    Get.snackbar(titre, message,  backgroundColor:  vert, colorText: blanc,duration: Duration(seconds: 5 ) 
     
     // ,icon:Image.asset("assets/images/logo.png")
     // , snackPosition: SnackPosition.BOTTOM
@@ -19,6 +19,7 @@ static void error({required String titre, required String message}) {
         titre,
         message,
         backgroundColor: Colors.red,
+        colorText: blanc,
         // snackPosition: SnackPosition.BOTTOM,
         duration: Duration(seconds: 4),
       );

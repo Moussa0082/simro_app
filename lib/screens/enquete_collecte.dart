@@ -162,8 +162,9 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+     final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
     _marcheList =
-        http.get(Uri.parse('$apiUrl/all-marche/'));
+        http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
              // Appel pour récupérer les produits au chargement de la page
   //    EnqueteService().fetchEnqueteCollecte().then((enquetes) {
@@ -174,24 +175,22 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   // });
    // Charger les enquêtes locales au démarrage
 
-  // Tenter de synchroniser avec l'API si connecté
-   LocalDatabaseService().getAllEnquetes().then((enquetes) {
+ // Charger les enquêtes locales
+  LocalDatabaseService().getAllEnquetes().then((enquetes) {
     setState(() {
-      enqueteCollecteList = enquetes;
-      isLoading = false;
+      enqueteCollecteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      isLoading = false;  // Désactiver le chargement
+    });
+
+    // Tenter de synchroniser avec l'API si connecté
+    EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+      setState(() {
+        enqueteCollecteList.addAll(enquetes);
+        isLoading = false;  // Désactiver le second chargement
+      });
     });
   });
-     EnqueteService().fetchEnqueteCollecte().then((enquetes) {
-    setState(() {
-      enqueteCollecteList.addAll(enquetes);
-      isLoading = false;
-    });
-  });
- 
-
-
-
-  }
+}
 
    Future<void> _openDialog(bool isEditMode,{EnqueteCollecte? enqueteCollecte}) async {
   if(isEditMode){
@@ -386,7 +385,7 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
-    isLoading1 = false;
+    isLoading = false;
     enqueteCollecteList = nouvelleListe;
   });
   numFicheController.clear();
@@ -424,7 +423,7 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
-    isLoading1 = false;
+    isLoading = false;
     enqueteCollecteList = nouvelleListe;
   });
    numFicheController.clear();
@@ -548,11 +547,13 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
                       .toList();
 
                   // Afficher un message si aucun résultat n'est trouvé
-                  if (filteredList.isEmpty) {
-                    return const Center(
-                      child: Text('Aucun résultat trouvé'),
-                    );
-                  }
+                 // Afficher un message si aucun résultat n'est trouvé
+              if (filteredList.isEmpty && !isLoading && !isLoading1) {
+                return const Center(
+                  child: Text('Aucun résultat trouvé'),
+                );
+              }
+                  
                   return ListView.builder(
                     itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
                     itemBuilder: (context, index) {
@@ -600,7 +601,6 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
                                 PopupMenuButton<String>(
                                   iconColor:vert,
                                   onSelected: (String result) async{
-                                     final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
                                     if (result == 'modifier') {
                                       // Action pour modifier
                                        _openDialog(true,enqueteCollecte:enquete);
@@ -733,152 +733,290 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 
    // Fonction pour récupérer la liste des marchés depuis l'API
 
+  
   void showMarche() async {
-    final BuildContext context = this.context;
+  final BuildContext context = this.context;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un marché',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+  // Vérification de la connectivité réseau
+  var connectivityResult = await Connectivity().checkConnectivity();
+  bool isOnline = connectivityResult != ConnectivityResult.none;
+
+  // Si l'utilisateur est hors ligne, charger la liste des marchés depuis la base locale
+  if (!isOnline) {
+    List<Marche> localMarcheList = await LocalDatabaseService().getAllMarche();
+
+    if (localMarcheList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Aucun marché disponible en local")),
+      );
+      return;
+    }
+
+    // Afficher la boîte de dialogue avec les marchés locaux
+    _showMarcheDialog(localMarcheList);
+  } else {
+
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  if (mounted) setState(() {});
+                },
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un marché',
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
                     ),
-                    suffixIcon: const Icon(Icons.search),
                   ),
+                  suffixIcon: const Icon(Icons.search),
                 ),
               ),
-              content: FutureBuilder(
-                future: _marcheList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+            ),
+            content: FutureBuilder(
+              future: _marcheList,
+              builder: (_, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return buildShimmerSelectList();
+                }
 
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
-                    );
-                  }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("Erreur lors du chargement des données"),
+                  );
+                }
 
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Marche> typeListe = responseData
-                          .map((e) => Marche.fromMap(e))
-                          .toList();
+                if (snapshot.hasData) {
+                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
+                  if (responseData is List) {
+                    List<Marche> typeListe = responseData.map((e) => Marche.fromMap(e)).toList();
 
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun marché trouvée")),
-                        );
-                      }
+                    // Sauvegarder les marchés localement
+                    _saveMarketsLocally(typeListe);
 
-                      String searchText = _searchController.text.toLowerCase();
-                      List<Marche> filteredSearch = typeListe
-                          .where((type) => type.nom_marche!
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return filteredSearch.isEmpty
-                          ? const Text(
-                              'Aucun marché trouvée',
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 17),
-                            )
-                          : SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                itemCount: filteredSearch.length,
-                                itemBuilder: (context, index) {
-                                  final type = filteredSearch[index];
-                                  final isSelected = marcheController.text ==
-                                      type.nom_marche!;
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          type.nom_marche!,
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check_box_outlined,
-                                                color: vert,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            marche = type;
-                                            marcheController.text =
-                                                type.nom_marche!;
-                                          });
-                                        },
-                                      ),
-                                      Divider()
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
+                    if (typeListe.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucun marché trouvé")),
+                      );
                     }
-                  }
 
-                  return const SizedBox(height: 8);
+                    String searchText = _searchController.text.toLowerCase();
+                    List<Marche> filteredSearch = typeListe
+                        .where((type) => type.nom_marche!.toLowerCase().contains(searchText))
+                        .toList();
+
+                    return filteredSearch.isEmpty
+                        ? const Text(
+                            'Aucun marché trouvé',
+                            style: TextStyle(color: Colors.black, fontSize: 17),
+                          )
+                        : SizedBox(
+                            width: double.maxFinite,
+                            child: ListView.builder(
+                              itemCount: filteredSearch.length,
+                              itemBuilder: (context, index) {
+                                final type = filteredSearch[index];
+                                final isSelected = marcheController.text == type.nom_marche!;
+                                return Column(
+                                  children: [
+                                    ListTile(
+                                      title: Text(
+                                        type.nom_marche!,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(
+                                              Icons.check_box_outlined,
+                                              color: vert,
+                                            )
+                                          : null,
+                                      onTap: () {
+                                        setState(() {
+                                          marche = type;
+                                          marcheController.text = type.nom_marche!;
+                                        });
+                                      },
+                                    ),
+                                    Divider()
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                  }
+                }
+
+                return const SizedBox(height: 8);
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  Navigator.of(context).pop();
                 },
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
+              TextButton(
+                child: const Text(
+                  'Valider',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
                 ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                onPressed: () {
+                  _searchController.clear();
+                  print('Options sélectionnées : $marche');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+ }
+}
+
+
+ // Afficher la boîte de dialogue avec la liste des marchés locaux
+    void _showMarcheDialog(List<Marche> localMarcheList) {
+  showDialog(
+    context: this.context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  if (mounted) setState(() {});
+                },
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un marché',
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
                   ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $marche');
-                    Navigator.of(context).pop();
-                  },
+                  suffixIcon: const Icon(Icons.search),
                 ),
-              ],
-            );
-          },
-        );
-      },
-    );
+              ),
+            ),
+            content: localMarcheList.isEmpty
+                ? const Center(child: Text("Aucun marché disponible en local"))
+                : SizedBox(
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      itemCount: localMarcheList.length,
+                      itemBuilder: (context, index) {
+                        final type = localMarcheList[index];
+                        final isSelected = marcheController.text == type.nom_marche!;
+                        return Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                type.nom_marche!,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? const Icon(
+                                      Icons.check_box_outlined,
+                                      color: vert,
+                                    )
+                                  : null,
+                              onTap: () {
+                                setState(() {
+                                  marche = type;
+                                  marcheController.text = type.nom_marche!;
+                                });
+                              },
+                            ),
+                            Divider()
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text(
+                  'Valider',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  print('Options sélectionnées : $marche');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+// Méthode pour sauvegarder les marchés localement et gérer la suppression
+Future<void> _saveMarketsLocally(List<Marche> marcheList) async {
+  // Récupérer la liste actuelle des marchés dans la base locale
+  List<Marche> localMarcheList = await LocalDatabaseService().getAllMarche();
+
+  // Identifier les nouveaux marchés à ajouter
+  List<Marche> newMarcheList = marcheList
+      .where((marche) => !localMarcheList.any((local) => local.id_marche == marche.id_marche))
+      .toList();
+
+  // Ajouter les nouveaux marchés
+  for (Marche marche in newMarcheList) {
+    await LocalDatabaseService().addMarche(marche);
   }
+
+  // Identifier les marchés à supprimer
+  List<Marche> deletedMarcheList = localMarcheList
+      .where((local) => !marcheList.any((marche) => marche.id_marche == local.id_marche))
+      .toList();
+
+  // Supprimer les marchés obsolètes
+  for (Marche marche in deletedMarcheList) {
+    await LocalDatabaseService().deleteMarche(marche.id_marche!);
+  }
+}
+
 
   //collecteur  de données
 

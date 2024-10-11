@@ -57,33 +57,69 @@ class NetworkController extends GetxController {
 
 
 
-  @override
-  void onInit() {
-    super.onInit();
-         InternetConnection().onStatusChange.listen((event) {
-      switch (event) {
-        case InternetStatus.connected:
-            isConnectedToInternet = true;
-            print(event);
-            print("connecté");
-              Snack.success(titre:"Alerte", message:"Vous êtes connecté à internet");
-          break;
-        case InternetStatus.disconnected:
-              Snack.error(titre:"Alerte", message:"Vous êtes hors connexion");
-            print("deconnecté");
-            print(event);
-            isConnectedToInternet = false;
-          break;
-        default:
-            print("deconnecté");
-          
-            isConnectedToInternet = false;
-          break;
-      }
-    });
-    
-    _updateConnectivityStatus();
-  }
+ @override
+void onInit() {
+  super.onInit();
+  InternetConnection().onStatusChange.listen((event) {
+    BuildContext? context = Get.context;
+    switch (event) {
+      case InternetStatus.connected:
+        isConnectedToInternet = true;
+        print("connecté");
+        
+        // Fermer tous les SnackBars existants si l'utilisateur se reconnecte
+        if (context != null) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Vous êtes connecté à internet'),
+              duration: Duration(days: 1), // Garde le SnackBar affiché
+              backgroundColor: Colors.green,
+              // action: SnackBarAction(
+              //   label: 'OK',
+              //   onPressed: () {
+              //     Get.back();
+              //     // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+              //   },
+              // ),
+            ),
+          );
+        }
+        break;
+
+      case InternetStatus.disconnected:
+        isConnectedToInternet = false;
+        print("déconnecté");
+        
+        // Si l'utilisateur n'a pas de connexion, afficher un SnackBar permanent
+        if (context != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Vous êtes hors connexion'),
+              duration: Duration(days: 1), // Garde le SnackBar affiché
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'OK',
+                onPressed: () {
+                  Get.back();
+                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+                },
+              ),
+            ),
+          );
+        }
+        break;
+
+      default:
+        isConnectedToInternet = false;
+        print("déconnecté");
+        break;
+    }
+  });
+
+  _updateConnectivityStatus();
+}
+
 
     @override
   void dispose() {
