@@ -5,6 +5,7 @@ class PrixMarcheCollecte {
     int? enquete;
     String? produit;
     int? unite;
+    int? isSynced;
     double? poids_unitaire;
     double? montant_achat;
     double? prix_fg_kg;
@@ -29,6 +30,7 @@ class PrixMarcheCollecte {
          this.enquete,
          this.produit,
          this.unite,
+         this.isSynced,
          this.poids_unitaire,
          this.montant_achat,
          this.prix_fg_kg,
@@ -56,6 +58,7 @@ class PrixMarcheCollecte {
     int? enquete,
     String? produit,
     int? unite,
+    int? isSynced,
     double? poids_unitaire,
     double? montant_achat,
     double? prix_fg_kg,
@@ -80,6 +83,7 @@ class PrixMarcheCollecte {
       enquete: enquete ?? this.enquete,
       produit: produit ?? this.produit,
       unite: unite ?? this.unite,
+      isSynced: isSynced ?? this.isSynced,
       poids_unitaire: poids_unitaire ?? this.poids_unitaire,
       montant_achat: montant_achat ?? this.montant_achat,
       prix_fg_kg: prix_fg_kg ?? this.prix_fg_kg,
@@ -107,6 +111,7 @@ class PrixMarcheCollecte {
       'enquete': enquete,
       'produit': produit,
       'unite': unite,
+      'isSynced': isSynced,
       'poids_unitaire': poids_unitaire,
       'montant_achat': montant_achat,
       'prix_fg_kg': prix_fg_kg,
@@ -134,6 +139,7 @@ class PrixMarcheCollecte {
       enquete: map['enquete'] != null ? map['enquete'] as int : null,
       produit: map['produit'] != null ? map['produit'] as String : null,
       unite: map['unite'] != null ? map['unite'] as int : null,
+      isSynced: map['isSynced'] != null ? map['isSynced'] as int : null,
       poids_unitaire: map['poids_unitaire'] != null ? map['poids_unitaire'] as double : null,
       montant_achat: map['montant_achat'] != null ? map['montant_achat'] as double : null,
       prix_fg_kg: map['prix_fg_kg'] != null ? map['prix_fg_kg'] as double : null,
@@ -162,7 +168,7 @@ class PrixMarcheCollecte {
 
   @override
   String toString() {
-    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite, poids_unitaire: $poids_unitaire, montant_achat: $montant_achat, prix_fg_kg: $prix_fg_kg, localite_origine: $localite_origine, distance_origine_marche: $distance_origine_marche, montant_transport: $montant_transport, etat_route: $etat_route, quantite_collecte: $quantite_collecte, client_principal: $client_principal, fournisseur_principal: $fournisseur_principal, niveau_approvisionement: $niveau_approvisionement, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
+    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite, isSynced: $isSynced, poids_unitaire: $poids_unitaire, montant_achat: $montant_achat, prix_fg_kg: $prix_fg_kg, localite_origine: $localite_origine, distance_origine_marche: $distance_origine_marche, montant_transport: $montant_transport, etat_route: $etat_route, quantite_collecte: $quantite_collecte, client_principal: $client_principal, fournisseur_principal: $fournisseur_principal, niveau_approvisionement: $niveau_approvisionement, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
   }
 
   @override
@@ -173,6 +179,7 @@ class PrixMarcheCollecte {
       other.enquete == enquete &&
       other.produit == produit &&
       other.unite == unite &&
+      other.isSynced == isSynced &&
       other.poids_unitaire == poids_unitaire &&
       other.montant_achat == montant_achat &&
       other.prix_fg_kg == prix_fg_kg &&
@@ -199,6 +206,7 @@ class PrixMarcheCollecte {
     return enquete.hashCode ^
       produit.hashCode ^
       unite.hashCode ^
+      isSynced.hashCode ^
       poids_unitaire.hashCode ^
       montant_achat.hashCode ^
       prix_fg_kg.hashCode ^

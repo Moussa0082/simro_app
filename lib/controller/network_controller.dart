@@ -73,7 +73,7 @@ void onInit() {
 ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Vous êtes connecté à internet'),
-              duration: Duration(days: 1), // Garde le SnackBar affiché
+              duration: Duration(seconds:2 ), // Garde le SnackBar affiché
               backgroundColor: Colors.green,
               // action: SnackBarAction(
               //   label: 'OK',

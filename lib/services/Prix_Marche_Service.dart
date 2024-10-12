@@ -86,7 +86,7 @@ class PrixMarcheService extends ChangeNotifier{
 
 
     Future<List<PrixMarcheConsommation>> fetchPrixMarcheConsommation() async {
-    final response = await http.get(Uri.parse("$apiUrl/$baseUrlC/"));
+    final response = await http.get(Uri.parse("$apiUrl/$baseUrl2/"));
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       // List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
@@ -111,7 +111,7 @@ class PrixMarcheService extends ChangeNotifier{
   required double montant_achat,
   required double prix_fg_kg,
   required double distance_origine_marche,
-  required double montant_transport,
+  required int montant_transport,
   required int app_mobile,
   required double quantite_collecte,
   required int client_principal,
@@ -135,6 +135,7 @@ class PrixMarcheService extends ChangeNotifier{
     'montant_transport': montant_transport,//
     'etat_route': etat_route,//
     'statut': statut,//
+    'unite': unite,//
     // 'observation': observation,//
     'quantite_collecte': quantite_collecte,//
     'client_principal': client_principal,//
@@ -162,7 +163,7 @@ class PrixMarcheService extends ChangeNotifier{
       final Map<String, dynamic> errorResponse = jsonDecode(response.body);
       String errorMessage = errorResponse['message'] ?? 'Une erreur s\'est produite.';
       Snack.error(titre: "Erreur", message: errorMessage);
-      throw Exception("Erreur: ${response.statusCode} - $errorMessage");
+      print("Erreur: ${response.statusCode} - $errorMessage");
     }
   } catch (e) {
     Snack.error(titre: "Erreur", message: "Une erreur s'est produite, veuillez réessayer plus tard.");
@@ -175,27 +176,26 @@ class PrixMarcheService extends ChangeNotifier{
   required int enquete,
   required String produit,
   required int unite,
-  required int id_fiche,
+  required int poids_moyen_unite_stock,
+  required int nombre_unite_stock,
+  required int poids_stock,
   required int poids_unitaire,
-  required int montant_achat,
-  required int prix_fg_kg,
-  required int distance_origine_marche,
-  required int montant_transport,
+  required int nombre_unite_achat,
+  required int unite_achat,
+  required int poids_moyen_unite_achat,
+  required int poids_total_achat,
   required int app_mobile,
-  required int quantite_collecte,
-  required int client_principal,
-  required int fournisseur_principal,
+  required int fournisseur_achat,
+  required int localite_achat,
+  required int nombre_unite_vente,
   required int niveau_approvisionement,
   required int statut,
-  required String localite_origine,
-  required String etat_route,
+  required int poids_moyen_unite_vente,
+  required int poids_total_unite_vente,
   required String observation,
-  required DateTime date_enregistrement,  // Utilisation de DateTime
+  required int prix_unitaire_vente,  // Utilisation de DateTime
   required String id_personnel,
 }) async {
-  // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
-  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
-  // String formattedDate = DateTime.parse(json['date_enquete']);
 
 
   var addPrixMarcheGrossiste = jsonEncode({
@@ -203,25 +203,28 @@ class PrixMarcheService extends ChangeNotifier{
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
-    'id_fiche': id_fiche,
-    'montant_achat': montant_achat,
-    'prix_fg_kg': prix_fg_kg,
-    'localite_origine': localite_origine,
-    'distance_origine_marche': distance_origine_marche,
-    'montant_transport': montant_transport,
-    'etat_route': etat_route,
+    'nombre_unite_stock': nombre_unite_stock,
+    'poids_moyen_unite_stock': poids_moyen_unite_stock,
+    'poids_stock': poids_stock,
+    'unite_achat': unite_achat,
+    'nombre_unite_achat': nombre_unite_achat,
+    'poids_moyen_unite_achat': poids_moyen_unite_achat,
+    'poids_total_achat': poids_total_achat,
     'statut': statut,
-    'quantite_collecte': quantite_collecte,
-    'client_principal': client_principal,
-    'fournisseur_principal': fournisseur_principal,
+    'localite_achat': localite_achat,
+    'fournisseur_achat': fournisseur_achat,
+    'nombre_unite_vente': nombre_unite_vente,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
-    'date_enregistrement': formattedDate,  // Envoyer la date formatée
+    'poids_moyen_unite_vente': poids_moyen_unite_vente,  // Envoyer la date formatée
+    'poids_total_unite_vente': poids_total_unite_vente,  // Envoyer la date formatée
+    'prix_unitaire_vente': prix_unitaire_vente,  // Envoyer la date formatée
+    'observation': observation, 
   });
 
   try {
     final response = await http.post(
-      Uri.parse("$apiUrl/$baseUrl/create/"),
+      Uri.parse("$apiUrl/$baseUrlG/create/"),
       headers: {'Content-Type': 'application/json'},
       body: addPrixMarcheGrossiste,
     );
@@ -235,7 +238,7 @@ class PrixMarcheService extends ChangeNotifier{
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-      throw Exception("Erreur: ${response.body}");
+      print("Erreur: ${response.body}");
     }
   } catch (e) {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
@@ -249,27 +252,18 @@ class PrixMarcheService extends ChangeNotifier{
   required int enquete,
   required String produit,
   required int unite,
-  required int id_fiche,
+  required int prix_mesure,
   required int poids_unitaire,
-  required int montant_achat,
-  required int prix_fg_kg,
-  required int distance_origine_marche,
-  required int montant_transport,
+  required String document,
+  required int prix_kg_litre,
   required int app_mobile,
-  required int quantite_collecte,
-  required int client_principal,
-  required int fournisseur_principal,
   required int niveau_approvisionement,
   required int statut,
-  required String localite_origine,
-  required String etat_route,
   required String observation,
-  required DateTime date_enregistrement,  // Utilisation de DateTime
   required String id_personnel,
 }) async {
+
   // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
-  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
-  // String formattedDate = DateTime.parse(json['date_enquete']);
 
 
   var addPrixMarcheConsommation = jsonEncode({
@@ -277,25 +271,17 @@ class PrixMarcheService extends ChangeNotifier{
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
-    'id_fiche': id_fiche,
-    'montant_achat': montant_achat,
-    'prix_fg_kg': prix_fg_kg,
-    'localite_origine': localite_origine,
-    'distance_origine_marche': distance_origine_marche,
-    'montant_transport': montant_transport,
-    'etat_route': etat_route,
     'statut': statut,
-    'quantite_collecte': quantite_collecte,
-    'client_principal': client_principal,
-    'fournisseur_principal': fournisseur_principal,
+    'prix_mesure': prix_mesure,
+    'document': document,
+    'observation': observation,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
-    'date_enregistrement': formattedDate,  // Envoyer la date formatée
   });
 
   try {
     final response = await http.post(
-      Uri.parse("$apiUrl/$baseUrl/create/"),
+      Uri.parse("$apiUrl/$baseUrlC/create/"),
       headers: {'Content-Type': 'application/json'},
       body: addPrixMarcheConsommation,
     );
@@ -309,7 +295,7 @@ class PrixMarcheService extends ChangeNotifier{
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-      throw Exception("Erreur: ${response.body}");
+      print("Erreur: ${response.body}");
     }
   } catch (e) {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
@@ -323,28 +309,28 @@ class PrixMarcheService extends ChangeNotifier{
   required String produit,
   required int unite,
   required int id_fiche,
-  required int poids_unitaire,
-  required int montant_achat,
-  required int prix_fg_kg,
-  required int distance_origine_marche,
+  required double poids_unitaire,
+  required double montant_achat,
+  required double prix_fg_kg,
+  required double distance_origine_marche,
   required int montant_transport,
   required int app_mobile,
-  required int quantite_collecte,
+  required double quantite_collecte,
   required int client_principal,
   required int fournisseur_principal,
   required int niveau_approvisionement,
   required int statut,
   required String localite_origine,
   // required String modifier_le,
-  // required String modifier_par,
+  required String modifier_par,
   required String etat_route,
-  required String observation,
+  // required String observation,
   // required DateTime date_enregistrement,  // Utilisation de DateTime
   required String id_personnel,
 }) async {
   // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
   DateTime date = DateTime.now();
-  String formattedDateModif = DateFormat('yyyy-MM-dd').format(date);
+  // String formattedDateModif = DateFormat('yyyy-MM-dd').format(date);
 
   // String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
   // String formattedDate = DateTime.parse(json['date_enquete']);
@@ -355,6 +341,7 @@ class PrixMarcheService extends ChangeNotifier{
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
+    'modifier_par': modifier_par,
     'id_fiche': id_fiche,
     'montant_achat': montant_achat,
     'prix_fg_kg': prix_fg_kg,
@@ -375,7 +362,7 @@ class PrixMarcheService extends ChangeNotifier{
 
   try {
     final response = await http.put(
-      Uri.parse("$apiUrl/$baseUrl/update/$id_fiche"),
+      Uri.parse("$apiUrl/$baseUrl1/update/$id_fiche/"),
       headers: {'Content-Type': 'application/json'},
       body: updatePrixMarcheCollecte,
     );
@@ -389,7 +376,7 @@ class PrixMarcheService extends ChangeNotifier{
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-      throw Exception("Erreur: ${response.body}");
+      print("Erreur: ${response.body}");
     }
   } catch (e) {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
@@ -399,60 +386,40 @@ class PrixMarcheService extends ChangeNotifier{
 
 
   Future<void> updatePrixMarcheConsommation({
-  required int enquete,
+    required int enquete,
   required String produit,
   required int unite,
-  required int id_fiche,
+  required int prix_mesure,
   required int poids_unitaire,
-  required int montant_achat,
-  required int prix_fg_kg,
-  required int distance_origine_marche,
-  required int montant_transport,
+  required String document,
+  required int prix_kg_litre,
   required int app_mobile,
-  required int quantite_collecte,
-  required int client_principal,
-  required int fournisseur_principal,
   required int niveau_approvisionement,
   required int statut,
-  required String localite_origine,
-  required String modifier_le,
-  required String modifier_par,
-  required String etat_route,
   required String observation,
-  required DateTime date_enregistrement,  // Utilisation de DateTime
   required String id_personnel,
+  required int id_fiche,
 }) async {
   // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
-  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
-  // String formattedDate = DateTime.parse(json['date_enquete']);
 
 
   var updatePrixMarcheConsommation = jsonEncode({
     'id_personnel': id_personnel,
+    'id_fiche': id_fiche,
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
-    'id_fiche': id_fiche,
-    'montant_achat': montant_achat,
-    'prix_fg_kg': prix_fg_kg,
-    'modifier_le': modifier_le,
-    'modifier_par': modifier_par,
-    'localite_origine': localite_origine,
-    'distance_origine_marche': distance_origine_marche,
-    'montant_transport': montant_transport,
-    'etat_route': etat_route,
     'statut': statut,
-    'quantite_collecte': quantite_collecte,
-    'client_principal': client_principal,
-    'fournisseur_principal': fournisseur_principal,
+    'prix_mesure': prix_mesure,
+    'document': document,
+    'observation': observation,
     'niveau_approvisionement': niveau_approvisionement,
-    'app_mobile': app_mobile,
-    'date_enregistrement': formattedDate,  // Envoyer la date formatée
+    'app_mobile': app_mobile,  // Envoyer la date formatée
   });
 
   try {
     final response = await http.put(
-      Uri.parse("$apiUrl/$baseUrl/update/$id_fiche"),
+      Uri.parse("$apiUrl/$baseUrlC/update/$id_fiche/"),
       headers: {'Content-Type': 'application/json'},
       body: updatePrixMarcheConsommation,
     );
@@ -466,7 +433,7 @@ class PrixMarcheService extends ChangeNotifier{
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-      throw Exception("Erreur: ${response.body}");
+      print("Erreur: ${response.body}");
     }
   } catch (e) {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
@@ -475,61 +442,61 @@ class PrixMarcheService extends ChangeNotifier{
   }
 
 
-  Future<void> updatePrixMarcheGrossiste({
-  required int enquete,
+  Future<void> updatePrixMarcheGrossiste({  
+  required int id_fiche,
+    required int enquete,
   required String produit,
   required int unite,
-  required int id_fiche,
+  required int poids_moyen_unite_stock,
+  required int nombre_unite_stock,
+  required int poids_stock,
   required int poids_unitaire,
-  required int montant_achat,
-  required int prix_fg_kg,
-  required int distance_origine_marche,
-  required int montant_transport,
+  required int nombre_unite_achat,
+  required int unite_achat,
+  required int poids_moyen_unite_achat,
+  required int poids_total_achat,
   required int app_mobile,
-  required int quantite_collecte,
-  required int client_principal,
-  required int fournisseur_principal,
+  required int fournisseur_achat,
+  required int localite_achat,
+  required int nombre_unite_vente,
   required int niveau_approvisionement,
   required int statut,
-  required String localite_origine,
-  required String modifier_le,
-  required String modifier_par,
-  required String etat_route,
+  required int poids_moyen_unite_vente,
+  required int poids_total_unite_vente,
   required String observation,
-  required DateTime date_enregistrement,  // Utilisation de DateTime
+  required int prix_unitaire_vente,  // Utilisation de DateTime
   required String id_personnel,
-}) async {
-  // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
-  String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
-  // String formattedDate = DateTime.parse(json['date_enquete']);
 
+}) async {
 
   var updatePrixMarcheGrossiste = jsonEncode({
-    'id_personnel': id_personnel,
+    'id_fiche': id_fiche,
+       'id_personnel': id_personnel,
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
-    'id_fiche': id_fiche,
-    'montant_achat': montant_achat,
-    'prix_fg_kg': prix_fg_kg,
-    'modifier_le': modifier_le,
-    'modifier_par': modifier_par,
-    'localite_origine': localite_origine,
-    'distance_origine_marche': distance_origine_marche,
-    'montant_transport': montant_transport,
-    'etat_route': etat_route,
+    'nombre_unite_stock': nombre_unite_stock,
+    'poids_moyen_unite_stock': poids_moyen_unite_stock,
+    'poids_stock': poids_stock,
+    'unite_achat': unite_achat,
+    'nombre_unite_achat': nombre_unite_achat,
+    'poids_moyen_unite_achat': poids_moyen_unite_achat,
+    'poids_total_achat': poids_total_achat,
     'statut': statut,
-    'quantite_collecte': quantite_collecte,
-    'client_principal': client_principal,
-    'fournisseur_principal': fournisseur_principal,
+    'localite_achat': localite_achat,
+    'fournisseur_achat': fournisseur_achat,
+    'nombre_unite_vente': nombre_unite_vente,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
-    'date_enregistrement': formattedDate,  // Envoyer la date formatée
+    'poids_moyen_unite_vente': poids_moyen_unite_vente,  // Envoyer la date formatée
+    'poids_total_unite_vente': poids_total_unite_vente,  // Envoyer la date formatée
+    'prix_unitaire_vente': prix_unitaire_vente,  // Envoyer la date formatée
+    'observation': observation,   // Envoyer la date formatée
   });
 
   try {
     final response = await http.put(
-      Uri.parse("$apiUrl/$baseUrl/update/$id_fiche"),
+      Uri.parse("$apiUrl/$baseUrlG/update/$id_fiche/"),
       headers: {'Content-Type': 'application/json'},
       body: updatePrixMarcheGrossiste,
     );

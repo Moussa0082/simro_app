@@ -5,6 +5,7 @@ class EnqueteGrossiste {
     String? num_fiche;
     String? marche;
     String? collecteur;
+    int? isSynced;
     String? date_enquete;
     String? date_enregistrement;
     String? id_personnel;
@@ -13,18 +14,20 @@ class EnqueteGrossiste {
     String? modifier_par;
     int? id_enquete;
 
-    EnqueteGrossiste({
-         this.num_fiche,
-         this.marche,
-         this.collecteur,
-         this.date_enquete,
-         this.date_enregistrement,
-         this.id_personnel,
-         this.etat,
-         this.modifier_le,
-         this.modifier_par,
-         this.id_enquete,
-    });
+  EnqueteGrossiste({
+    this.num_fiche,
+    this.marche,
+    this.collecteur,
+    this.isSynced,
+    this.date_enquete,
+    this.date_enregistrement,
+    this.id_personnel,
+    this.etat,
+    this.modifier_le,
+    this.modifier_par,
+    this.id_enquete,
+  });
+
 
 
 
@@ -32,6 +35,7 @@ class EnqueteGrossiste {
     String? num_fiche,
     String? marche,
     String? collecteur,
+    int? isSynced,
     String? date_enquete,
     String? date_enregistrement,
     String? id_personnel,
@@ -44,6 +48,7 @@ class EnqueteGrossiste {
       num_fiche: num_fiche ?? this.num_fiche,
       marche: marche ?? this.marche,
       collecteur: collecteur ?? this.collecteur,
+      isSynced: isSynced ?? this.isSynced,
       date_enquete: date_enquete ?? this.date_enquete,
       date_enregistrement: date_enregistrement ?? this.date_enregistrement,
       id_personnel: id_personnel ?? this.id_personnel,
@@ -59,6 +64,7 @@ class EnqueteGrossiste {
       'num_fiche': num_fiche,
       'marche': marche,
       'collecteur': collecteur,
+      'isSynced': isSynced,
       'date_enquete': date_enquete,
       'date_enregistrement': date_enregistrement,
       'id_personnel': id_personnel,
@@ -74,6 +80,7 @@ class EnqueteGrossiste {
       num_fiche: map['num_fiche'] != null ? map['num_fiche'] as String : null,
       marche: map['marche'] != null ? map['marche'] as String : null,
       collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
+      isSynced: map['isSynced'] != null ? map['isSynced'] as int : null,
       date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,
       date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
       id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
@@ -90,7 +97,7 @@ class EnqueteGrossiste {
 
   @override
   String toString() {
-    return 'EnqueteGrossiste(num_fiche: $num_fiche, marche: $marche, collecteur: $collecteur, date_enquete: $date_enquete, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_enquete: $id_enquete)';
+    return 'EnqueteGrossiste(num_fiche: $num_fiche, marche: $marche, collecteur: $collecteur, isSynced: $isSynced, date_enquete: $date_enquete, date_enregistrement: $date_enregistrement, id_personnel: $id_personnel, etat: $etat, modifier_le: $modifier_le, modifier_par: $modifier_par, id_enquete: $id_enquete)';
   }
 
   @override
@@ -101,6 +108,7 @@ class EnqueteGrossiste {
       other.num_fiche == num_fiche &&
       other.marche == marche &&
       other.collecteur == collecteur &&
+      other.isSynced == isSynced &&
       other.date_enquete == date_enquete &&
       other.date_enregistrement == date_enregistrement &&
       other.id_personnel == id_personnel &&
@@ -115,6 +123,7 @@ class EnqueteGrossiste {
     return num_fiche.hashCode ^
       marche.hashCode ^
       collecteur.hashCode ^
+      isSynced.hashCode ^
       date_enquete.hashCode ^
       date_enregistrement.hashCode ^
       id_personnel.hashCode ^

@@ -3,8 +3,9 @@ import 'dart:convert';
 
 class Enquete {
     String? marche;
-    String? collecteur;
+    int? collecteur;
     String? statut;
+    int? isSynced;
     String? date_enquete;
     String? observation;
     int? id_enquete;
@@ -13,18 +14,19 @@ class Enquete {
     this.marche,
     this.collecteur,
     this.statut,
+    this.isSynced,
     this.date_enquete,
     this.observation,
     this.id_enquete,
   });
 
 
- 
 
   Enquete copyWith({
     String? marche,
-    String? collecteur,
+    int? collecteur,
     String? statut,
+    int? isSynced,
     String? date_enquete,
     String? observation,
     int? id_enquete,
@@ -33,6 +35,7 @@ class Enquete {
       marche: marche ?? this.marche,
       collecteur: collecteur ?? this.collecteur,
       statut: statut ?? this.statut,
+      isSynced: isSynced ?? this.isSynced,
       date_enquete: date_enquete ?? this.date_enquete,
       observation: observation ?? this.observation,
       id_enquete: id_enquete ?? this.id_enquete,
@@ -44,6 +47,7 @@ class Enquete {
       'marche': marche,
       'collecteur': collecteur,
       'statut': statut,
+      'isSynced': isSynced,
       'date_enquete': date_enquete,
       'observation': observation,
       'id_enquete': id_enquete,
@@ -53,8 +57,9 @@ class Enquete {
   factory Enquete.fromMap(Map<String, dynamic> map) {
     return Enquete(
       marche: map['marche'] != null ? map['marche'] as String : null,
-      collecteur: map['collecteur'] != null ? map['collecteur'] as String : null,
+      collecteur: map['collecteur'] != null ? map['collecteur'] as int : null,
       statut: map['statut'] != null ? map['statut'] as String : null,
+      isSynced: map['isSynced'] != null ? map['isSynced'] as int : null,
       date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,
       observation: map['observation'] != null ? map['observation'] as String : null,
       id_enquete: map['id_enquete'] != null ? map['id_enquete'] as int : null,
@@ -67,7 +72,7 @@ class Enquete {
 
   @override
   String toString() {
-    return 'Enquete(marche: $marche, collecteur: $collecteur, statut: $statut, date_enquete: $date_enquete, observation: $observation, id_enquete: $id_enquete)';
+    return 'Enquete(marche: $marche, collecteur: $collecteur, statut: $statut, isSynced: $isSynced, date_enquete: $date_enquete, observation: $observation, id_enquete: $id_enquete)';
   }
 
   @override
@@ -78,6 +83,7 @@ class Enquete {
       other.marche == marche &&
       other.collecteur == collecteur &&
       other.statut == statut &&
+      other.isSynced == isSynced &&
       other.date_enquete == date_enquete &&
       other.observation == observation &&
       other.id_enquete == id_enquete;
@@ -88,6 +94,7 @@ class Enquete {
     return marche.hashCode ^
       collecteur.hashCode ^
       statut.hashCode ^
+      isSynced.hashCode ^
       date_enquete.hashCode ^
       observation.hashCode ^
       id_enquete.hashCode;

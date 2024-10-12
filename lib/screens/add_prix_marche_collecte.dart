@@ -8,6 +8,7 @@ import 'package:simro/constant/constantes.dart';
 import 'package:http/http.dart' as http;
 import 'package:simro/models/Commune.dart';
 import 'package:simro/models/Enquete.dart';
+import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/models/Produit.dart';
@@ -52,13 +53,13 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   TextEditingController localiteController = TextEditingController();
   TextEditingController enqueteController = TextEditingController();
   bool isLoading = true;
-      late Marche marche;
-    late Future _marcheList;
+    //   late Marche marche;
+    // late Future _marcheList;
       late Produit produit;
     late Future _produitList;
       late Commune commune;
     late Future _communeList;
-      late Enquete enquete;
+      late EnqueteCollecte enquete;
     late Future _enqueteList;
 
    
@@ -212,153 +213,153 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   //   );
   // }
 
-  // void showEnquete() async {
-  //   final BuildContext context = this.context;
+  void showEnquete() async {
+    final BuildContext context = this.context;
 
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //             title: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: TextField(
-  //                 controller: _searchController,
-  //                 onChanged: (value) {
-  //                   if (mounted) setState(() {});
-  //                 },
-  //                 decoration: InputDecoration(
-  //                   hintText: 'Rechercher un enquete',
-  //                   border: UnderlineInputBorder(
-  //                     borderSide: BorderSide(
-  //                       color: Colors.grey[300]!,
-  //                       width: 1,
-  //                     ),
-  //                   ),
-  //                   suffixIcon: const Icon(Icons.search),
-  //                 ),
-  //               ),
-  //             ),
-  //             content: FutureBuilder(
-  //               future: _marcheList,
-  //               builder: (_, snapshot) {
-  //                 if (snapshot.connectionState == ConnectionState.waiting) {
-  //                   return buildShimmerSelectList();
-  //                 }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un enquete',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _enqueteList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return buildShimmerSelectList();
+                  }
 
-  //                 if (snapshot.hasError) {
-  //                   return const Center(
-  //                     child: Text("Erreur lors du chargement des données"),
-  //                   );
-  //                 }
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
 
-  //                 if (snapshot.hasData) {
-  //                   final responseData =
-  //                       json.decode(utf8.decode(snapshot.data.bodyBytes));
-  //                   if (responseData is List) {
-  //                     List<Enquete> typeListe = responseData
-  //                         .map((e) => Enquete.fromMap(e))
-  //                         .toList();
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<EnqueteCollecte> typeListe = responseData
+                          .map((e) => EnqueteCollecte.fromMap(e))
+                          .toList();
 
-  //                     if (typeListe.isEmpty) {
-  //                       return const Padding(
-  //                         padding: EdgeInsets.all(10),
-  //                         child:
-  //                             Center(child: Text("Aucun enquete trouvée")),
-  //                       );
-  //                     }
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun enquete trouvée")),
+                        );
+                      }
                
-  //                     String searchText = _searchController.text.toLowerCase();
-  //                     List<Enquete> filteredSearch = typeListe
-  //                         .where((type) => type.id_enquete.toString()
-  //                             .toLowerCase()
-  //                             .contains(searchText))
-  //                         .toList();
+                      String searchText = _searchController.text.toLowerCase();
+                      List<EnqueteCollecte> filteredSearch = typeListe
+                          .where((type) => type.id_enquete.toString()
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
 
-  //                     return 
-  //                filteredSearch.isEmpty
-  //                   ? const Padding(
-  //                       padding: EdgeInsets.all(10),
-  //                       child: Center(child: Text("Aucun marché trouvée")),
-  //                     ) : SizedBox(
-  //                             width: double.maxFinite,
-  //                             child: ListView.builder(
-  //                               itemCount: filteredSearch.length,
-  //                               itemBuilder: (context, index) {
-  //                                 final type = filteredSearch[index];
-  //                                 final isSelected = marcheController.text ==
-  //                                     type.id_enquete;
-                                      
+                      return 
+                 filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucun resultat trouvé")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  // ignore: unrelated_type_equality_checks
+                                  final isSelected = enqueteController.text ==
+                                      type.id_enquete!;
+           
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.id_enquete.toString(),
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            enquete = type;
+                                            enqueteController.text =
+                                                type.id_enquete!.toString();
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
 
-  //                                 return Column(
-  //                                   children: [
-  //                                     ListTile(
-  //                                       title: Text(
-  //                                         type.id_enquete.toString(),
-  //                                         style: TextStyle(
-  //                                           color: Colors.black,
-  //                                           fontWeight: isSelected
-  //                                               ? FontWeight.bold
-  //                                               : FontWeight.normal,
-  //                                           fontSize: 16,
-  //                                         ),
-  //                                       ),
-  //                                       trailing: isSelected
-  //                                           ? const Icon(
-  //                                               Icons.check_box_outlined,
-  //                                               color: vert,
-  //                                             )
-  //                                           : null,
-  //                                       onTap: () {
-  //                                         setState(() {
-  //                                           enquete = type;
-  //                                           marcheController.text =
-  //                                               type.id_enquete.toString();
-  //                                         });
-  //                                       },
-  //                                     ),
-  //                                     Divider()
-  //                                   ],
-  //                                 );
-  //                               },
-  //                             ),
-  //                           );
-  //                   }
-  //                 }
-
-  //                 return const SizedBox(height: 8);
-  //               },
-  //             ),
-  //             actions: <Widget>[
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Annuler',
-  //                   style: TextStyle(color: d_colorOr, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Valider',
-  //                   style: TextStyle(color: d_colorOr, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   print('Options sélectionnées : $marche');
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $enquete');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   void showProduit() async {
     final BuildContext context = this.context;
@@ -496,7 +497,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                   ),
                   onPressed: () {
                     _searchController.clear();
-                    print('Options sélectionnées : $marche');
+                    print('Options sélectionnées : $produit');
                     Navigator.of(context).pop();
                   },
                 ),
@@ -642,7 +643,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                   ),
                   onPressed: () {
                     _searchController.clear();
-                    print('Options sélectionnées : $marche');
+                    print('Options sélectionnées : $commune');
                     Navigator.of(context).pop();
                   },
                 ),
@@ -654,11 +655,13 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
     );
   }
    
+
    // Fonction pour récupérer la liste des marchés depuis l'API
-  Future<void> _fetchMarcheList() async {
+  Future<void> _fetchEnqueteCollecteList() async {
     // Ajoutez votre logique pour récupérer la liste des marchés ici
-    _marcheList = http.get(Uri.parse('$apiUrl/all-marche/'));
+    _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-collecte/'));
   }
+
   Future<void> _fetchCommuneList() async {
     // Ajoutez votre logique pour récupérer la liste des marchés ici
     _communeList =
@@ -677,6 +680,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   void initState() {
     super.initState();
     if(widget.isEditMode == true){
+      enqueteController.text = widget.prixMarcheColecte!.enquete != null ? widget.prixMarcheColecte!.enquete!.toString() : "0";
       uniteController.text = widget.prixMarcheColecte!.unite != null ? widget.prixMarcheColecte!.unite!.toString() : "0";
       poidsUnitaireController.text = widget.prixMarcheColecte!.poids_unitaire != null ? widget.prixMarcheColecte!.poids_unitaire!.toString() : "0";
       prixParKilogrammeController.text = widget.prixMarcheColecte!.prix_fg_kg != null ? widget.prixMarcheColecte!.prix_fg_kg!.toString() : "0";
@@ -696,17 +700,19 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
        _searchController = TextEditingController();
         // _marcheList =
         // http.get(Uri.parse('$apiUrl/all-marche/'));
-        
-     _fetchMarcheList().then((value) => {
+
+     _fetchEnqueteCollecteList().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
+
      _fetchProduitList().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
+
      _fetchCommuneList().then((value) => {
       setState(() {
         isLoading = false;
@@ -1138,9 +1144,9 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
               //               },
               //               // onSaved: (val) => nomActeur = val!,
               //             ),
-                        const  SizedBox(
-                            height: 15,
-                          ),
+                        // const  SizedBox(
+                        //     height: 15,
+                        //   ),
 
                         //       const Padding(
                         //     padding:  EdgeInsets.only(left: 10.0),
@@ -1168,39 +1174,39 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                         //        ),
                         //      ),
                         //    ),
-                        // const  SizedBox(
-                        //     height: 15,
-                        //   ),
+                        const  SizedBox(
+                            height: 15,
+                          ),
 
-                          //     const Padding(
-                          //   padding:  EdgeInsets.only(left: 10.0),
-                          //   child: Text(
-                          //     "Enquete *",
-                          //     style:
-                          //         TextStyle(color: (Colors.black), fontSize: 18),
-                          //   ),
-                          // ),
-                          //  GestureDetector(
-                          //    onTap: showEnquete,
-                          //    child: TextFormField(
-                          //      onTap: showEnquete,
-                          //      controller: enqueteController,
-                          //      keyboardType: TextInputType.text,
-                          //      decoration: InputDecoration(
-                          //        suffixIcon: Icon(Icons.arrow_drop_down,
-                          //            color: Colors.blueGrey[400]),
-                          //        hintText: "Sélectionner un enquête",
-                          //        contentPadding: const EdgeInsets.symmetric(
-                          //            vertical: 10, horizontal: 20),
-                          //        border: OutlineInputBorder(
-                          //          borderRadius: BorderRadius.circular(8),
-                          //        ),
-                          //      ),
-                          //    ),
-                          //  ),
-                        // const  SizedBox(
-                        //     height: 15,
-                        //   ),
+                              const Padding(
+                            padding:  EdgeInsets.only(left: 10.0),
+                            child: Text(
+                              "Enquete *",
+                              style:
+                                  TextStyle(color: (Colors.black), fontSize: 18),
+                            ),
+                          ),
+                           GestureDetector(
+                             onTap: showEnquete,
+                             child: TextFormField(
+                               onTap: showEnquete,
+                               controller: enqueteController,
+                               keyboardType: TextInputType.text,
+                               decoration: InputDecoration(
+                                 suffixIcon: Icon(Icons.arrow_drop_down,
+                                     color: Colors.blueGrey[400]),
+                                 hintText: "Sélectionner un enquête",
+                                 contentPadding: const EdgeInsets.symmetric(
+                                     vertical: 10, horizontal: 20),
+                                 border: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(8),
+                                 ),
+                               ),
+                             ),
+                           ),
+                        const  SizedBox(
+                            height: 15,
+                          ),
 
                               const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
@@ -1268,14 +1274,14 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
 
                               if(formkey.currentState!.validate() && widget.isEditMode == false){
                             await PrixMarcheService().addPrixMarcheCollecte(
-                              enquete: 13333333333,
+                              enquete: enquete.id_enquete!,
                               produit: produit.nom_produit.toString(), unite: int.parse(uniteController.text), 
-                               poids_unitaire: double.parse(poidsUnitaireController.text), 
+                              poids_unitaire: double.parse(poidsUnitaireController.text), 
                               montant_achat: double.parse(montantAchatController.text),
-                               prix_fg_kg: double.parse(prixParKilogrammeController.text), 
+                              prix_fg_kg: double.parse(prixParKilogrammeController.text), 
                               distance_origine_marche: double.parse(distanceOrigineMarcheController.text),
-                               montant_transport: double.parse(montantTransportController.text),
-                                app_mobile:0,
+                               montant_transport: int.parse(montantTransportController.text),
+                                app_mobile:1,
                                  quantite_collecte: double.parse(quantiteCollecteController.text),
                                  client_principal: int.parse(clientPrincipalController.text), 
                                  fournisseur_principal: int.parse(frsPrincipalController.text),
@@ -1289,24 +1295,23 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                     });
                                     }else if(formkey.currentState!.validate() && widget.isEditMode == true){
                              PrixMarcheService().updatePrixMarcheCollecte(
-                              id_fiche: 1,
-                              // modifier_le: ,
-                              enquete: 1,
-                               produit: produit.id_produit!.toString(), 
-                               unite: int.parse(uniteController.text), 
-                               poids_unitaire: int.parse(poidsUnitaireController.text), 
-                              montant_achat: int.parse(montantAchatController.text),
-                               prix_fg_kg: int.parse(prixParKilogrammeController.text), 
-                              distance_origine_marche: int.parse(distanceOrigineMarcheController.text),
-                               montant_transport: int.parse(montantTransportController.text), 
-                               app_mobile:0, 
-                                 quantite_collecte: int.parse(quantiteCollecteController.text),
+                              modifier_par: "${enqueteurProvider.enqueteur!.nom!}  ${enqueteurProvider.enqueteur!.prenom!}" ,
+                              id_fiche: widget.prixMarcheColecte!.id_fiche!,
+                             enquete: int.parse(enqueteController.text),
+                              produit: produitController.text, unite: int.parse(uniteController.text), 
+                              poids_unitaire: double.parse(poidsUnitaireController.text), 
+                              montant_achat: double.parse(montantAchatController.text),
+                              prix_fg_kg: double.parse(prixParKilogrammeController.text), 
+                              distance_origine_marche: double.parse(distanceOrigineMarcheController.text),
+                               montant_transport: int.parse(montantTransportController.text),
+                                app_mobile:1,
+                                 quantite_collecte: double.parse(quantiteCollecteController.text),
                                  client_principal: int.parse(clientPrincipalController.text), 
                                  fournisseur_principal: int.parse(frsPrincipalController.text),
                                  niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
-                                  localite_origine: commune.nom_commune.toString(), 
+                                  localite_origine: localiteController.text, 
                                   etat_route: etatRouteController.text,
-                                   observation: observationController.text, 
+                                  //  observation: observationController.text, 
                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!
                                     ).then((value) => {
                                      
@@ -1324,7 +1329,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                      ),
                                    ),
                             child: Text(
-                              "Enregistrer",
+                             widget.isEditMode! ? "Modifier" : "Enregistrer",
                               style: TextStyle(
                                 fontSize: 20,
                                 color: Colors.white,

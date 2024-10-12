@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
+import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
+import 'package:simro/models/Prix_Marche_Collecte.dart';
+import 'package:simro/models/Prix_Marche_Consommation.dart';
+import 'package:simro/models/Prix_Marche_Grossiste.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -72,11 +77,64 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
+
+//Produit table
+          await db.execute('''
+        CREATE TABLE produit (
+          id_produit INTEGER PRIMARY KEY AUTOINCREMENT,
+          code_produit TEXT,
+          affichage_ecran INTEGER,
+          filiere TEXT,
+          image TEXT,
+          nom_produit TEXT,
+          famille_produit INTEGER,
+          forme_produit INTEGER,
+          origine_produit INTEGER,
+          categorie_produit INTEGER,
+          date_enregistrement TEXT,
+          id_personnel TEXT,
+          etat TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+
+
+       // Création de la table prix_marche_collecte
+      await db.execute('''
+        CREATE TABLE prix_marche_collecte (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          produit TEXT,
+          isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
+          unite INTEGER,
+          poids_unitaire REAL,
+          montant_achat REAL,
+          prix_fg_kg REAL,
+          localite_origine TEXT,
+          distance_origine_marche REAL,
+          montant_transport INTEGER,
+          etat_route TEXT,
+          quantite_collecte REAL,
+          client_principal INTEGER,
+          fournisseur_principal INTEGER,
+          niveau_approvisionement INTEGER,
+          app_mobile INTEGER,
+          observation TEXT,
+          statut INTEGER,
+          id_personnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+
        
         // Création de la table enquete_grossiste
       await db.execute('''
         CREATE TABLE enquete_grossiste (
           id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
+          isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
           num_fiche TEXT,
           marche TEXT,
           collecteur TEXT,
@@ -88,22 +146,84 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
-      
 
+      
        // Création de la table enquete_simple
       await db.execute('''CREATE TABLE enquete (
         id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
+        isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
         marche TEXT,
         collecteur TEXT,
         statut TEXT,
         date_enquete TEXT,
         observation TEXT
       )''');
+
+    // Création de la table prix_marche_consommation
+      await db.execute('''
+        CREATE TABLE prix_marche_consommation (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          produit TEXT,
+          unite INTEGER,
+          isSynced INTEGER,
+          poids_unitaire REAL,
+          prix_mesure REAL,
+          prix_kg_litre REAL,
+          niveau_approvisionement INTEGER,
+          observation TEXT,
+          document TEXT,
+          appMobile INTEGER,
+          statut INTEGER,
+          idPersonnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+
+
+      // Création de la table prix_marche_grossiste
+      await db.execute('''
+        CREATE TABLE prix_marche_grossiste (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          grossiste TEXT,
+          produit TEXT,
+          unite_stock INTEGER,
+          nombre_unite_stock REAL,
+          poids_moyen_unite_stock REAL,
+          poids_stock REAL,
+          unite_achat INTEGER,
+          isSynced INTEGER,
+          nombre_unite_achat REAL,
+          poids_moyen_unite_achat REAL,
+          poids_total_achat REAL,
+          localite_achat TEXT,
+          fournisseur_achat INTEGER,
+          unite_vente INTEGER,
+          nombre_unite_vente REAL,
+          poids_moyen_unite_vente REAL,
+          poids_total_unite_vente REAL,
+          prix_unitaire_vente INTEGER,
+          client_vente INTEGER,
+          localite_vente TEXT,
+          app_mobile INTEGER,
+          observation TEXT,
+          statut INTEGER,
+          id_personnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+
     },
 
 
   );
 }
+
 // Future<Database> initDB() async {
 //   String path = join(await getDatabasesPath(), 'collecte.db');
 //   return await openDatabase(
@@ -226,7 +346,199 @@ onCreate: (db, version) async {
     whereArgs: [id],
   );
     Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
-
 }
+
+ //Enquete consommation crud
+  Future<void> insertEnqueteConsommation(Enquete enquete) async {
+    final db = await database;
+    await db.insert('enquete_consommation', enquete.toMap());
+    Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<List<Enquete>> getAllEnquetesConsommation() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('enquete_consommation');
+    return List.generate(maps.length, (i) => Enquete.fromMap(maps[i]));
+  }
+
+  Future<void> updateEnqueteConsommation(Enquete enquete) async {
+    final db = await database;
+    await db.update(
+      'enquete_consommation',
+      enquete.toMap(),
+      where: 'id_enquete = ?',
+      whereArgs: [enquete.id_enquete],
+    );
+  Get.snackbar("Succes", "Modifier avec succès", snackPosition: SnackPosition.BOTTOM);
+
+  }
+
+ // Suppression par ID
+  Future<void> deleteEnqueteConsommation(int id) async {
+  final db = await database;
+
+  // Supprime l'enquête dont l'ID correspond
+  await db.delete(
+    'enquete_consommation',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+    Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
+}
+
+ //Enquete consommation grossiste
+  Future<void> insertEnqueteGrossiste(EnqueteGrossiste enquete) async {
+    final db = await database;
+    await db.insert('enquete_grossiste', enquete.toMap());
+    Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<List<EnqueteGrossiste>> getAllEnqueteGrossiste() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('enquete_grossiste');
+    return List.generate(maps.length, (i) => EnqueteGrossiste.fromMap(maps[i]));
+  }
+
+  Future<void> updateEnqueteGrossiste(EnqueteGrossiste enquete) async {
+    final db = await database;
+    await db.update(
+      'enquete_grossiste',
+      enquete.toMap(),
+      where: 'id_enquete = ?',
+      whereArgs: [enquete.id_enquete],
+    );
+  Get.snackbar("Succes", "Modifier avec succès", snackPosition: SnackPosition.BOTTOM);
+
+  }
+
+ // Suppression par ID
+  Future<void> deleteEnqueteGrossiste(int id) async {
+  final db = await database;
+
+  // Supprime l'enquête dont l'ID correspond
+  await db.delete(
+    'enquete_grossiste',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+    Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
+}
+
+ //Marche collecte crud
+  Future<void> insertPrixMarcheCollecte(PrixMarcheCollecte prixMarcheCollecte) async {
+    final db = await database;
+    await db.insert('prix_marche_collecte', prixMarcheCollecte.toMap());
+    Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<List<PrixMarcheCollecte>> getAllPrixMarcheCollecte() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('prix_marche_collecte');
+    return List.generate(maps.length, (i) => PrixMarcheCollecte.fromMap(maps[i]));
+  }
+
+  Future<void> updatePrixMarcheCollecte(PrixMarcheCollecte prixMarcheCollecte) async {
+    final db = await database;
+    await db.update(
+      'prix_marche_collecte',
+      prixMarcheCollecte.toMap(),
+      where: 'id_enquete = ?',
+      whereArgs: [prixMarcheCollecte.id_fiche],
+    );
+  Get.snackbar("Succes", "Modifier avec succès", snackPosition: SnackPosition.BOTTOM);
+
+  }
+
+ // Suppression par ID
+  Future<void> deletePrixMarcheCollecte(int id) async {
+  final db = await database;
+
+  // Supprime  dont l'ID correspond
+  await db.delete(
+    'prix_marche_collecte',
+    where: 'id_fiche = ?',
+    whereArgs: [id],
+  );
+    Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
+}
+
+ //Marche grossiste crud
+  Future<void> insertPrixMarcheGrossiste(PrixMarcheGrossiste prixMarcheGrossiste) async {
+    final db = await database;
+    await db.insert('prix_marche_grossiste', prixMarcheGrossiste.toMap());
+    Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<List<PrixMarcheGrossiste>> getAllPrixMarcheGrossiste() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('prix_marche_grossiste');
+    return List.generate(maps.length, (i) => PrixMarcheGrossiste.fromMap(maps[i]));
+  }
+
+  Future<void> updatePrixMarcheGrossiste(PrixMarcheGrossiste prixMarcheGrossiste) async {
+    final db = await database;
+    await db.update(
+      'prix_marche_grossiste',
+      prixMarcheGrossiste.toMap(),
+      where: 'id_fiche = ?',
+      whereArgs: [prixMarcheGrossiste.id_fiche],
+    );
+  Get.snackbar("Succes", "Modifier avec succès", snackPosition: SnackPosition.BOTTOM);
+
+  }
+
+ // Suppression par ID
+  Future<void> deletePrixMarcheGrossiste(int id) async {
+  final db = await database;
+
+  // Supprime  dont l'ID correspond
+  await db.delete(
+    'prix_marche_grossiste',
+    where: 'id_fiche = ?',
+    whereArgs: [id],
+  );
+    Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+
+ //Marche consommation crud
+  Future<void> insertPrixMarcheConsommation(PrixMarcheConsommation prixMarcheConsommation) async {
+    final db = await database;
+    await db.insert('prix_marche_consommation', prixMarcheConsommation.toMap());
+    Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<List<PrixMarcheConsommation>> getAllPrixMarcheConsommation() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('prix_marche_consommation');
+    return List.generate(maps.length, (i) => PrixMarcheConsommation.fromMap(maps[i]));
+  }
+
+  Future<void> updatePrixMarcheConsommation(PrixMarcheConsommation prixMarcheConsommation) async {
+    final db = await database;
+    await db.update(
+      'prix_marche_consommation',
+      prixMarcheConsommation.toMap(),
+      where: 'id_fiche = ?',
+      whereArgs: [prixMarcheConsommation.id_fiche],
+    );
+  Get.snackbar("Succes", "Modifier avec succès", snackPosition: SnackPosition.BOTTOM);
+
+  }
+
+ // Suppression par ID
+  Future<void> deletePrixMarcheConsommation(int id) async {
+  final db = await database;
+
+  // Supprime  dont l'ID correspond
+  await db.delete(
+    'prix_marche_consommation',
+    where: 'id_fiche = ?',
+    whereArgs: [id],
+  );
+    Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+
 
 }

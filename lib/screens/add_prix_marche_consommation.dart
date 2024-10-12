@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/models/Prix_Marche_Consommation.dart';
 import 'package:simro/screens/prix_marche_consommation.dart';
+import 'package:simro/services/Prix_Marche_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class AddPrixMarcheConsommationScreen extends StatefulWidget {
-  const AddPrixMarcheConsommationScreen({super.key});
+  bool? isEditMode;
+  PrixMarcheConsommation? prixMarcheConsommation;
+   AddPrixMarcheConsommationScreen({super.key, this.isEditMode, this.prixMarcheConsommation});
 
   @override
   State<AddPrixMarcheConsommationScreen> createState() => _AddPrixMarcheConsommationScreenState();
@@ -19,14 +23,14 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
      late TextEditingController _searchController;
 
   TextEditingController uniteController = TextEditingController();
+  TextEditingController enqueteController = TextEditingController();
   TextEditingController poidsUnitaireController = TextEditingController();
   TextEditingController prixParKilogrammeOuLitreController = TextEditingController();
   TextEditingController uniteMesurePrixController = TextEditingController();
   TextEditingController documentController = TextEditingController();
   TextEditingController niveauApprovisionnementController = TextEditingController();
-  TextEditingController statutController = TextEditingController();
+  // TextEditingController statutController = TextEditingController();
   TextEditingController observationController = TextEditingController();
-  TextEditingController marcheController = TextEditingController();
   TextEditingController produitController = TextEditingController();
   bool isLoading = true;
 
@@ -148,10 +152,23 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
 
 
 
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    if(widget.isEditMode == true){
+    uniteController.text = widget.prixMarcheConsommation!.unite != null ? widget.prixMarcheConsommation!.unite!.toString() : "0";
+    enqueteController.text = widget.prixMarcheConsommation!.enquete != null ? widget.prixMarcheConsommation!.enquete!.toString() : "0";
+    poidsUnitaireController.text = widget.prixMarcheConsommation!.poids_unitaire != null ? widget.prixMarcheConsommation!.poids_unitaire!.toString() : "0";
+    prixParKilogrammeOuLitreController.text = widget.prixMarcheConsommation!.prix_kg_litre != null ? widget.prixMarcheConsommation!.prix_kg_litre!.toString() : "0";
+    uniteMesurePrixController.text = widget.prixMarcheConsommation!.prix_mesure != null ? widget.prixMarcheConsommation!.prix_mesure!.toString() : "0";
+    documentController.text = widget.prixMarcheConsommation!.document != null ? widget.prixMarcheConsommation!.document!.toString() : " ";
+    niveauApprovisionnementController.text = widget.prixMarcheConsommation!.niveau_approvisionement != null ? widget.prixMarcheConsommation!.niveau_approvisionement!.toString() : " ";
+    produitController.text = widget.prixMarcheConsommation!.produit != null ? widget.prixMarcheConsommation!.produit!.toString() : " ";
+
+    }
     _searchController = TextEditingController();
   }
 
@@ -364,34 +381,34 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                           const  SizedBox(
                             height: 15,
                           ),
-               const Padding(
-                            padding:  EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              "Statut *",
-                              style:
-                                  TextStyle(color: (Colors.black), fontSize: 18),
-                            ),
-                          ),
-                  TextFormField(
-                            controller: statutController,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 20),
-                              hintText: "Entrez le statut",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            keyboardType: TextInputType.text,
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
-                                return "Veillez entrez le statut";
-                              } else {
-                                return null;
-                              }
-                            },
-                            // onSaved: (val) => nomActeur = val!,
-                          ),
+              //  const Padding(
+              //               padding:  EdgeInsets.only(left: 10.0),
+              //               child: Text(
+              //                 "Statut *",
+              //                 style:
+              //                     TextStyle(color: (Colors.black), fontSize: 18),
+              //               ),
+              //             ),
+              //     TextFormField(
+              //               controller: statutController,
+              //               decoration: InputDecoration(
+              //                 contentPadding: const EdgeInsets.symmetric(
+              //                     vertical: 10, horizontal: 20),
+              //                 hintText: "Entrez le statut",
+              //                 border: OutlineInputBorder(
+              //                   borderRadius: BorderRadius.circular(8),
+              //                 ),
+              //               ),
+              //               keyboardType: TextInputType.text,
+              //               validator: (val) {
+              //                 if (val == null || val.isEmpty) {
+              //                   return "Veillez entrez le statut";
+              //                 } else {
+              //                   return null;
+              //                 }
+              //               },
+              //               // onSaved: (val) => nomActeur = val!,
+              //             ),
                           const  SizedBox(
                             height: 15,
                           ),
@@ -427,32 +444,32 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                             height: 15,
                           ),
 
-                              const Padding(
-                            padding:  EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              "Marché *",
-                              style:
-                                  TextStyle(color: (Colors.black), fontSize: 18),
-                            ),
-                          ),
-                           GestureDetector(
-                             onTap: _showMarche,
-                             child: TextFormField(
-                               onTap: _showMarche,
-                               controller: marcheController,
-                               keyboardType: TextInputType.text,
-                               decoration: InputDecoration(
-                                 suffixIcon: Icon(Icons.arrow_drop_down,
-                                     color: Colors.blueGrey[400]),
-                                 hintText: "Sélectionner un marché",
-                                 contentPadding: const EdgeInsets.symmetric(
-                                     vertical: 10, horizontal: 20),
-                                 border: OutlineInputBorder(
-                                   borderRadius: BorderRadius.circular(8),
-                                 ),
-                               ),
-                             ),
-                           ),
+                          //     const Padding(
+                          //   padding:  EdgeInsets.only(left: 10.0),
+                          //   child: Text(
+                          //     "Marché *",
+                          //     style:
+                          //         TextStyle(color: (Colors.black), fontSize: 18),
+                          //   ),
+                          // ),
+                          //  GestureDetector(
+                          //    onTap: _showMarche,
+                          //    child: TextFormField(
+                          //      onTap: _showMarche,
+                          //      controller: marcheController,
+                          //      keyboardType: TextInputType.text,
+                          //      decoration: InputDecoration(
+                          //        suffixIcon: Icon(Icons.arrow_drop_down,
+                          //            color: Colors.blueGrey[400]),
+                          //        hintText: "Sélectionner un marché",
+                          //        contentPadding: const EdgeInsets.symmetric(
+                          //            vertical: 10, horizontal: 20),
+                          //        border: OutlineInputBorder(
+                          //          borderRadius: BorderRadius.circular(8),
+                          //        ),
+                          //      ),
+                          //    ),
+                          //  ),
                         const  SizedBox(
                             height: 15,
                           ),
@@ -491,18 +508,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
           width:double.infinity,
           child: ElevatedButton(
                             onPressed: () async {
-                              Get.to(PrixMarcheConsommationScreen() , transition: Transition.rightToLeft, duration: Duration(seconds: 2));
-                             ScaffoldMessenger.of(context).showSnackBar(
-                                                                              const SnackBar(
-                                                                                content: Row(
-                                                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                                                  children: [
-                                                                                    Text("Ajouté avec succès"),
-                                                                                  ],
-                                                                                ),
-                                                                                duration: Duration(seconds: 2),
-                                                                              ),
-                                                                            );
+                           
                             },
                             style: ElevatedButton.styleFrom(
                                      backgroundColor: vert,
