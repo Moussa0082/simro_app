@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -321,32 +322,22 @@ class PrixMarcheService extends ChangeNotifier{
   required int niveau_approvisionement,
   required int statut,
   required String localite_origine,
-  // required String modifier_le,
   required String modifier_par,
   required String etat_route,
-  // required String observation,
-  // required DateTime date_enregistrement,  // Utilisation de DateTime
   required String id_personnel,
 }) async {
-  // Reformater la date en 'yyyy-MM-dd' avant de l'envoyer
   DateTime date = DateTime.now();
-  // String formattedDateModif = DateFormat('yyyy-MM-dd').format(date);
-
-  // String formattedDate = DateFormat('yyyy-MM-dd').format(date_enregistrement);
-  // String formattedDate = DateTime.parse(json['date_enquete']);
-
 
   var updatePrixMarcheCollecte = jsonEncode({
     'id_personnel': id_personnel,
     'enquete': enquete,
     'produit': produit,
+    'unite': unite,
     'poids_unitaire': poids_unitaire,
     'modifier_par': modifier_par,
     'id_fiche': id_fiche,
     'montant_achat': montant_achat,
     'prix_fg_kg': prix_fg_kg,
-    // 'modifier_le': formattedDateModif,
-    // 'modifier_par': modifier_par,
     'localite_origine': localite_origine,
     'distance_origine_marche': distance_origine_marche,
     'montant_transport': montant_transport,
@@ -357,7 +348,6 @@ class PrixMarcheService extends ChangeNotifier{
     'fournisseur_principal': fournisseur_principal,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
-    // 'date_enregistrement': formattedDate,  // Envoyer la date formatée
   });
 
   try {
@@ -371,18 +361,40 @@ class PrixMarcheService extends ChangeNotifier{
     print('Status Code: ${response.statusCode}');
     print('Response Body: ${response.body}');
 
+    // Gérer les codes de statut HTTP
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print("Objet envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
+    } else if (response.statusCode == 400) {
+      Snack.error(titre: "Erreur", message: "Requête invalide (400). Vérifiez les données envoyées.");
+      print("Erreur 400: ${response.body}");
+    } else if (response.statusCode == 401) {
+      Snack.error(titre: "Erreur", message: "Non autorisé (401). Vous devez être authentifié.");
+      print("Erreur 401: ${response.body}");
+    } else if (response.statusCode == 404) {
+      Snack.error(titre: "Erreur", message: "Ressource non trouvée (404).");
+      print("Erreur 404: ${response.body}");
+    } else if (response.statusCode == 500) {
+      Snack.error(titre: "Erreur", message: "Erreur serveur (500). Réessayez plus tard.");
+      print("Erreur 500: ${response.body}");
     } else {
-      Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-      print("Erreur: ${response.body}");
+      Snack.error(titre: "Erreur", message: "Erreur inattendue. Code: ${response.statusCode}");
+      print("Erreur inattendue: ${response.body}");
     }
   } catch (e) {
-      Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
-    print('Erreur lors de l\'ajout: $e');
+    // Gestion des erreurs réseau ou de parsing JSON
+    if (e is SocketException) {
+      Snack.error(titre: "Erreur", message: "Pas de connexion Internet. Vérifiez votre réseau.");
+      print('Erreur réseau: $e');
+    } else if (e is FormatException) {
+      Snack.error(titre: "Erreur", message: "Erreur de format des données reçues.");
+      print('Erreur de format: $e');
+    } else {
+      Snack.error(titre: "Erreur", message: "Une erreur inattendue s'est produite.");
+      print('Erreur lors de l\'ajout: $e');
+    }
   }
-  }
+}
 
 
   Future<void> updatePrixMarcheConsommation({

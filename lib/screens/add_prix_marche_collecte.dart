@@ -15,6 +15,7 @@ import 'package:simro/models/Produit.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/prix_marche_collecte.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class AddPrixMarcheCollecteScreen extends StatefulWidget {
@@ -1273,6 +1274,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                    final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
 
                               if(formkey.currentState!.validate() && widget.isEditMode == false){
+                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                             await PrixMarcheService().addPrixMarcheCollecte(
                               enquete: enquete.id_enquete!,
                               produit: produit.nom_produit.toString(), unite: int.parse(uniteController.text), 
@@ -1291,10 +1293,13 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                   //  observation: observationController.text, 
                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!
                                     ).then((value) => {
+                                      hideLoadingDialog(context)
                                      
                                     });
                                     }else if(formkey.currentState!.validate() && widget.isEditMode == true){
-                             PrixMarcheService().updatePrixMarcheCollecte(
+                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
+                            await PrixMarcheService().updatePrixMarcheCollecte(
                               modifier_par: "${enqueteurProvider.enqueteur!.nom!}  ${enqueteurProvider.enqueteur!.prenom!}" ,
                               id_fiche: widget.prixMarcheColecte!.id_fiche!,
                              enquete: int.parse(enqueteController.text),
@@ -1314,7 +1319,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                   //  observation: observationController.text, 
                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!
                                     ).then((value) => {
-                                     
+                                     hideLoadingDialog(context)
                                     });
 
                                     }
