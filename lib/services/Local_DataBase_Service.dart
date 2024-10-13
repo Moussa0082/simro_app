@@ -6,6 +6,7 @@ import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/models/Prix_Marche_Consommation.dart';
+import 'package:simro/models/Prix_Marche_Consommation_New.dart';
 import 'package:simro/models/Prix_Marche_Grossiste.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -78,6 +79,7 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
+
 
 //Produit table
           await db.execute('''
@@ -160,9 +162,9 @@ onCreate: (db, version) async {
         observation TEXT
       )''');
 
-    // Création de la table prix_marche_consommation
+    // Création de la table new_prix_marche_consommation
       await db.execute('''
-        CREATE TABLE prix_marche_consommation (
+        CREATE TABLE new_prix_marche_consommation (
           id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
           enquete INTEGER,
           produit TEXT,
@@ -174,7 +176,7 @@ onCreate: (db, version) async {
           niveau_approvisionement INTEGER,
           observation TEXT,
           document TEXT,
-          appMobile INTEGER,
+          app_mobile INTEGER,
           statut INTEGER,
           id_personnel TEXT,
           date_enregistrement TEXT,
@@ -218,12 +220,41 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
-
+  
     },
+    
+      //   onUpgrade: (db, oldVersion, newVersion) async {
+      // if (oldVersion < 2) {
+      //   // Supprimer et recréer la table prix_marche_consommation
+      //   await db.execute('DROP TABLE IF EXISTS prix_marche_consommation');
+      //   await db.execute('''
+      //     CREATE TABLE prix_marche_consommation (
+      //       id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+      //       enquete INTEGER,
+      //       produit TEXT,
+      //       unite INTEGER,
+      //       isSynced INTEGER,
+      //       poids_unitaire REAL,
+      //       prix_mesure REAL,
+      //       prix_kg_litre REAL,
+      //       niveau_approvisionement INTEGER,
+      //       observation TEXT,
+      //       document TEXT,
+      //       app_mobile INTEGER,
+      //       statut INTEGER,
+      //       id_personnel TEXT,
+      //       date_enregistrement TEXT,
+      //       modifier_le TEXT,
+      //       modifier_par TEXT
+      //     )
+      //   ''');
+      // }
+      //   }
 
 
   );
 }
+
 Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
   if (oldVersion < newVersion) {
     // Supprimer l'ancienne table
@@ -535,20 +566,20 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
  //Marche consommation crud
   Future<void> insertPrixMarcheConsommation(PrixMarcheConsommation prixMarcheConsommation) async {
     final db = await database;
-    await db.insert('prix_marche_consommation', prixMarcheConsommation.toMap());
+    await db.insert('new_prix_marche_consommation', prixMarcheConsommation.toMap());
     Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
   }
 
   Future<List<PrixMarcheConsommation>> getAllPrixMarcheConsommation() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('prix_marche_consommation');
+    final List<Map<String, dynamic>> maps = await db.query('new_prix_marche_consommation');
     return List.generate(maps.length, (i) => PrixMarcheConsommation.fromMap(maps[i]));
   }
 
   Future<void> updatePrixMarcheConsommation(PrixMarcheConsommation prixMarcheConsommation) async {
     final db = await database;
     await db.update(
-      'prix_marche_consommation',
+      'new_prix_marche_consommation',
       prixMarcheConsommation.toMap(),
       where: 'id_fiche = ?',
       whereArgs: [prixMarcheConsommation.id_fiche],
@@ -563,7 +594,7 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
 
   // Supprime  dont l'ID correspond
   await db.delete(
-    'prix_marche_consommation',
+    'new_prix_marche_consommation',
     where: 'id_fiche = ?',
     whereArgs: [id],
   );

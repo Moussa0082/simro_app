@@ -264,10 +264,34 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                                   height: 80,
                                                                   width:80,
                                                                 ) :
-                                                                Image.network(imageUrl,fit: BoxFit
-                                                                      .cover,
-                                                                  height: 80,
-                                                                  width:80),
+                                                                Image.network(
+  imageUrl,  // URL de l'image provenant du net
+  fit: BoxFit.cover,
+  height: 80,
+  width: 80,
+  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+    if (loadingProgress == null) {
+      return child;  // Afficher l'image une fois chargée
+    } else {
+      return Center(
+        child: CircularProgressIndicator(
+          color: vert,
+          value: loadingProgress.expectedTotalBytes != null
+              ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+              : null,  // Affiche la progression si elle est disponible, sinon indicateur indéterminé
+        ),
+      );
+    }
+  },
+  errorBuilder: (context, error, stackTrace) {
+    return Image.asset(
+      "assets/images/riz.jpeg",  // Afficher cette image en cas d'erreur
+      fit: BoxFit.cover,
+      height: 80,
+      width: 80,
+    );
+  },
+),
                   //  CachedNetworkImage(
                   //   imageUrl: imageUrl, // Image dynamique
                   //   width: 80,

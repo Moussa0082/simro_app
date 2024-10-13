@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final result = await db?.rawQuery('''
     SELECT 
-      (SELECT COUNT(*) FROM  enquete_  WHERE isSynced = 0) AS total_consommation,
+      (SELECT COUNT(*) FROM  enquete  WHERE isSynced = 0) AS total_consommation,
       (SELECT COUNT(*) FROM  enquete_collecte WHERE isSynced = 0 ) AS total_collecte,
       (SELECT COUNT(*) FROM enquete_grossiste WHERE isSynced = 0) AS total_grossiste,
       (
@@ -445,22 +445,35 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         image: AssetImage('assets/images/logo-simro.png'),
       ),
-      Expanded(
-        child: ListTile(
-          title: Padding(
-            padding: const EdgeInsets.only(left:14.0),
-            child: Text("Bienvenue",style: const TextStyle(color: blanc, fontSize: 16, fontWeight: FontWeight.bold),),
-          ),
-          subtitle: Text(
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          "${enqueteurProvider.prenom!} ${enqueteurProvider.nom!}",
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: blanc, fontSize: 16, fontWeight: FontWeight.bold),
+    Expanded(
+  child: ListTile(
+    title: Padding(
+      padding: const EdgeInsets.only(left: 4.0),
+      child: Text(
+        "Bienvenue",
+        style: const TextStyle(
+          color: blanc,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
         ),
-        ),
-      
       ),
+    ),
+    subtitle: Padding(
+      padding: const EdgeInsets.only(left: 4.0), // Ajout du padding pour aligner à gauche
+      child: Text(
+        "${enqueteurProvider.prenom!} ${enqueteurProvider.nom!}",
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: const TextStyle(
+          color: blanc,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+  ),
+),
+
       // ProfilePhoto(
       //    onTap: () {
       //     print("Image de profil tapée !"); // More specific message

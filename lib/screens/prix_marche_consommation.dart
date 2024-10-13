@@ -27,25 +27,28 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
      bool isLoading = true;
    List<PrixMarcheConsommation> prixMarcheConsommationList = [];
   
-     Future<List<PrixMarcheConsommation>> fetchPrixMarcheConsommation() async {
+    Future<List<PrixMarcheConsommation>> fetchPrixMarcheConsommation() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<PrixMarcheConsommation> fetchedList = await PrixMarcheService().fetchPrixMarcheConsommation().then((prixMarche) {
-
+    List<PrixMarcheConsommation> fetchedList = await PrixMarcheService().fetchPrixMarcheConsommation().then((prixMarcheConsommation) {
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
     setState(() {
-      prixMarcheConsommationList = prixMarche;
-      isLoading = false;
+      prixMarcheConsommationList.addAll(prixMarcheConsommation);
     });
     return prixMarcheConsommationList;
   });
-      prixMarcheConsommationList = fetchedList;
     
-    // Mettre à jour la liste locale avec les nouvelles données    
-    // Retourner la liste mise à jour
+      prixMarcheConsommationList = fetchedList;
+        // Retourner la liste mise à jour
     return prixMarcheConsommationList;
   } catch (e) {
-    print("Erreur lors de la récupération des prix marché consommation : $e");
+    print("Erreur lors de la récupération des prix marche consommation : $e");
     return [];
   }
 }
