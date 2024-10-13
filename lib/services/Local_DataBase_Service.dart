@@ -42,6 +42,7 @@ class LocalDatabaseService extends ChangeNotifier{
     version: 1,
     // version: 2, // Augmentez la version de la base de données
 onCreate: (db, version) async {
+  // _onUpgrade(db, 1, 2);
       // Création de la table enquete_collecte
       await db.execute('''CREATE TABLE enquete_collecte (
         id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +154,7 @@ onCreate: (db, version) async {
         id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
         isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
         marche TEXT,
-        collecteur TEXT,
+        collecteur int,
         statut TEXT,
         date_enquete TEXT,
         observation TEXT
@@ -175,7 +176,7 @@ onCreate: (db, version) async {
           document TEXT,
           appMobile INTEGER,
           statut INTEGER,
-          idPersonnel TEXT,
+          id_personnel TEXT,
           date_enregistrement TEXT,
           modifier_le TEXT,
           modifier_par TEXT
@@ -223,6 +224,36 @@ onCreate: (db, version) async {
 
   );
 }
+Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion < newVersion) {
+    // Supprimer l'ancienne table
+    await db.execute('DROP TABLE IF EXISTS prix_marche_consommation');
+
+    // Créer la nouvelle table avec la colonne renommée
+    await db.execute('''
+      CREATE TABLE prix_marche_consommation (
+        id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+        enquete INTEGER,
+        produit TEXT,
+        unite INTEGER,
+        isSynced INTEGER,
+        poids_unitaire REAL,
+        prix_mesure REAL,
+        prix_kg_litre REAL,
+        niveau_approvisionement INTEGER,
+        observation TEXT,
+        document TEXT,
+        app_mobile INTEGER,  -- Colonne renommée ici
+        statut INTEGER,
+        id_personnel TEXT,
+        date_enregistrement TEXT,
+        modifier_le TEXT,
+        modifier_par TEXT
+      )
+    ''');
+  }
+}
+
 
 // Future<Database> initDB() async {
 //   String path = join(await getDatabasesPath(), 'collecte.db');
@@ -351,20 +382,20 @@ onCreate: (db, version) async {
  //Enquete consommation crud
   Future<void> insertEnqueteConsommation(Enquete enquete) async {
     final db = await database;
-    await db.insert('enquete_consommation', enquete.toMap());
+    await db.insert('enquete', enquete.toMap());
     Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
   }
 
   Future<List<Enquete>> getAllEnquetesConsommation() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('enquete_consommation');
+    final List<Map<String, dynamic>> maps = await db.query('enquete');
     return List.generate(maps.length, (i) => Enquete.fromMap(maps[i]));
   }
 
   Future<void> updateEnqueteConsommation(Enquete enquete) async {
     final db = await database;
     await db.update(
-      'enquete_consommation',
+      'enquete',
       enquete.toMap(),
       where: 'id_enquete = ?',
       whereArgs: [enquete.id_enquete],
@@ -379,7 +410,7 @@ onCreate: (db, version) async {
 
   // Supprime l'enquête dont l'ID correspond
   await db.delete(
-    'enquete_consommation',
+    'enquete',
     where: 'id_enquete = ?',
     whereArgs: [id],
   );

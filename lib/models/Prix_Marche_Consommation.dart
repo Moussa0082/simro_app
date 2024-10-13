@@ -12,9 +12,9 @@ class PrixMarcheConsommation {
     int? niveau_approvisionement;
     String? observation;
     String? document;
-    int? appMobile;
+    int? app_mobile;
     int? statut;
-    String? idPersonnel;
+    String? id_personnel;
     String? date_enregistrement;
     String? modifier_le;
     String? modifier_par;
@@ -31,14 +31,15 @@ class PrixMarcheConsommation {
          this.niveau_approvisionement,
          this.observation,
          this.document,
-         this.appMobile,
+         this.app_mobile,
          this.statut,
-         this.idPersonnel,
+         this.id_personnel,
          this.date_enregistrement,
          this.modifier_le,
          this.modifier_par,
          this.id_fiche,
     });
+
 
 
 
@@ -53,9 +54,9 @@ class PrixMarcheConsommation {
     int? niveau_approvisionement,
     String? observation,
     String? document,
-    int? appMobile,
+    int? app_mobile,
     int? statut,
-    String? idPersonnel,
+    String? id_personnel,
     String? date_enregistrement,
     String? modifier_le,
     String? modifier_par,
@@ -72,9 +73,9 @@ class PrixMarcheConsommation {
       niveau_approvisionement: niveau_approvisionement ?? this.niveau_approvisionement,
       observation: observation ?? this.observation,
       document: document ?? this.document,
-      appMobile: appMobile ?? this.appMobile,
+      app_mobile: app_mobile ?? this.app_mobile,
       statut: statut ?? this.statut,
-      idPersonnel: idPersonnel ?? this.idPersonnel,
+      id_personnel: id_personnel ?? this.id_personnel,
       date_enregistrement: date_enregistrement ?? this.date_enregistrement,
       modifier_le: modifier_le ?? this.modifier_le,
       modifier_par: modifier_par ?? this.modifier_par,
@@ -94,9 +95,9 @@ class PrixMarcheConsommation {
       'niveau_approvisionement': niveau_approvisionement,
       'observation': observation,
       'document': document,
-      'appMobile': appMobile,
+      'app_mobile': app_mobile,
       'statut': statut,
-      'idPersonnel': idPersonnel,
+      'id_personnel': id_personnel,
       'date_enregistrement': date_enregistrement,
       'modifier_le': modifier_le,
       'modifier_par': modifier_par,
@@ -116,9 +117,9 @@ class PrixMarcheConsommation {
       niveau_approvisionement: map['niveau_approvisionement'] != null ? map['niveau_approvisionement'] as int : null,
       observation: map['observation'] != null ? map['observation'] as String : null,
       document: map['document'] != null ? map['document'] as String : null,
-      appMobile: map['appMobile'] != null ? map['appMobile'] as int : null,
+      app_mobile: map['app_mobile'] != null ? map['app_mobile'] as int : null,
       statut: map['statut'] != null ? map['statut'] as int : null,
-      idPersonnel: map['idPersonnel'] != null ? map['idPersonnel'] as String : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
       date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
       modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
       modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
@@ -132,7 +133,7 @@ class PrixMarcheConsommation {
 
   @override
   String toString() {
-    return 'PrixMarcheConsommation(enquete: $enquete, produit: $produit, unite: $unite, isSynced: $isSynced, poids_unitaire: $poids_unitaire, prix_mesure: $prix_mesure, prix_kg_litre: $prix_kg_litre, niveau_approvisionement: $niveau_approvisionement, observation: $observation, document: $document, appMobile: $appMobile, statut: $statut, idPersonnel: $idPersonnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
+    return 'PrixMarcheConsommation(enquete: $enquete, produit: $produit, unite: $unite, isSynced: $isSynced, poids_unitaire: $poids_unitaire, prix_mesure: $prix_mesure, prix_kg_litre: $prix_kg_litre, niveau_approvisionement: $niveau_approvisionement, observation: $observation, document: $document, app_mobile: $app_mobile, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
   }
 
   @override
@@ -150,9 +151,9 @@ class PrixMarcheConsommation {
       other.niveau_approvisionement == niveau_approvisionement &&
       other.observation == observation &&
       other.document == document &&
-      other.appMobile == appMobile &&
+      other.app_mobile == app_mobile &&
       other.statut == statut &&
-      other.idPersonnel == idPersonnel &&
+      other.id_personnel == id_personnel &&
       other.date_enregistrement == date_enregistrement &&
       other.modifier_le == modifier_le &&
       other.modifier_par == modifier_par &&
@@ -171,9 +172,9 @@ class PrixMarcheConsommation {
       niveau_approvisionement.hashCode ^
       observation.hashCode ^
       document.hashCode ^
-      appMobile.hashCode ^
+      app_mobile.hashCode ^
       statut.hashCode ^
-      idPersonnel.hashCode ^
+      id_personnel.hashCode ^
       date_enregistrement.hashCode ^
       modifier_le.hashCode ^
       modifier_par.hashCode ^

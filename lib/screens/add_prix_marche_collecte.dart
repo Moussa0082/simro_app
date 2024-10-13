@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:http/http.dart' as http;
+import 'package:simro/controller/network_controller.dart';
 import 'package:simro/models/Commune.dart';
 import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
@@ -14,7 +15,9 @@ import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/models/Produit.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/prix_marche_collecte.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
 import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -215,152 +218,151 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   // }
 
   void showEnquete() async {
-    final BuildContext context = this.context;
+  final BuildContext context = this.context;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un enquete',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  if (mounted) setState(() {}); // Mise à jour de l'état lors de la recherche
+                },
+                decoration: InputDecoration(
+                  hintText: 'Rechercher une enquête',
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
                     ),
-                    suffixIcon: const Icon(Icons.search),
                   ),
+                  suffixIcon: const Icon(Icons.search),
                 ),
               ),
-              content: FutureBuilder(
-                future: _enqueteList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return buildShimmerSelectList();
-                  }
+            ),
+            content: FutureBuilder(
+              future: _enqueteList,
+              builder: (_, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return buildShimmerSelectList(); // Simule le chargement
+                }
 
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
-                    );
-                  }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("Erreur lors du chargement des données"),
+                  );
+                }
 
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<EnqueteCollecte> typeListe = responseData
-                          .map((e) => EnqueteCollecte.fromMap(e))
-                          .toList();
+                if (snapshot.hasData) {
+                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
+                  if (responseData is List) {
+                    List<EnqueteCollecte> typeListe = responseData
+                        .map((e) => EnqueteCollecte.fromMap(e))
+                        .toList();
 
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun enquete trouvée")),
-                        );
-                      }
-               
-                      String searchText = _searchController.text.toLowerCase();
-                      List<EnqueteCollecte> filteredSearch = typeListe
-                          .where((type) => type.id_enquete.toString()
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return 
-                 filteredSearch.isEmpty
-                    ? const Padding(
+                    if (typeListe.isEmpty) {
+                      return const Padding(
                         padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucun resultat trouvé")),
-                      ) : SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                itemCount: filteredSearch.length,
-                                itemBuilder: (context, index) {
-                                  final type = filteredSearch[index];
-                                  // ignore: unrelated_type_equality_checks
-                                  final isSelected = enqueteController.text ==
-                                      type.id_enquete!;
-           
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          type.id_enquete.toString(),
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check_box_outlined,
-                                                color: vert,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            enquete = type;
-                                            enqueteController.text =
-                                                type.id_enquete!.toString();
-                                          });
-                                        },
-                                      ),
-                                      Divider()
-                                    ],
-                                  );
-                                },
-                              ),
-                            );
+                        child: Center(child: Text("Aucune enquête trouvée")),
+                      );
                     }
-                  }
 
-                  return const SizedBox(height: 8);
+                    // Filtre les résultats en fonction de la recherche
+                    String searchText = _searchController.text.toLowerCase();
+                    List<EnqueteCollecte> filteredSearch = typeListe
+                        .where((type) => type.id_enquete.toString()
+                            .toLowerCase()
+                            .contains(searchText))
+                        .toList();
+
+                    return filteredSearch.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Center(child: Text("Aucun résultat trouvé")),
+                          )
+                        : SizedBox(
+                            width: double.maxFinite,
+                            child: ListView.builder(
+                              itemCount: filteredSearch.length,
+                              itemBuilder: (context, index) {
+                                final type = filteredSearch[index];
+
+                                // Comparer correctement les types : ici en convertissant `id_enquete` en String
+                                final isSelected = enqueteController.text == type.id_enquete.toString();
+
+                                return Column(
+                                  children: [
+                                    ListTile(
+                                      title: Text(
+                                        type.id_enquete.toString(),
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(
+                                              Icons.check_box_outlined,
+                                              color: Colors.green, // Assure que `vert` est bien défini, sinon utilise une couleur par défaut
+                                            )
+                                          : null,
+                                      onTap: () {
+                                        setState(() {
+                                          enquete = type;
+                                          enqueteController.text = type.id_enquete.toString(); // Met à jour le controller avec l'id sélectionné
+                                        });
+                                      },
+                                    ),
+                                    const Divider(),
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                  }
+                }
+
+                return const SizedBox(height: 8); // Si aucune donnée n'est chargée
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: Colors.orange, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  Navigator.of(context).pop();
                 },
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
+              TextButton(
+                child: const Text(
+                  'Valider',
+                  style: TextStyle(color: Colors.orange, fontSize: 16),
                 ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $enquete');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                onPressed: () {
+                  _searchController.clear();
+                  print('Options sélectionnées : $enquete');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   void showProduit() async {
     final BuildContext context = this.context;
@@ -668,6 +670,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
     _communeList =
         http.get(Uri.parse('$apiUrl/all-commune/'));
   }
+
   Future<void> _fetchProduitList() async {
     // Ajoutez votre logique pour récupérer la liste des marchés ici
       _produitList =
@@ -1274,6 +1277,46 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                    final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
 
                               if(formkey.currentState!.validate() && widget.isEditMode == false){
+//  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+ final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+// This condition is for demo purposes only to explain every connection type.
+// Use conditions which work for your requirements.
+   if (st == false) {
+   print("hors ligne");
+  // Mobile network available.
+    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    PrixMarcheCollecte prixMarcheCollecte = PrixMarcheCollecte(
+    enquete: enquete.id_enquete!,
+                              produit: produit.nom_produit.toString(), unite: int.parse(uniteController.text), 
+                              poids_unitaire: double.parse(poidsUnitaireController.text), 
+                              montant_achat: double.parse(montantAchatController.text),
+                              prix_fg_kg: double.parse(prixParKilogrammeController.text), 
+                              distance_origine_marche: double.parse(distanceOrigineMarcheController.text),
+                               montant_transport: int.parse(montantTransportController.text),
+                                app_mobile:1,
+                                 quantite_collecte: double.parse(quantiteCollecteController.text),
+                                 client_principal: int.parse(clientPrincipalController.text), 
+                                 fournisseur_principal: int.parse(frsPrincipalController.text),
+                                 niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
+                                  localite_origine: commune.id_commune!.toString(), 
+                                  etat_route: etatRouteController.text,
+                                  //  observation: observationController.text, 
+                                    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+    isSynced: 0,
+  );
+                                    showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+    await LocalDatabaseService().insertPrixMarcheCollecte(prixMarcheCollecte).then((value) => {
+        LocalDatabaseService().getAllPrixMarcheCollecte().then((prixMarcheCollecte) {
+    setState(() {
+      isLoading = false;
+    });
+  hideLoadingDialog(context);
+  })
+    });
+  }else{
+      print("en ligne");
+
                                  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                             await PrixMarcheService().addPrixMarcheCollecte(
                               enquete: enquete.id_enquete!,
@@ -1292,10 +1335,13 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                   etat_route: etatRouteController.text,
                                   //  observation: observationController.text, 
                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!
-                                    ).then((value) => {
-                                      hideLoadingDialog(context)
-                                     
-                                    });
+                                    ).then((value) {
+    hideLoadingDialog(context); // Cache le dialogue de chargement
+
+    // Reviens à la page précédente
+    Navigator.pop(context);
+  });
+                              }
                                     }else if(formkey.currentState!.validate() && widget.isEditMode == true){
                                  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
@@ -1318,9 +1364,12 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                   etat_route: etatRouteController.text,
                                   //  observation: observationController.text, 
                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!
-                                    ).then((value) => {
-                                     hideLoadingDialog(context)
-                                    });
+                                    ).then((value) {
+    hideLoadingDialog(context); // Cache le dialogue de chargement
+
+    // Reviens à la page précédente
+    Navigator.pop(context);
+  });
 
                                     }
                               // Get.to(PrixMarcheCollecteScreen() , transition: Transition.rightToLeft, duration: Duration(seconds: 2));

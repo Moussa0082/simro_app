@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete.dart';
@@ -14,6 +15,9 @@ import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
 import 'package:simro/services/Enquete_Service.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class EnqueteScreen extends StatefulWidget {
@@ -98,19 +102,20 @@ TextEditingController dateController = TextEditingController();
         http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
              // Appel pour récupérer les produits au chargement de la page
+             LocalDatabaseService().getAllEnquetesConsommation().then((value) {
+              enqueteList = value;
      EnqueteService().fetchEnquete().then((enquetes) {
     setState(() {
-      enqueteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      enqueteList.addAll(enquetes);  // Assigner les produits récupérés à la liste locale
       isLoading = false;  // Désactiver le chargement
     });
   });
+             });
   }
   
  
   @override
   Widget build(BuildContext context) {
-
-  
 
     return Scaffold(
       appBar: AppBar(
@@ -130,19 +135,19 @@ TextEditingController dateController = TextEditingController();
                               if (result == 'ajouter') {
                               _openDialog(false);
                               }
-                               if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              //  if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'synchroniser',
+                              //   child: Text('Synchroniser'),
+                              // ),
                             ],
                           ),
               ],
@@ -209,6 +214,13 @@ TextEditingController dateController = TextEditingController();
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                               Align(
+                                  alignment: Alignment.topRight,
+                                  child: enquete.isSynced != null &&  enquete.isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: enquete.isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
                               Text(
                                 'Observation: ${enquete.observation!}',
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
@@ -229,7 +241,7 @@ TextEditingController dateController = TextEditingController();
                               // Bouton avec trois points
                               PopupMenuButton<String>(
                                 iconColor:vert,
-                                onSelected: (String result) {
+                                onSelected: (String result) async{
                                   if (result == 'modifier') {
                                     // Action pour modifier
                                      _openDialog(true,enquete:enquete);
@@ -248,21 +260,92 @@ TextEditingController dateController = TextEditingController();
                       });
                                     print('Supprimer sélectionné');
                                   }
+                                            else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                                         showLoadingDialog(context, "Veuillez patienter"); 
+                                       try {
+       final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  // Convertir la date de String à DateTime
+   DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnquete(
+    statut: enquete.statut!,
+    observation: enquete.observation!,
+    marche: enquete.marche!,
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
+    date_enquete:parsedDate,
+  ).then((value) => {
+    LocalDatabaseService().deleteEnqueteConsommation(enquete.id_enquete!).then((value) {
+      hideLoadingDialog(context);
+    })
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<Enquete> nouvelleListe = await fetchEnquete();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    enqueteList = nouvelleListe;
+  });
+  dateController.clear();
+  marcheController.clear();
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                                  else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deleteEnqueteConsommation(enquete.id_enquete!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                          });
+                        });
+                        }
                                 },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'modifier',
-                                    child: Text('Modifier'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'detail',
-                                    child: Text('Détail'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'supprimer',
-                                    child: Text('Supprimer'),
-                                  ),
-                                ],
+                                itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimer',
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ]
                               ),
                                 ],
                               ),
@@ -454,9 +537,36 @@ TextEditingController dateController = TextEditingController();
                         Center(
         child: ElevatedButton(
                           onPressed: () async  {
-                          
+                           final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+ 
                           if (formkey.currentState!.validate() && !isEditMode) {
-                          //   print("valid");
+     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+          if (st == false) {
+   print("hors ligne");
+  // Mobile network available.
+    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    Enquete enquete = Enquete(
+      collecteur:enqueteurProvider.enqueteur!.id_enqueteur!,
+    observation: observationController.text,
+    marche: marcheController.text,
+    statut: statutController.text,
+    date_enquete: dateController.text,
+    isSynced: 0,
+  );
+    await LocalDatabaseService().insertEnqueteConsommation(enquete).then((value) => {
+        LocalDatabaseService().getAllEnquetesConsommation().then((enquetes) {
+    setState(() {
+      enqueteList = enquetes;
+      isLoading = false;
+    });
+    hideLoadingDialog(context);
+  })
+    });
+  }else{
+      print("en ligne");
+      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
                           try {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
@@ -468,7 +578,9 @@ TextEditingController dateController = TextEditingController();
     marche: marche.id_marche!.toString(),
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
     date_enquete: dateEnquete,
-  );
+  ).then((value){
+    hideLoadingDialog(context);
+  });
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -495,9 +607,11 @@ TextEditingController dateController = TextEditingController();
 
   // Gérer l'erreur ici
 }
+                          }
 
                           }else if(formkey.currentState!.validate() && isEditMode) {
-                            
+                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
                             try {
   // Vérifiez que enqueteurProvider.enqueteur et enquete ne sont pas nulls
   if (enqueteurProvider.enqueteur != null && enquete != null) {
@@ -513,7 +627,9 @@ TextEditingController dateController = TextEditingController();
       observation: observationController.text,
       marche: marcheController.text,
       date_enquete: dateEnquete,
-    );
+    ).then((value) {
+      hideLoadingDialog(context);
+    });
 
     // Rafraîchir la liste
     Provider.of<EnqueteService>(context, listen: false).applyChange();

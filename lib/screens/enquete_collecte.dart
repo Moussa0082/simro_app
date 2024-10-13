@@ -127,35 +127,62 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   }
 }
 
- Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
+      Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
-   
      
     List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte().then((enquetes) {
-     LocalDatabaseService().getAllEnquetes().then((enquetes) {
-    setState(() {
-      enqueteCollecteList = enquetes;
-      isLoading = false;
-    });
-  });
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
     setState(() {
       enqueteCollecteList.addAll(enquetes);
-      isLoading = false;
     });
     return enqueteCollecteList;
   });
     
-    // Mettre à jour la liste locale avec les nouvelles données
-    enqueteCollecteList = fetchedList;
-    
-    // Retourner la liste mise à jour
+      enqueteCollecteList = fetchedList;
+        // Retourner la liste mise à jour
     return enqueteCollecteList;
   } catch (e) {
-    print("Erreur lors de la récupération des enquêtes : $e");
+    print("Erreur lors de la récupération des enquetes collecte : $e");
     return [];
   }
 }
+
+
+//      Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
+//   try {
+//     // Appel du service pour récupérer les données d'enquêtes
+   
+     
+//     List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+//      LocalDatabaseService().getAllEnquetes().then((enquetes) {
+//     setState(() {
+//       enqueteCollecteList = enquetes;
+//       isLoading = false;
+//     });
+//   });
+//     setState(() {
+//       enqueteCollecteList.addAll(enquetes);
+//       isLoading = false;
+//     });
+//     return enqueteCollecteList;
+//   });
+    
+//     // Mettre à jour la liste locale avec les nouvelles données
+//     enqueteCollecteList = fetchedList;
+    
+//     // Retourner la liste mise à jour
+//     return enqueteCollecteList;
+//   } catch (e) {
+//     print("Erreur lors de la récupération des enquêtes : $e");
+//     return [];
+//   }
+// }
 
  
  @override
@@ -186,7 +213,6 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     EnqueteService().fetchEnqueteCollecte().then((enquetes) {
       setState(() {
         enqueteCollecteList.addAll(enquetes);
-        isLoading = false;  // Désactiver le second chargement
       });
     });
   });
@@ -332,8 +358,8 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (!isEditMode) {
-                          // if (formkey.currentState!.validate() && !isEditMode) {
+                          if (!isEditMode && formkey.currentState!.validate()) {
+     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 //  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
@@ -356,13 +382,14 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
       enqueteCollecteList = enquetes;
       isLoading = false;
     });
+  hideLoadingDialog(context);
+  Get.back();
   })
     });
   }else{
       print("en ligne");
+           showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-  
-                 
                                             //   print("valid");
                           try {
   // Convertir la date de String à DateTime
@@ -375,7 +402,9 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     marche: marche.id_marche!.toString(),
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
     date_enquete: dateEnquete,
-  );
+  ).then((value) {
+    hideLoadingDialog(context);
+  });
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -404,7 +433,8 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 }
 
                           }else if(formkey.currentState!.validate() && isEditMode ) {
-                            
+                              showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+   
                              try {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
@@ -417,7 +447,9 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
         marche: marcheController.text,
         date_enquete: dateEnquete,
       collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
-      );
+      ).then((value) {
+        hideLoadingDialog(context);
+      });
             Provider.of<EnqueteService>(context, listen: false).applyChange();
            List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
 
@@ -485,19 +517,19 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
                               if (result == 'ajouter') {
                               _openDialog(false);
                               }
-                                 if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              //    if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                              const PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                             const PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                            //  const PopupMenuItem<String>(
+                            //     value: 'synchroniser',
+                            //     child: Text('Synchroniser'),
+                            //   ),
                             ],
                           ),
               ],
@@ -613,6 +645,8 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
                                     } 
 
                                     else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                                      
+     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                                        try {
        final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
 
@@ -626,8 +660,12 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
     date_enquete:parsedDate,
   ).then((value) => {
-    LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!)
+    LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
+          hideLoadingDialog(context); // Cache le dialogue de chargement
+    })
+
   });
+          enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -638,14 +676,14 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
     isLoading1 = false;
-    enqueteCollecteList = nouvelleListe;
+    enqueteCollecteList.addAll(nouvelleListe);
   });
   numFicheController.clear();
   dateController.clear();
   marcheController.clear();
 
   // Fermer le dialogue
-  Navigator.of(context).pop();
+  // Navigator.of(context).pop();
 
 } catch (e) {
   final String errorMessage = e.toString();
@@ -733,166 +771,310 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 
    // Fonction pour récupérer la liste des marchés depuis l'API
 
-  
-  void showMarche() async {
-  final BuildContext context = this.context;
+// void showMarche() async {
+//   final BuildContext context = this.context;
 
-  // Vérification de la connectivité réseau
-  var connectivityResult = await Connectivity().checkConnectivity();
-  bool isOnline = connectivityResult != ConnectivityResult.none;
+//   // Vérification de la connectivité réseau
+//   var connectivityResult = await Connectivity().checkConnectivity();
+//   bool isOnline = connectivityResult != ConnectivityResult.none;
 
-  // Si l'utilisateur est hors ligne, charger la liste des marchés depuis la base locale
-  if (!isOnline) {
-    List<Marche> localMarcheList = await LocalDatabaseService().getAllMarche();
+//   // Si l'utilisateur est hors ligne, charger la liste des marchés depuis la base locale
+//   if (!isOnline) {
+//     List<Marche> localMarcheList = await LocalDatabaseService().getAllMarche();
 
-    if (localMarcheList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Aucun marché disponible en local")),
-      );
-      return;
-    }
+//     if (localMarcheList.isEmpty) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text("Aucun marché disponible en local")),
+//       );
+//       return;
+//     }
 
-    // Afficher la boîte de dialogue avec les marchés locaux
-    _showMarcheDialog(localMarcheList);
-  } else {
+//     // Afficher la boîte de dialogue avec les marchés locaux
+//     _showMarcheDialog(localMarcheList);
+//   } else {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return StatefulBuilder(
+//           builder: (context, setState) {
+//             return AlertDialog(
+//               title: Padding(
+//                 padding: const EdgeInsets.all(10.0),
+//                 child: TextField(
+//                   controller: _searchController,
+//                   onChanged: (value) {
+//                     if (mounted) setState(() {});
+//                   },
+//                   decoration: InputDecoration(
+//                     hintText: 'Rechercher un marché',
+//                     border: UnderlineInputBorder(
+//                       borderSide: BorderSide(
+//                         color: Colors.grey[300]!,
+//                         width: 1,
+//                       ),
+//                     ),
+//                     suffixIcon: const Icon(Icons.search),
+//                   ),
+//                 ),
+//               ),
+//               content: FutureBuilder(
+//                 future: _marcheList,
+//                 builder: (_, snapshot) {
+//                   if (snapshot.connectionState == ConnectionState.waiting) {
+//                     return buildShimmerSelectList();
+//                   }
 
+//                   if (snapshot.hasError) {
+//                     return const Center(
+//                       child: Text("Erreur lors du chargement des données"),
+//                     );
+//                   }
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  if (mounted) setState(() {});
-                },
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un marché',
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey[300]!,
-                      width: 1,
+//                   if (snapshot.hasData) {
+//                     final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
+//                     if (responseData is List) {
+//                       List<Marche> typeListe = responseData.map((e) => Marche.fromMap(e)).toList();
+
+//                       if (typeListe.isEmpty) {
+//                         return const Padding(
+//                           padding: EdgeInsets.all(10),
+//                           child: Center(child: Text("Aucun marché trouvé")),
+//                         );
+//                       }
+
+//                       String searchText = _searchController.text.toLowerCase();
+//                       List<Marche> filteredSearch = typeListe
+//                           .where((type) => type.nom_marche!.toLowerCase().contains(searchText))
+//                           .toList();
+
+//                       return filteredSearch.isEmpty
+//                           ? const Text(
+//                               'Aucun marché trouvé',
+//                               style: TextStyle(color: Colors.black, fontSize: 17),
+//                             )
+//                           : SizedBox(
+//                               width: double.maxFinite,
+//                               child: ListView.builder(
+//                                 itemCount: filteredSearch.length,
+//                                 itemBuilder: (context, index) {
+//                                   final type = filteredSearch[index];
+//                                   final isSelected = marcheController.text == type.nom_marche!;
+//                                   return Column(
+//                                     children: [
+//                                       ListTile(
+//                                         title: Text(
+//                                           type.nom_marche!,
+//                                           style: TextStyle(
+//                                             color: Colors.black,
+//                                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+//                                             fontSize: 16,
+//                                           ),
+//                                         ),
+//                                         trailing: isSelected
+//                                             ? const Icon(
+//                                                 Icons.check_box_outlined,
+//                                                 color: vert,
+//                                               )
+//                                             : null,
+//                                         onTap: () {
+//                                           setState(() {
+//                                             marche = type; // Définit le marché sélectionné
+//                                             marcheController.text = type.nom_marche!; // Met à jour le texte du contrôleur
+//                                           });
+//                                         },
+//                                       ),
+//                                       Divider()
+//                                     ],
+//                                   );
+//                                 },
+//                               ),
+//                             );
+//                     }
+//                   }
+
+//                   return const SizedBox(height: 8);
+//                 },
+//               ),
+//               actions: <Widget>[
+//                 TextButton(
+//                   child: const Text(
+//                     'Annuler',
+//                     style: TextStyle(color: d_colorOr, fontSize: 16),
+//                   ),
+//                   onPressed: () {
+//                     _searchController.clear();
+//                     Navigator.of(context).pop();
+//                   },
+//                 ),
+//                 TextButton(
+//                   child: const Text(
+//                     'Valider',
+//                     style: TextStyle(color: d_colorOr, fontSize: 16),
+//                   ),
+//                   onPressed: () {
+//                     _searchController.clear();
+//                     print('Options sélectionnées : $marche'); // Affiche le marché sélectionné
+//                     Navigator.of(context).pop();
+//                   },
+//                 ),
+//               ],
+//             );
+//           },
+//         );
+//       },
+//     );
+//   }
+// }
+
+void showMarche() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un marche',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
                     ),
+                    suffixIcon: const Icon(Icons.search),
                   ),
-                  suffixIcon: const Icon(Icons.search),
                 ),
               ),
-            ),
-            content: FutureBuilder(
-              future: _marcheList,
-              builder: (_, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return buildShimmerSelectList();
-                }
-
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Erreur lors du chargement des données"),
-                  );
-                }
-
-                if (snapshot.hasData) {
-                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
-                  if (responseData is List) {
-                    List<Marche> typeListe = responseData.map((e) => Marche.fromMap(e)).toList();
-
-                    // Sauvegarder les marchés localement
-                    _saveMarketsLocally(typeListe);
-
-                    if (typeListe.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucun marché trouvé")),
-                      );
-                    }
-
-                    String searchText = _searchController.text.toLowerCase();
-                    List<Marche> filteredSearch = typeListe
-                        .where((type) => type.nom_marche!.toLowerCase().contains(searchText))
-                        .toList();
-
-                    return filteredSearch.isEmpty
-                        ? const Text(
-                            'Aucun marché trouvé',
-                            style: TextStyle(color: Colors.black, fontSize: 17),
-                          )
-                        : SizedBox(
-                            width: double.maxFinite,
-                            child: ListView.builder(
-                              itemCount: filteredSearch.length,
-                              itemBuilder: (context, index) {
-                                final type = filteredSearch[index];
-                                final isSelected = marcheController.text == type.nom_marche!;
-                                return Column(
-                                  children: [
-                                    ListTile(
-                                      title: Text(
-                                        type.nom_marche!,
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      trailing: isSelected
-                                          ? const Icon(
-                                              Icons.check_box_outlined,
-                                              color: vert,
-                                            )
-                                          : null,
-                                      onTap: () {
-                                        setState(() {
-                                          marche = type;
-                                          marcheController.text = type.nom_marche!;
-                                        });
-                                      },
-                                    ),
-                                    Divider()
-                                  ],
-                                );
-                              },
-                            ),
-                          );
+              content: FutureBuilder(
+                future: _marcheList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return  buildShimmerSelectList();
                   }
-                }
 
-                return const SizedBox(height: 8);
-              },
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text(
-                  'Annuler',
-                  style: TextStyle(color: d_colorOr, fontSize: 16),
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Marche> typeListe = responseData
+                          .map((e) => Marche.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Marche> filteredSearch = typeListe
+                          .where((type) => type.nom_marche!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return isLoading
+                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
+                : filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucun produit trouvé")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = marcheController.text ==
+                                      type.nom_marche!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_marche!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            marche = type;
+                                            marcheController.text =
+                                                type.nom_marche!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
                 },
               ),
-              TextButton(
-                child: const Text(
-                  'Valider',
-                  style: TextStyle(color: d_colorOr, fontSize: 16),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  _searchController.clear();
-                  print('Options sélectionnées : $marche');
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
- }
-}
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $marche');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
 
 
  // Afficher la boîte de dialogue avec la liste des marchés locaux
@@ -948,12 +1130,19 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
                                       color: vert,
                                     )
                                   : null,
+                              // onTap: () {
+                              //   setState(() {
+                              //     marche = type;
+                              //     marcheController.text = type.nom_marche!;
+                              //   });
+                              // },
                               onTap: () {
-                                setState(() {
-                                  marche = type;
-                                  marcheController.text = type.nom_marche!;
-                                });
-                              },
+  setState(() {
+    marche = type;  // Définit le marché sélectionné
+    marcheController.text = type.nom_marche!;
+  });
+},
+
                             ),
                             Divider()
                           ],

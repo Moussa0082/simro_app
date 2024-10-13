@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Prix_Marche_Grossiste.dart';
 import 'package:simro/screens/add_prix_marche_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
+import 'package:simro/screens/detail_prix_marche_grossiste.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class PrixMarcheGrossisteScreen extends StatefulWidget {
@@ -28,28 +32,41 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
 
    List<PrixMarcheGrossiste> prixMarcheGrossisteList = [];
   
-     Future<List<PrixMarcheGrossiste>> fetchPrixMarcheGrossiste() async {
-  try {
-    // Appel du service pour récupérer les données d'enquêtes
-     
-    List<PrixMarcheGrossiste> fetchedList = await PrixMarcheService().fetchPrixMarcheGrossiste().then((prixMarche) {
-
-    setState(() {
-      prixMarcheGrossisteList = prixMarche;
-      isLoading = false;
-    });
-    return prixMarcheGrossisteList;
+  Future<List<PrixMarcheGrossiste>> fetchPrixMarcheGrossiste() async {
+  setState(() {
+    isLoading = true; // Assurez-vous que le shimmer est visible
   });
-      prixMarcheGrossisteList = fetchedList;
+
+  try {
+    // Étape 1 : Récupérer les données locales
+    List<PrixMarcheGrossiste> localData = await LocalDatabaseService().getAllPrixMarcheGrossiste();
+
+    // Mettre à jour l'UI avec les données locales
+    setState(() {
+      prixMarcheGrossisteList = localData; // Mettez à jour la liste avec les données locales
+    });
+
+    // Étape 2 : Récupérer les données en ligne
+    List<PrixMarcheGrossiste> fetchedList = await PrixMarcheService().fetchPrixMarcheGrossiste();
+   print(fetchedList);
+
+    // Étape 3 : Ajouter les données en ligne à la liste existante
+    setState(() {
+      prixMarcheGrossisteList.addAll(fetchedList); // Ajouter les données en ligne
+      isLoading = false; // Le chargement est terminé, on cache l'effet shimmer
+    });
     
-    // Mettre à jour la liste locale avec les nouvelles données    
-    // Retourner la liste mise à jour
-    return prixMarcheGrossisteList;
   } catch (e) {
     print("Erreur lors de la récupération des prix marché grossiste : $e");
-    return [];
+    // En cas d'erreur, désactiver l'effet de chargement
+    setState(() {
+      isLoading = false; // Assurez-vous de cacher le shimmer même en cas d'erreur
+    });
   }
+  
+  return prixMarcheGrossisteList; // Retourner la liste mise à jour
 }
+
 
 
  @override
@@ -82,7 +99,7 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                             iconColor:blanc,
                             onSelected: (String result) {
                               if (result == 'ajouter') {
-                                Get.to(AddPrixMarcheGrossisteScreen(), transition: Transition.downToUp, duration: Duration(seconds: 1));
+                                Get.to(AddPrixMarcheGrossisteScreen(isEditMode: false,), transition: Transition.downToUp, duration: Duration(seconds: 1));
                               }
                                    if (result == 'synchroniser') {
                                showSyncDialog(context);
@@ -150,7 +167,7 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
              
                  
                   return ListView.builder(
-                    itemCount: 3, // Par exemple, 3 fiches pour l'instant
+                    itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
                     itemBuilder: (context, index) {
                          final prixMarcheGrossiste = filteredList[index];
                       return Card(
@@ -160,35 +177,103 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Align(
+                                  alignment: Alignment.topRight,
+                                  child: filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: filteredList[index].isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
                               Text(
-                                'N° fiche: 01',
+                                'Enquete: ${prixMarcheGrossiste.enquete}',
+                                 maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
                               ),
                               SizedBox(height: 5),
-                              Text('Marché enquête: Bamako' ,
+                              Text('Produit: ${prixMarcheGrossiste.produit}' ,
+                               maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                               SizedBox(height: 5),
-                              Text('Date Enquête: le 17/07/2024' ,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                              // SizedBox(height: 5),
+                              
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                   
-                              Text('Date Enquête: le 17/07/2024' ,
+                              Text(' Nombre unité en stock : ${prixMarcheGrossiste.nombre_unite_stock} ' ,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                               // Bouton avec trois points
                               PopupMenuButton<String>(
                                 iconColor:vert,
-                                onSelected: (String result) {
+                                onSelected: (String result) async{
                                   if (result == 'modifier') {
                                     // Action pour modifier
                                     Get.to(AddPrixMarcheGrossisteScreen(isEditMode:true, prixMarcheGrossiste:filteredList[index]));
                                     print('Modifier sélectionné');
                                   } else if (result == 'detail') {
                                     // Action pour détail
+                             Get.to(DetailPrixMarcheGrossisteScreen(prixMarcheGrossiste:filteredList[index] ,));
+
                                     print('Détail sélectionné');
-                                  } else if (result == 'supprimer') {
+                                  } 
+                                  else if (result == 'synchroniser' && filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1)  {
+   showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+                                       try {
+  //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+                                await PrixMarcheService().addPrixMarcheGrossiste(
+                                enquete: filteredList[index].enquete!, localite_vente:filteredList[index].localite_vente!,
+                                produit: filteredList[index].produit!, unite_stock: filteredList[index].unite_stock!, 
+                                poids_moyen_unite_stock: filteredList[index].poids_moyen_unite_stock!, nombre_unite_stock: filteredList[index].nombre_unite_stock!,
+                                 poids_stock: filteredList[index].poids_stock!,  nombre_unite_achat: filteredList[index].nombre_unite_achat!,
+                                  unite_achat: filteredList[index].unite_achat!, poids_moyen_unite_achat: filteredList[index].poids_moyen_unite_achat!, 
+                                  poids_total_achat: filteredList[index].poids_total_achat!, app_mobile: filteredList[index].app_mobile!, fournisseur_achat: filteredList[index].fournisseur_achat!,
+                                   localite_achat: filteredList[index].localite_achat!, nombre_unite_vente: filteredList[index].nombre_unite_vente!,
+                                 unite_vente:filteredList[index].unite_vente!,
+                                client_vente:filteredList[index].client_vente! ,
+                                   statut: filteredList[index].statut!, poids_moyen_unite_vente: filteredList[index].poids_moyen_unite_vente!,
+                                    poids_total_unite_vente: filteredList[index].poids_total_unite_vente!,  prix_unitaire_vente: filteredList[index].prix_unitaire_vente!,
+                                     id_personnel: filteredList[index].id_personnel!).then((value) {
+
+    LocalDatabaseService().deleteEnqueteGrossiste(filteredList[index].id_fiche!).then((value) {
+          hideLoadingDialog(context); // Cache le dialogue de chargement
+    });
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<PrixMarcheService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<PrixMarcheGrossiste> nouvelleListe = await fetchPrixMarcheGrossiste();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    prixMarcheGrossisteList = nouvelleListe;
+  });
+
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                     else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deleteEnqueteGrossiste(filteredList[index].id_fiche!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            prixMarcheGrossisteList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
+                          });
+                        });
+                                      print('Supprimer sélectionné');
+                                    }
+                                  else if (result == 'supprimer') {
 // Action pour supprimer
                                       PrixMarcheService().deletePrixMarcheGrossiste(filteredList[index].id_fiche!).then((value) {
                           // Update the original list used by ListView.builder
@@ -198,22 +283,40 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                         });                                    print('Supprimer sélectionné');
                                   }
                                 },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'modifier',
-                                    child: Text('Modifier'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'detail',
-                                    child: Text('Détail'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'supprimer',
-                                    child: Text('Supprimer'),
-                                  ),
-                                ],
-                              ),
-                                ],
+                                itemBuilder: (BuildContext context) => filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimer',
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ] ,
+                                ),
+                                  ],
                               ),
                             ],
                           ),

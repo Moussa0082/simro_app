@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:profile_photo/profile_photo.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/models/Enqueteur.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
@@ -13,6 +14,7 @@ import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/add_prix_marche_consommation.dart';
 import 'package:simro/screens/add_prix_marche_grossiste.dart';
 import 'package:simro/screens/add_product.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:simro/screens/enquete_collecte.dart';
 import 'package:simro/screens/enquete_consommation.dart';
 import 'package:simro/screens/enquete_grossiste.dart';
@@ -60,6 +62,29 @@ class _HomeScreenState extends State<HomeScreen> {
   // Stocker l'objet Enqueteur sous forme de chaîne JSON
   await prefs.setString('enqueteur', enqueteurJson);
 }
+ Future<Map<String, dynamic>> getTotalEnquetes() async {
+  Database? database;
+  final db = await database; // Suppose que tu as déjà configuré ton instance SQLite
+
+  final result = await db?.rawQuery('''
+    SELECT 
+      (SELECT COUNT(*) FROM  enquete_  WHERE isSynced = 0) AS total_consommation,
+      (SELECT COUNT(*) FROM  enquete_collecte WHERE isSynced = 0 ) AS total_collecte,
+      (SELECT COUNT(*) FROM enquete_grossiste WHERE isSynced = 0) AS total_grossiste,
+      (
+        (SELECT COUNT(*) FROM enquete  WHERE isSynced = 0) +
+        (SELECT COUNT(*) FROM enquete_collecte WHERE isSynced = 0) +
+        (SELECT COUNT(*) FROM enquete_grossiste WHERE isSynced = 0)
+      ) AS total_general;
+  ''');
+
+  if (result!.isNotEmpty) {
+    return result.first;
+  } else {
+    return {'total_consommation': 0, 'total_collecte': 0, 'total_grossiste': 0, 'total_general': 0};
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -159,29 +184,50 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 color:griss,
                 // elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Total de collectes d\'enquête de',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Consommation : ......', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
-                          Text('Collecte : ......' , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Text('Grossiste : ......' , style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)),
-                    ],
-                  ),
-                ),
+                child: FutureBuilder<Map<String, dynamic>>(
+  future: getTotalEnquetes(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildShimmerEffect(); // Affiche un loader pendant le chargement
+    }
+
+    final data = snapshot.data;
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        children: [
+          Text(
+            'Total de collectes d\'enquête de',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Consommation : ${data?['total_consommation'] != null ? data!['total_consommation'] : "0" }',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Collecte : ${data?['total_collecte'] != null ? data!['total_collecte'] : "0" }',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              'Grossiste : ${data?['total_grossiste'] != null ? data!['total_grossiste'] : "0" } ',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+)
+
               ),
               const SizedBox(height: 16),
 
@@ -255,13 +301,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   // Widget pour construire un item de la grille
- // Fonction pour créer un élément de grille avec un routage dynamique
- // Fonction pour créer un élément de grille avec un routage dynamique
-Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
+  Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
   return GestureDetector(
     onTap: () {
-      // Naviguer vers la page spécifiée
-      Get.to(() => destinationPage, transition: Transition.downToUp, duration: Duration(seconds: 1));
+      // Naviguer vers la page spécifié
+      Get.to(() => destinationPage, transition: Transition.downToUp);
     },
     child: LayoutBuilder(
       builder: (context, constraints) {
@@ -351,7 +395,7 @@ Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
 
     PreferredSize _appBar() {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(60),
+      preferredSize: const Size.fromHeight(85),
       child: Container(
         margin: const EdgeInsets.only(top: 5),
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -402,13 +446,20 @@ Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
         image: AssetImage('assets/images/logo-simro.png'),
       ),
       Expanded(
-        child: Text(
+        child: ListTile(
+          title: Padding(
+            padding: const EdgeInsets.only(left:14.0),
+            child: Text("Bienvenue",style: const TextStyle(color: blanc, fontSize: 16, fontWeight: FontWeight.bold),),
+          ),
+          subtitle: Text(
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
           "${enqueteurProvider.prenom!} ${enqueteurProvider.nom!}",
           textAlign: TextAlign.center,
           style: const TextStyle(color: blanc, fontSize: 16, fontWeight: FontWeight.bold),
         ),
+        ),
+      
       ),
       // ProfilePhoto(
       //    onTap: () {
@@ -498,5 +549,61 @@ Widget buildGridItem(IconData icon, String label, Widget destinationPage) {
     );
   }
   
+
+  Widget _buildShimmerEffect() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        children: [
+          Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: double.infinity,
+              height: 20.0,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  width: 120.0,
+                  height: 20.0,
+                  color: Colors.grey,
+                ),
+              ),
+              Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  width: 100.0,
+                  height: 20.0,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                width: 80.0,
+                height: 20.0,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 }

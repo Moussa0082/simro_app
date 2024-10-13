@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Prix_Marche_Consommation.dart';
 import 'package:simro/screens/add_prix_marche_consommation.dart';
 import 'package:simro/screens/detail_marche.dart';
+import 'package:simro/screens/detail_prix_marche_consommation.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class PrixMarcheConsommationScreen extends StatefulWidget {
@@ -80,19 +84,19 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
                               if (result == 'ajouter') {
                                 Get.to(AddPrixMarcheConsommationScreen(isEditMode:false), transition: Transition.downToUp);
                               }
-                              if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              // if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'synchroniser',
+                              //   child: Text('Synchroniser'),
+                              // ),
                             ],
                           ),
               ],
@@ -157,35 +161,96 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Align(
+                                  alignment: Alignment.topRight,
+                                  child: filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: filteredList[index].isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
                               Text(
-                                'N° fiche: 01',
+                                'Enquete : ${filteredList[index].enquete}',
+                                 maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
                               ),
                               SizedBox(height: 5),
-                              Text('Marché enquête: Bamako' ,
+                              Text('Produit : ${filteredList[index].produit}' ,
+                               maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                              SizedBox(height: 5),
-                              Text('Date Enquête: le 17/07/2024' ,
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
-                              // SizedBox(height: 5),
+                             
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                   
-                              Text('Date Enquête: le 17/07/2024' ,
+                              Text('Poids unitaire : ${filteredList[index].poids_unitaire}' ,
+                               maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, )),
                               // Bouton avec trois points
                               PopupMenuButton<String>(
                                 iconColor:vert,
-                                onSelected: (String result) {
+                                onSelected: (String result) async{
                                   if (result == 'modifier') {
                                     // Action pour modifier
                                     Get.to(AddPrixMarcheConsommationScreen(isEditMode:true, prixMarcheConsommation:filteredList[index]));
                                     print('Modifier sélectionné');
                                   } else if (result == 'detail') {
                                     // Action pour détail
+                                     Get.to(DetailPrixMarcheConsommationScreen(prixMarcheConsommation:filteredList[index] ,));
+
                                     print('Détail sélectionné');
-                                  } else if (result == 'supprimer') {
+                                  } 
+                                  else if (result == 'synchroniser' && filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1)  {
+   showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+                                       try {
+  //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+                             PrixMarcheService().addPrixMarcheConsommation(enquete: filteredList[index].enquete!,
+                              produit: filteredList[index].produit!, unite: filteredList[index].unite!, 
+                              prix_mesure: filteredList[index].prix_mesure!,
+                               poids_unitaire: filteredList[index].poids_unitaire!, 
+                               prix_kg_litre: filteredList[index].prix_kg_litre!, app_mobile: filteredList[index].app_mobile!, 
+                               niveau_approvisionement: filteredList[index].niveau_approvisionement!, statut: filteredList[index].statut!,
+                                 id_personnel:filteredList[index].id_personnel!).then((value) {
+
+    LocalDatabaseService().deletePrixMarcheConsommation(filteredList[index].id_fiche!).then((value) {
+          hideLoadingDialog(context); // Cache le dialogue de chargement
+    });
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<PrixMarcheService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<PrixMarcheConsommation> nouvelleListe = await fetchPrixMarcheConsommation();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    prixMarcheConsommationList = nouvelleListe;
+  });
+
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                     else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            prixMarcheConsommationList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
+                          });
+                        });
+                                      print('Supprimer sélectionné');
+                                    }
+                                  else if (result == 'supprimer') {
 // Action pour supprimer
                                       PrixMarcheService().deletePrixMarcheConsommation(filteredList[index].id_fiche!).then((value) {
                           // Update the original list used by ListView.builder
@@ -196,22 +261,40 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
                                     print('Supprimer sélectionné');
                                   }
                                 },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'modifier',
-                                    child: Text('Modifier'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'detail',
-                                    child: Text('Détail'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'supprimer',
-                                    child: Text('Supprimer'),
-                                  ),
-                                ],
-                              ),
-                                ],
+                                itemBuilder: (BuildContext context) => filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimer',
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ] ,
+                                ),
+                                  ],
                               ),
                             ],
                           ),

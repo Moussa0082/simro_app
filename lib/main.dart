@@ -21,7 +21,7 @@ Future<void> main() async {
    // Supprimez l'ancienne base de données (si nécessaire)
     // await deleteDatabase("collecte.db");
   // Initialisez la base de données
-   await LocalDatabaseService().initDB();
+  //  await LocalDatabaseService().initDB();
   // Initialise les dépendances
   DependancyInjection().init();
   
@@ -74,8 +74,9 @@ class _MyAppState extends State<MyApp> {
         // Ajoutez d'autres pages ici
       // ],
       debugShowCheckedModeBanner: false,
+      defaultTransition: Transition.fade, // Ou n'importe quelle autre transition
       theme: ThemeData(
-       
+           scaffoldBackgroundColor: Colors.white, // Couleur de fond pour toutes les pages
         // colorScheme: ColorScheme.fromSeed(seedColor: vert),
         useMaterial3: true,
       ),

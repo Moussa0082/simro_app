@@ -6,12 +6,16 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/services/Enquete_Service.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 import 'detail_enquete_grossiste.dart';
@@ -245,7 +249,37 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (formkey.currentState!.validate() && !isEditMode) {
+ if (!isEditMode && formkey.currentState!.validate()) {
+     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+//  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+ final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+// This condition is for demo purposes only to explain every connection type.
+// Use conditions which work for your requirements.
+   if (st == false) {
+   print("hors ligne");
+  // Mobile network available.
+    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    EnqueteGrossiste enquete = EnqueteGrossiste(
+      collecteur:enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: numFicheController.text,
+    marche: marcheController.text,
+    date_enquete: dateController.text,
+    isSynced: 0,
+  );
+    await LocalDatabaseService().insertEnqueteGrossiste(enquete).then((value) => {
+        LocalDatabaseService().getAllEnqueteGrossiste().then((enquetes) {
+    setState(() {
+      enqueteGrossisteList = enquetes;
+      isLoading = false;
+    });
+    hideLoadingDialog(context);
+  })
+    });
+  }else{
+      print("en ligne");
+           showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
                           //   print("valid");
                           try {
   // Convertir la date de String à DateTime
@@ -258,7 +292,9 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
     marche: marche.id_marche!.toString(),
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
     date_enquete: dateEnquete,
-  );
+  ).then((value) {
+    hideLoadingDialog(context);
+  });
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -284,9 +320,11 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
 
   // Gérer l'erreur ici
 }
+                          }
 
                           }else if(formkey.currentState!.validate() && isEditMode) {
-                            
+                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
                              try {
   // Convertir la date de String à DateTime
   DateTime dateEnquete = DateTime.parse(dateController.text);
@@ -300,7 +338,9 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
         marche: marcheController.text,
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
         date_enquete: dateEnquete,
-      );
+      ).then((value) {
+        hideLoadingDialog(context);
+      });
             Provider.of<EnqueteService>(context, listen: false).applyChange();
            List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
 
@@ -368,19 +408,19 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                               if (result == 'ajouter') {
                               _openDialog(false);
                               }
-                                 if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              //    if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'synchroniser',
+                              //   child: Text('Synchroniser'),
+                              // ),
                             ],
                           ),
               ],
@@ -447,6 +487,13 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                               Align(
+                                  alignment: Alignment.topRight,
+                                  child: enquete.isSynced != null &&  enquete.isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: enquete.isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
                               Text(
                                 'N° fiche: ${enquete.num_fiche!}',
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, ),
@@ -465,10 +512,11 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                               // Bouton avec trois points
                               PopupMenuButton<String>(
                                 iconColor:vert,
-                                onSelected: (String result) {
+                                onSelected: (String result) async{
                                   if (result == 'modifier') {
                                     // Action pour modifier
                                      _openDialog(true,enqueteCollecte:enquete);
+
                                     print('Modifier sélectionné');
                                   } else if (result == 'detail') {
                                     // Action pour détail
@@ -484,21 +532,96 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
                       });
                                     print('Supprimer sélectionné');
                                   }
+                                                  else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                                           showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
+                                       try {
+       final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  // Convertir la date de String à DateTime
+   DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+  // Ajouter l'enquête collectée
+  await EnqueteService().addEnqueteGrossiste(
+    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+    num_fiche: enquete.num_fiche!,
+    marche: enquete.marche!,
+    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
+    date_enquete:parsedDate,
+  ).then((value) => {
+    LocalDatabaseService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
+      hideLoadingDialog(context);
+    })
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading1 = false;
+    enqueteGrossisteList = nouvelleListe;
+  });
+  numFicheController.clear();
+  dateController.clear();
+  marcheController.clear();
+
+  // Fermer le dialogue
+  Navigator.of(context).pop();
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                   else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            enqueteGrossisteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+                          });
+                        });
+                                      print('Supprimer sélectionné');
+                                    }
                                 },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'modifier',
-                                    child: Text('Modifier'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'detail',
-                                    child: Text('Détail'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'supprimer',
-                                    child: Text('Supprimer'),
-                                  ),
-                                ],
+                                itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimer',
+                                      child: Text('Supprimer'),
+                                    ),
+                                  ]
                               ),
                                 ],
                               ),

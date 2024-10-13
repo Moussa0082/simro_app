@@ -2,12 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Prix_Marche_Collecte.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/add_prix_marche_collecte.dart';
+import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/screens/detail_marche.dart';
+import 'package:simro/screens/detail_prix_marche_collecte.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class PrixMarcheCollecteScreen extends StatefulWidget {
@@ -30,18 +36,21 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<PrixMarcheCollecte> fetchedList = await PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarche) {
-
+    List<PrixMarcheCollecte> fetchedList = await PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarcheCollecte) {
+     LocalDatabaseService().getAllPrixMarcheCollecte().then((prixMarcheCollecte) {
     setState(() {
-      prixMarcheCollecteList = prixMarche;
-      isLoading = false;
+      prixMarcheCollecteList = prixMarcheCollecte;
+      // isLoading = false;
+    });
+  });
+    setState(() {
+      prixMarcheCollecteList.addAll(prixMarcheCollecte);
     });
     return prixMarcheCollecteList;
   });
-      prixMarcheCollecteList = fetchedList;
     
-    // Mettre à jour la liste locale avec les nouvelles données    
-    // Retourner la liste mise à jour
+      prixMarcheCollecteList = fetchedList;
+        // Retourner la liste mise à jour
     return prixMarcheCollecteList;
   } catch (e) {
     print("Erreur lors de la récupération des prix marché collecte : $e");
@@ -54,7 +63,13 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
   void initState() {
     _searchController = TextEditingController();
     super.initState();
-    fetchPrixMarcheCollecte();
+
+  fetchPrixMarcheCollecte().then((value) {
+   setState(() {
+     isLoading = false;
+     prixMarcheCollecteList = value;
+   });
+  });
   }
   
  
@@ -159,6 +174,13 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                 Align(
+                                  alignment: Alignment.topRight,
+                                  child: filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1  ? Icon(
+                                 Icons.cloud_off,
+                                color: filteredList[index].isSynced != 1 ? Colors.red :Colors.green ,
+                              ) : SizedBox(),
+                                ),
                                 Text(
                                    maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -182,16 +204,81 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                 // Bouton avec trois points
                                 PopupMenuButton<String>(
                                   iconColor:vert,
-                                  onSelected: (String result) {
+                                  onSelected: (String result) async{
                                     if (result == 'modifier') {
                                       // Action pour modifier
                                       Get.to(AddPrixMarcheCollecteScreen(isEditMode: true, prixMarcheColecte: filteredList[index],));
                                       print('Modifier sélectionné');
                                     } else if (result == 'detail') {
                                       // Action pour détail
-                                      Get.to(DetailMarcheScreen());
+                                      Get.to(DetailPrixMarcheCollecteScreen(prixMarcheCollecte:filteredList[index] ,));
                                       print('Détail sélectionné');
-                                    } else if (result == 'supprimer') {
+                                    } 
+                                       else if (result == 'synchroniser' && filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1)  {
+   showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+                                       try {
+  //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
+  await PrixMarcheService().addPrixMarcheCollecte(
+    enquete: filteredList[index].enquete!,
+                              produit: filteredList[index].produit!, unite: filteredList[index].unite!, 
+                              poids_unitaire: filteredList[index].poids_unitaire!, 
+                              montant_achat: filteredList[index].montant_achat!,
+                              prix_fg_kg: filteredList[index].prix_fg_kg!, 
+                              distance_origine_marche: filteredList[index].distance_origine_marche!,
+                               montant_transport: filteredList[index].montant_transport!,
+                                app_mobile:1,
+                                 quantite_collecte: filteredList[index].quantite_collecte!,
+                                 client_principal: filteredList[index].client_principal!, 
+                                 fournisseur_principal: filteredList[index].fournisseur_principal!,
+                                 niveau_approvisionement: filteredList[index].niveau_approvisionement!, statut: filteredList[index].statut!,
+                                  localite_origine: filteredList[index].localite_origine!, 
+                                  etat_route: filteredList[index].etat_route!,
+                                    id_personnel: filteredList[index].id_personnel!
+                                    
+    
+  ).then((value) => {
+    LocalDatabaseService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
+       // Supprimer l'objet de la liste après suppression en base
+      setState(() {
+        filteredList.removeAt(index); // Supprime l'élément de la liste
+      });
+          hideLoadingDialog(context); // Cache le dialogue de chargement
+
+    })
+  });
+
+  // Appliquer les changements via le Provider
+  Provider.of<PrixMarcheService>(context, listen: false).applyChange();
+
+  // Récupérer la nouvelle liste d'enquêtes collectées
+  List<PrixMarcheCollecte> nouvelleListe = await fetchPrixMarcheCollecte();
+
+  // Mettre à jour l'état avec la nouvelle liste
+  setState(() {
+    isLoading = false;
+    prixMarcheCollecteList = nouvelleListe;
+  });
+
+
+} catch (e) {
+  final String errorMessage = e.toString();
+  print("Erreur : " + errorMessage);
+
+  // Gérer l'erreur ici
+}
+                                      print('Synchroniser sélectionné');
+                                    } 
+                                    else if (result == 'supprimee') {
+                                      // Action pour supprimer
+                                      LocalDatabaseService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
+                          // Update the original list used by ListView.builder
+                          setState(() {
+                            prixMarcheCollecteList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
+                          });
+                        });
+                                      print('Supprimer sélectionné');
+                                    }
+                                    else if (result == 'supprimer') {
                                       // Action pour supprimer
                                       // Action pour supprimer
                                       PrixMarcheService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
@@ -203,20 +290,38 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                       print('Supprimer sélectionné');
                                     }
                                   },
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    PopupMenuItem<String>(
-                                      value: 'modifier',
-                                      child: Text('Modifier'),
+                                  itemBuilder: (BuildContext context) => filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1 ?   
+                                     <PopupMenuEntry<String>>  [
+                                
+                                const   PopupMenuItem<String>(
+                                      value: 'synchroniser',
+                                      child: Text('Synchroniser'),
                                     ),
-                                    PopupMenuItem<String>(
+                                  const  PopupMenuItem<String>(
                                       value: 'detail',
                                       child: Text('Détail'),
                                     ),
-                                    PopupMenuItem<String>(
+                                  const  PopupMenuItem<String>(
+                                      value: 'supprimee',
+                                      child: Text('Supprimé'),
+                                    ),
+                           
+                                  ] : 
+                                  <PopupMenuEntry<String>>  [
+                                
+                                 const  PopupMenuItem<String>(
+                                      value: 'modifier',
+                                      child: Text('Modifier'),
+                                    ),
+                                 const   PopupMenuItem<String>(
+                                      value: 'detail',
+                                      child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
                                       value: 'supprimer',
                                       child: Text('Supprimer'),
                                     ),
-                                  ],
+                                  ] ,
                                 ),
                                   ],
                                 ),

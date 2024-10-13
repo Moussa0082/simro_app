@@ -22,6 +22,7 @@ class Enquete {
 
 
 
+
   Enquete copyWith({
     String? marche,
     int? collecteur,
@@ -57,7 +58,7 @@ class Enquete {
   factory Enquete.fromMap(Map<String, dynamic> map) {
     return Enquete(
       marche: map['marche'] != null ? map['marche'] as String : null,
-      collecteur: map['collecteur'] != null ? map['collecteur'] as int : null,
+      collecteur: map['collecteur'] ,
       statut: map['statut'] != null ? map['statut'] as String : null,
       isSynced: map['isSynced'] != null ? map['isSynced'] as int : null,
       date_enquete: map['date_enquete'] != null ? map['date_enquete'] as String : null,

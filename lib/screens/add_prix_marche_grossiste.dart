@@ -1,11 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
+import 'package:simro/models/Commune.dart';
+import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Prix_Marche_Grossiste.dart';
+import 'package:simro/models/Produit.dart';
+import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/prix_marche_grossiste.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
+import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
 class AddPrixMarcheGrossisteScreen extends StatefulWidget {
@@ -19,7 +30,8 @@ class AddPrixMarcheGrossisteScreen extends StatefulWidget {
 
 class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScreen> {
  
- 
+         final GlobalKey<FormState> formkey = GlobalKey<FormState>();
+
   late TextEditingController _searchController;
 
   TextEditingController uniteStockController = TextEditingController();
@@ -39,15 +51,626 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
   TextEditingController prixUnitaireVenteController = TextEditingController();
   TextEditingController clientVenteController = TextEditingController();
   TextEditingController localiteVenteController = TextEditingController();
-  // TextEditingController statutController = TextEditingController();
+  TextEditingController enqueteController = TextEditingController();
   TextEditingController niveauApprovisionnementController = TextEditingController();
-  // TextEditingController observationController = TextEditingController();
+  TextEditingController localiteController = TextEditingController();
   TextEditingController produitController = TextEditingController();
   TextEditingController grossiteController = TextEditingController();
   bool isLoading = true;
+      late Commune commune;
+      late Commune commune1;
+    late Future _communeList;
+      late Produit produit;
+    late Future _produitList;
+      late EnqueteGrossiste enquete;
+    late Future _enqueteList;
+
+     void showEnquete() async {
+  final BuildContext context = this.context;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  if (mounted) setState(() {}); // Mise à jour de l'état lors de la recherche
+                },
+                decoration: InputDecoration(
+                  hintText: 'Rechercher une enquête',
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  suffixIcon: const Icon(Icons.search),
+                ),
+              ),
+            ),
+            content: FutureBuilder(
+              future: _enqueteList,
+              builder: (_, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return buildShimmerSelectList(); // Simule le chargement
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("Erreur lors du chargement des données"),
+                  );
+                }
+
+                if (snapshot.hasData) {
+                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
+                  if (responseData is List) {
+                    List<EnqueteGrossiste> typeListe = responseData
+                        .map((e) => EnqueteGrossiste.fromMap(e))
+                        .toList();
+
+                    if (typeListe.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucune enquête trouvée")),
+                      );
+                    }
+
+                    // Filtre les résultats en fonction de la recherche
+                    String searchText = _searchController.text.toLowerCase();
+                    List<EnqueteGrossiste> filteredSearch = typeListe
+                        .where((type) => type.id_enquete.toString()
+                            .toLowerCase()
+                            .contains(searchText))
+                        .toList();
+
+                    return filteredSearch.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Center(child: Text("Aucun résultat trouvé")),
+                          )
+                        : SizedBox(
+                            width: double.maxFinite,
+                            child: ListView.builder(
+                              itemCount: filteredSearch.length,
+                              itemBuilder: (context, index) {
+                                final type = filteredSearch[index];
+
+                                // Comparer correctement les types : ici en convertissant `id_enquete` en String
+                                final isSelected = enqueteController.text == type.id_enquete.toString();
+
+                                return Column(
+                                  children: [
+                                    ListTile(
+                                      title: Text(
+                                        type.id_enquete.toString(),
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(
+                                              Icons.check_box_outlined,
+                                              color: Colors.green, // Assure que `vert` est bien défini, sinon utilise une couleur par défaut
+                                            )
+                                          : null,
+                                      onTap: () {
+                                        setState(() {
+                                          enquete = type;
+                                          enqueteController.text = type.id_enquete.toString(); // Met à jour le controller avec l'id sélectionné
+                                        });
+                                      },
+                                    ),
+                                    const Divider(),
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                  }
+                }
+
+                return const SizedBox(height: 8); // Si aucune donnée n'est chargée
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: Colors.orange, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text(
+                  'Valider',
+                  style: TextStyle(color: Colors.orange, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  print('Options sélectionnées : $enquete');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+
+    void showProduit() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un produit',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _produitList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return  buildShimmerSelectList();
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Produit> typeListe = responseData
+                          .map((e) => Produit.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Produit> filteredSearch = typeListe
+                          .where((type) => type.nom_produit!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return isLoading
+                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
+                : filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucun produit trouvé")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = produitController.text ==
+                                      type.nom_produit!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_produit!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            produit = type;
+                                            produitController.text =
+                                                type.nom_produit!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $produit');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
+   void showLocalite() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une localité',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _communeList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return buildShimmerSelectList();
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Commune> typeListe = responseData
+                          .map((e) => Commune.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Commune> filteredSearch = typeListe
+                          .where((type) => type.nom_commune!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return  filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucune localité trouvée")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = localiteVenteController.text ==
+                                      type.nom_commune!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_commune!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            commune = type;
+                                            localiteVenteController.text =
+                                                type.nom_commune!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $commune');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+   void showLocaliteAchat() async {
+    final BuildContext context = this.context;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (mounted) setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une localité',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    suffixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              content: FutureBuilder(
+                future: _communeList,
+                builder: (_, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return buildShimmerSelectList();
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Erreur lors du chargement des données"),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final responseData =
+                        json.decode(utf8.decode(snapshot.data.bodyBytes));
+                    if (responseData is List) {
+                      List<Commune> typeListe = responseData
+                          .map((e) => Commune.fromMap(e))
+                          .toList();
+
+                      if (typeListe.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Center(child: Text("Aucun marché trouvée")),
+                        );
+                      }
+
+                      String searchText = _searchController.text.toLowerCase();
+                      List<Commune> filteredSearch = typeListe
+                          .where((type) => type.nom_commune!
+                              .toLowerCase()
+                              .contains(searchText))
+                          .toList();
+
+                      return  filteredSearch.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: Text("Aucune localité trouvée")),
+                      ) : SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                itemCount: filteredSearch.length,
+                                itemBuilder: (context, index) {
+                                  final type = filteredSearch[index];
+                                  final isSelected = localiteAchatController.text ==
+                                      type.nom_commune!;
+
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(
+                                          type.nom_commune!,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        trailing: isSelected
+                                            ? const Icon(
+                                                Icons.check_box_outlined,
+                                                color: vert,
+                                              )
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            commune1 = type;
+                                            localiteAchatController.text =
+                                                type.nom_commune!;
+                                          });
+                                        },
+                                      ),
+                                      Divider()
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                    }
+                  }
+
+                  return const SizedBox(height: 8);
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'Annuler',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'Valider',
+                    style: TextStyle(color: d_colorOr, fontSize: 16),
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    print('Options sélectionnées : $commune1');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
    
- 
+    Future<void> _fetchEnqueteGrossisteList() async {
+    _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-grossiste/'));
+  }
+
+    Future<void> _fetchProduitList() async {
+    _produitList = http.get(Uri.parse('$apiUrl/all-produits/'));
+  }
+
+
+    Future<void> _fetchCommuneList() async {
+    _communeList =
+        http.get(Uri.parse('$apiUrl/all-commune/'));
+    }
+
 
 
 
@@ -55,7 +678,29 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
   void initState() {
     // TODO: implement initState
     super.initState();
+    
+     _fetchCommuneList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+
+     _fetchProduitList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+
+     _fetchEnqueteGrossisteList().then((value) => {
+      setState(() {
+        isLoading = false;
+      })
+     });
+
+
      if(widget.isEditMode == true){
+      localiteVenteController.text = widget.prixMarcheGrossiste!.localite_vente != null ? widget.prixMarcheGrossiste!.localite_vente!.toString() : "";
+      enqueteController.text = widget.prixMarcheGrossiste!.enquete != null ? widget.prixMarcheGrossiste!.enquete!.toString() : "";
       uniteStockController.text = widget.prixMarcheGrossiste!.unite_stock != null ? widget.prixMarcheGrossiste!.unite_stock!.toString() : "0";
       nbreUniteStockController.text = widget.prixMarcheGrossiste!.nombre_unite_stock != null ? widget.prixMarcheGrossiste!.nombre_unite_stock!.toString() : "0";
       poidsMoyenUniteStockController.text = widget.prixMarcheGrossiste!.poids_moyen_unite_stock != null ? widget.prixMarcheGrossiste!.poids_moyen_unite_stock!.toString() : "0";
@@ -97,6 +742,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Form(
+            key: formkey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -348,37 +994,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                           const  SizedBox(
                             height: 15,
                           ),
-               const Padding(
-                            padding:  EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              "Localité d'achat *",
-                              style:
-                                  TextStyle(color: (Colors.black), fontSize: 18),
-                            ),
-                          ),
-                  TextFormField(
-                            controller: localiteAchatController,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 20),
-                              hintText: "Entrez la localité d'achat",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            keyboardType: TextInputType.text,
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
-                                return "Veillez entrez la localité d'achat";
-                              } else {
-                                return null;
-                              }
-                            },
-                            // onSaved: (val) => nomActeur = val!,
-                          ),
-                          const  SizedBox(
-                            height: 15,
-                          ),
+               
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
                             child: Text(
@@ -469,6 +1085,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                             },
                             // onSaved: (val) => nomActeur = val!,
                           ),
+                          const  SizedBox(
+                            height: 15,
+                          ),
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
                             child: Text(
@@ -496,6 +1115,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                               }
                             },
                             // onSaved: (val) => nomActeur = val!,
+                          ),
+                          const  SizedBox(
+                            height: 15,
                           ),
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
@@ -525,6 +1147,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                             },
                             // onSaved: (val) => nomActeur = val!,
                           ),
+                          const  SizedBox(
+                            height: 15,
+                          ),
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
                             child: Text(
@@ -552,6 +1177,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                               }
                             },
                             // onSaved: (val) => nomActeur = val!,
+                          ),
+                          const  SizedBox(
+                            height: 15,
                           ),
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
@@ -581,6 +1209,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                             },
                             // onSaved: (val) => nomActeur = val!,
                           ),
+                          const  SizedBox(
+                            height: 15,
+                          ),
                const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
                             child: Text(
@@ -589,26 +1220,54 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                   TextStyle(color: (Colors.black), fontSize: 18),
                             ),
                           ),
-                   TextFormField(
-                            controller: localiteVenteController,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 20),
-                              hintText: "Entrez la localité de la vente",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            keyboardType: TextInputType.text,
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
-                                return "Veillez entrez la localité de la vente";
-                              } else {
-                                return null;
-                              }
-                            },
-                            // onSaved: (val) => nomActeur = val!,
+                               GestureDetector(
+                             onTap: showLocalite,
+                             child: TextFormField(
+                               onTap: showLocalite,
+                               controller: localiteVenteController,
+                               keyboardType: TextInputType.text,
+                               decoration: InputDecoration(
+                                 suffixIcon: Icon(Icons.arrow_drop_down,
+                                     color: Colors.blueGrey[400]),
+                                 hintText: "Sélectionner une localite ",
+                                 contentPadding: const EdgeInsets.symmetric(
+                                     vertical: 10, horizontal: 20),
+                                 border: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(8),
+                                 ),
+                               ),
+                             ),
+                           ),
+                          const  SizedBox(
+                            height: 15,
                           ),
+               const Padding(
+                            padding:  EdgeInsets.only(left: 10.0),
+                            child: Text(
+                              "Localité achat *",
+                              style:
+                                  TextStyle(color: (Colors.black), fontSize: 18),
+                            ),
+                          ),
+                               GestureDetector(
+                             onTap: showLocaliteAchat,
+                             child: TextFormField(
+                               onTap: showLocaliteAchat,
+                               controller: localiteAchatController,
+                               keyboardType: TextInputType.text,
+                               decoration: InputDecoration(
+                                 suffixIcon: Icon(Icons.arrow_drop_down,
+                                     color: Colors.blueGrey[400]),
+                                 hintText: "Sélectionner une localite ",
+                                 contentPadding: const EdgeInsets.symmetric(
+                                     vertical: 10, horizontal: 20),
+                                 border: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(8),
+                                 ),
+                               ),
+                             ),
+                           ),
+           
               //             const  SizedBox(
               //               height: 15,
               //             ),
@@ -714,9 +1373,9 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                             ),
                           ),
                            GestureDetector(
-                             onTap: null,
+                             onTap: showProduit,
                              child: TextFormField(
-                               onTap: null,
+                               onTap: showProduit,
                                controller: produitController,
                                keyboardType: TextInputType.text,
                                decoration: InputDecoration(
@@ -738,21 +1397,21 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                               const Padding(
                             padding:  EdgeInsets.only(left: 10.0),
                             child: Text(
-                              "Grossiste *",
+                              "Enquete *",
                               style:
                                   TextStyle(color: (Colors.black), fontSize: 18),
                             ),
                           ),
                            GestureDetector(
-                             onTap: null,
+                             onTap: showEnquete,
                              child: TextFormField(
-                               onTap: null,
-                               controller: grossiteController,
+                               onTap: showEnquete,
+                               controller: enqueteController,
                                keyboardType: TextInputType.text,
                                decoration: InputDecoration(
                                  suffixIcon: Icon(Icons.arrow_drop_down,
                                      color: Colors.blueGrey[400]),
-                                 hintText: "Sélectionner un grossiste",
+                                 hintText: "Sélectionner un enquete ",
                                  contentPadding: const EdgeInsets.symmetric(
                                      vertical: 10, horizontal: 20),
                                  border: OutlineInputBorder(
@@ -761,18 +1420,125 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                ),
                              ),
                            ),
+                        // const  SizedBox(
+                        //     height: 15,
+                        //   ),
+
+                        //       const Padding(
+                        //     padding:  EdgeInsets.only(left: 10.0),
+                        //     child: Text(
+                        //       "Grossiste *",
+                        //       style:
+                        //           TextStyle(color: (Colors.black), fontSize: 18),
+                        //     ),
+                        //   ),
+                        //    GestureDetector(
+                        //      onTap: null,
+                        //      child: TextFormField(
+                        //        onTap: null,
+                        //        controller: grossiteController,
+                        //        keyboardType: TextInputType.text,
+                        //        decoration: InputDecoration(
+                        //          suffixIcon: Icon(Icons.arrow_drop_down,
+                        //              color: Colors.blueGrey[400]),
+                        //          hintText: "Sélectionner un grossiste",
+                        //          contentPadding: const EdgeInsets.symmetric(
+                        //              vertical: 10, horizontal: 20),
+                        //          border: OutlineInputBorder(
+                        //            borderRadius: BorderRadius.circular(8),
+                        //          ),
+                        //        ),
+                        //      ),
+                        //    ),
      const SizedBox(height: 20,),
      Center(
         child: SizedBox(
           width:double.infinity,
           child: ElevatedButton(
                             onPressed: () async {
-                              if(widget.isEditMode == false){
-                              
-                              
-                              }else{
+                          final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
 
+                              if(widget.isEditMode == false && formkey.currentState!.validate()){
+//  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+ final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+// This condition is for demo purposes only to explain every connection type.
+// Use conditions which work for your requirements.
+   if (st == false) {
+                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+   print("hors ligne");
+  // Mobile network available.
+    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    PrixMarcheGrossiste prixMarcheGrossiste = PrixMarcheGrossiste(
+    enquete: enquete.id_enquete!, localite_vente:commune1.id_commune!.toString(),
+                                produit: produit.nom_produit!, unite_stock: int.parse(uniteStockController.text), 
+                                poids_moyen_unite_stock: double.parse(poidsMoyenUniteStockController.text), nombre_unite_stock: double.parse(nbreUniteStockController.text),
+                                 poids_stock: double.parse(poidsEnStockController.text),  nombre_unite_achat: double.parse(nbreUniteAchatController.text),
+                                  unite_achat: int.parse(uniteAchatController.text), poids_moyen_unite_achat: double.parse(poidsMoyenUniteAchatController.text), 
+                                  poids_total_achat: double.parse(poidsTotalAchatController.text), app_mobile: 1, fournisseur_achat: int.parse(uniteAchatController.text),
+                                   localite_achat: commune.id_commune!.toString(), nombre_unite_vente: double.parse(nbreUniteVenteController.text),
+                                 unite_vente:int.parse(uniteVenteController.text) ,
+                                client_vente:int.parse(clientVenteController.text) ,
+                                   statut: 0, poids_moyen_unite_vente: double.parse(poidsMoyenUniteVenteController.text),
+                                    poids_total_unite_vente: double.parse(poidsTotalUniteVenteController.text),  prix_unitaire_vente: double.parse(prixUnitaireVenteController.text),
+                                     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+        isSynced: 0,
+  );
+    await LocalDatabaseService().insertPrixMarcheGrossiste(prixMarcheGrossiste).then((value) => {
+        LocalDatabaseService().getAllPrixMarcheConsommation().then((value) {
+    setState(() {
+      isLoading = false;
+    });
+  })
+    });
+  hideLoadingDialog(context);
+  }else{
+      print("en ligne");
+
+                            
+                               showLoadingDialog(context, "Veuillez patienter");
+                               await PrixMarcheService().addPrixMarcheGrossiste(
+                                enquete: enquete.id_enquete!, localite_vente:commune1.id_commune!.toString(),
+                                produit: produit.nom_produit!, unite_stock: int.parse(uniteStockController.text), 
+                                poids_moyen_unite_stock: double.parse(poidsMoyenUniteStockController.text), nombre_unite_stock: double.parse(nbreUniteStockController.text),
+                                 poids_stock: double.parse(poidsEnStockController.text),  nombre_unite_achat: double.parse(nbreUniteAchatController.text),
+                                  unite_achat: int.parse(uniteAchatController.text), poids_moyen_unite_achat: double.parse(poidsMoyenUniteAchatController.text), 
+                                  poids_total_achat: double.parse(poidsTotalAchatController.text), app_mobile: 1, fournisseur_achat: int.parse(uniteAchatController.text),
+                                   localite_achat: commune.id_commune!.toString(), nombre_unite_vente: double.parse(nbreUniteVenteController.text),
+                                 unite_vente:int.parse(uniteVenteController.text) ,
+                                client_vente:int.parse(clientVenteController.text) ,
+                                   statut: 0, poids_moyen_unite_vente: double.parse(poidsMoyenUniteVenteController.text),
+                                    poids_total_unite_vente: double.parse(poidsTotalUniteVenteController.text),  prix_unitaire_vente: double.parse(prixUnitaireVenteController.text), id_personnel: enqueteurProvider.enqueteur!.id_personnel!).then((value) {
+    hideLoadingDialog(context); // Cache le dialogue de chargement
+
+    // Reviens à la page précédente
+    Navigator.pop(context);
+  });
+  
                               }
+                              }
+                              
+                              else if(widget.isEditMode == true && formkey.currentState!.validate()) {
+                               showLoadingDialog(context, "Veuillez patienter");
+                              await PrixMarcheService().updatePrixMarcheGrossiste(
+                                unite_vente:int.parse(uniteVenteController.text) ,
+                                client_vente:int.parse(clientVenteController.text) ,
+                                enquete: int.parse(enqueteController.text),
+                               id_fiche: widget.prixMarcheGrossiste!.id_fiche!,
+                               localite_vente: localiteVenteController.text,
+                                produit: produitController.text, unite_stock: int.parse(uniteStockController.text), 
+                                poids_moyen_unite_stock: double.parse(poidsMoyenUniteStockController.text), nombre_unite_stock: double.parse(nbreUniteStockController.text),
+                                 poids_stock: double.parse(poidsEnStockController.text),  nombre_unite_achat: double.parse(nbreUniteAchatController.text),
+                                  unite_achat: int.parse(uniteAchatController.text), poids_moyen_unite_achat: double.parse(poidsMoyenUniteAchatController.text), 
+                                  poids_total_achat: double.parse(poidsTotalAchatController.text), app_mobile: 1, fournisseur_achat: int.parse(uniteAchatController.text),
+                                   localite_achat: localiteAchatController.text, nombre_unite_vente: double.parse(nbreUniteVenteController.text),
+                                    statut: 0, poids_moyen_unite_vente: double.parse(poidsMoyenUniteVenteController.text),
+                                    poids_total_unite_vente: double.parse(poidsTotalUniteVenteController.text),  prix_unitaire_vente: double.parse(prixUnitaireVenteController.text), id_personnel: enqueteurProvider.enqueteur!.id_personnel!)  .then((value) {
+    hideLoadingDialog(context); // Cache le dialogue de chargement
+
+    // Reviens à la page précédente
+    Navigator.pop(context);
+  });}
                            
                             },
                             style: ElevatedButton.styleFrom(
@@ -783,7 +1549,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                      ),
                                    ),
                             child: Text(
-                              "Enregistrer",
+                            widget.isEditMode! ? "Modifier" : "Enregistrer",
                               style: TextStyle(
                                 fontSize: 20,
                                 color: Colors.white,

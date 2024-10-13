@@ -68,7 +68,7 @@ class PrixMarcheService extends ChangeNotifier{
   }
 
     Future<List<PrixMarcheGrossiste>> fetchPrixMarcheGrossiste() async {
-    final response = await http.get(Uri.parse("$apiUrl/$baseUrlG/"));
+    final response = await http.get(Uri.parse("$apiUrl/$baseUrl3/"));
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       // List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
@@ -176,25 +176,25 @@ class PrixMarcheService extends ChangeNotifier{
   Future<void> addPrixMarcheGrossiste({
   required int enquete,
   required String produit,
-  required int unite,
-  required int poids_moyen_unite_stock,
-  required int nombre_unite_stock,
-  required int poids_stock,
-  required int poids_unitaire,
-  required int nombre_unite_achat,
+  required int unite_stock,
+  required double poids_moyen_unite_stock,
+  required double nombre_unite_stock,
+  required double poids_stock,
+  required double nombre_unite_achat,
   required int unite_achat,
-  required int poids_moyen_unite_achat,
-  required int poids_total_achat,
+  required double poids_moyen_unite_achat,
+  required double poids_total_achat,
   required int app_mobile,
   required int fournisseur_achat,
-  required int localite_achat,
-  required int nombre_unite_vente,
-  required int niveau_approvisionement,
+  required int client_vente,
+  required String localite_achat,
+  required double nombre_unite_vente,
   required int statut,
-  required int poids_moyen_unite_vente,
-  required int poids_total_unite_vente,
-  required String observation,
-  required int prix_unitaire_vente,  // Utilisation de DateTime
+  required String localite_vente,
+  required double poids_moyen_unite_vente,
+  required double poids_total_unite_vente,
+  required int unite_vente,
+  required double prix_unitaire_vente,  // Utilisation de DateTime
   required String id_personnel,
 }) async {
 
@@ -203,7 +203,9 @@ class PrixMarcheService extends ChangeNotifier{
     'id_personnel': id_personnel,
     'enquete': enquete,
     'produit': produit,
-    'poids_unitaire': poids_unitaire,
+    'unite_stock': unite_stock,
+    'client_vente': client_vente,
+    'unite_vente': unite_vente,
     'nombre_unite_stock': nombre_unite_stock,
     'poids_moyen_unite_stock': poids_moyen_unite_stock,
     'poids_stock': poids_stock,
@@ -215,12 +217,12 @@ class PrixMarcheService extends ChangeNotifier{
     'localite_achat': localite_achat,
     'fournisseur_achat': fournisseur_achat,
     'nombre_unite_vente': nombre_unite_vente,
-    'niveau_approvisionement': niveau_approvisionement,
+    'localite_vente': localite_vente,
     'app_mobile': app_mobile,
     'poids_moyen_unite_vente': poids_moyen_unite_vente,  // Envoyer la date formatée
     'poids_total_unite_vente': poids_total_unite_vente,  // Envoyer la date formatée
     'prix_unitaire_vente': prix_unitaire_vente,  // Envoyer la date formatée
-    'observation': observation, 
+    // 'observation': observation, 
   });
 
   try {
@@ -253,14 +255,14 @@ class PrixMarcheService extends ChangeNotifier{
   required int enquete,
   required String produit,
   required int unite,
-  required int prix_mesure,
-  required int poids_unitaire,
-  required String document,
-  required int prix_kg_litre,
+  required double prix_mesure,
+  required double poids_unitaire,
+  // required String document,
+  required double prix_kg_litre,
   required int app_mobile,
   required int niveau_approvisionement,
   required int statut,
-  required String observation,
+  // required String observation,
   required String id_personnel,
 }) async {
 
@@ -272,10 +274,12 @@ class PrixMarcheService extends ChangeNotifier{
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
+    'prix_kg_litre': prix_kg_litre,
     'statut': statut,
     'prix_mesure': prix_mesure,
-    'document': document,
-    'observation': observation,
+    'unite': unite,
+    // 'document': document,
+    // 'observation': observation,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
   });
@@ -366,19 +370,20 @@ class PrixMarcheService extends ChangeNotifier{
       print("Objet envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
     } else if (response.statusCode == 400) {
-      Snack.error(titre: "Erreur", message: "Requête invalide (400). Vérifiez les données envoyées.");
+      Snack.error(titre: "Erreur", message: "Requête invalide . Vérifiez les données envoyées.");
       print("Erreur 400: ${response.body}");
     } else if (response.statusCode == 401) {
-      Snack.error(titre: "Erreur", message: "Non autorisé (401). Vous devez être authentifié.");
+      Snack.error(titre: "Erreur", message: "Non autorisé . Vous devez être authentifié.");
       print("Erreur 401: ${response.body}");
     } else if (response.statusCode == 404) {
-      Snack.error(titre: "Erreur", message: "Ressource non trouvée (404).");
+      Snack.error(titre: "Erreur", message: "Ressource non trouvée .");
       print("Erreur 404: ${response.body}");
     } else if (response.statusCode == 500) {
-      Snack.error(titre: "Erreur", message: "Erreur serveur (500). Réessayez plus tard.");
+      Snack.error(titre: "Erreur", message: "Erreur . Réessayez plus tard.");
       print("Erreur 500: ${response.body}");
     } else {
-      Snack.error(titre: "Erreur", message: "Erreur inattendue. Code: ${response.statusCode}");
+      // Snack.error(titre: "Erreur", message: "Erreur inattendue. Code: ${response.statusCode}");
+      Snack.error(titre: "Erreur", message: "Erreur . Réessayez plus tard.");
       print("Erreur inattendue: ${response.body}");
     }
   } catch (e) {
@@ -387,7 +392,7 @@ class PrixMarcheService extends ChangeNotifier{
       Snack.error(titre: "Erreur", message: "Pas de connexion Internet. Vérifiez votre réseau.");
       print('Erreur réseau: $e');
     } else if (e is FormatException) {
-      Snack.error(titre: "Erreur", message: "Erreur de format des données reçues.");
+      // Snack.error(titre: "Erreur", message: "Erreur de format des données reçues.");
       print('Erreur de format: $e');
     } else {
       Snack.error(titre: "Erreur", message: "Une erreur inattendue s'est produite.");
@@ -401,14 +406,14 @@ class PrixMarcheService extends ChangeNotifier{
     required int enquete,
   required String produit,
   required int unite,
-  required int prix_mesure,
-  required int poids_unitaire,
-  required String document,
-  required int prix_kg_litre,
+  required double prix_mesure,
+  required double poids_unitaire,
+  // required String document,
+  required double prix_kg_litre,
   required int app_mobile,
   required int niveau_approvisionement,
   required int statut,
-  required String observation,
+  // required String observation,
   required String id_personnel,
   required int id_fiche,
 }) async {
@@ -421,10 +426,12 @@ class PrixMarcheService extends ChangeNotifier{
     'enquete': enquete,
     'produit': produit,
     'poids_unitaire': poids_unitaire,
+    'unite': unite,
+    'prix_kg_litre': prix_kg_litre,
     'statut': statut,
     'prix_mesure': prix_mesure,
-    'document': document,
-    'observation': observation,
+    // 'document': document,
+    // 'observation': observation,
     'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,  // Envoyer la date formatée
   });
@@ -457,36 +464,39 @@ class PrixMarcheService extends ChangeNotifier{
   Future<void> updatePrixMarcheGrossiste({  
   required int id_fiche,
     required int enquete,
+    required int unite_vente,
+    required String localite_vente,
   required String produit,
-  required int unite,
-  required int poids_moyen_unite_stock,
-  required int nombre_unite_stock,
-  required int poids_stock,
-  required int poids_unitaire,
-  required int nombre_unite_achat,
+  required int unite_stock,
+  required double poids_moyen_unite_stock,
+  required double nombre_unite_stock,
+  required double poids_stock,
+  required double nombre_unite_achat,
   required int unite_achat,
-  required int poids_moyen_unite_achat,
-  required int poids_total_achat,
+  required double poids_moyen_unite_achat,
+  required double poids_total_achat,
   required int app_mobile,
   required int fournisseur_achat,
-  required int localite_achat,
-  required int nombre_unite_vente,
-  required int niveau_approvisionement,
+  required String localite_achat,
+  required double nombre_unite_vente,
   required int statut,
-  required int poids_moyen_unite_vente,
-  required int poids_total_unite_vente,
-  required String observation,
-  required int prix_unitaire_vente,  // Utilisation de DateTime
+  required double poids_moyen_unite_vente,
+  required double poids_total_unite_vente,
+  required int client_vente,
+  required double prix_unitaire_vente,  // Utilisation de DateTime
   required String id_personnel,
-
+   
 }) async {
 
   var updatePrixMarcheGrossiste = jsonEncode({
     'id_fiche': id_fiche,
-       'id_personnel': id_personnel,
+    'id_personnel': id_personnel,
     'enquete': enquete,
+    'client_vente': client_vente,
+    'unite_vente': unite_vente,
+    'localite_vente': localite_vente,
     'produit': produit,
-    'poids_unitaire': poids_unitaire,
+    'unite_stock': unite_stock,
     'nombre_unite_stock': nombre_unite_stock,
     'poids_moyen_unite_stock': poids_moyen_unite_stock,
     'poids_stock': poids_stock,
@@ -498,12 +508,12 @@ class PrixMarcheService extends ChangeNotifier{
     'localite_achat': localite_achat,
     'fournisseur_achat': fournisseur_achat,
     'nombre_unite_vente': nombre_unite_vente,
-    'niveau_approvisionement': niveau_approvisionement,
     'app_mobile': app_mobile,
     'poids_moyen_unite_vente': poids_moyen_unite_vente,  // Envoyer la date formatée
     'poids_total_unite_vente': poids_total_unite_vente,  // Envoyer la date formatée
     'prix_unitaire_vente': prix_unitaire_vente,  // Envoyer la date formatée
-    'observation': observation,   // Envoyer la date formatée
+    // 'observation': observation, 
+      
   });
 
   try {

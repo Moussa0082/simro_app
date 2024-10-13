@@ -24,6 +24,7 @@ class EnqueteService extends ChangeNotifier {
 
 
    Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
+    try{
     final response = await http.get(Uri.parse("$apiUrl/all-enquete-collecte"));
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -38,28 +39,37 @@ class EnqueteService extends ChangeNotifier {
       print('Échec de la requête lors de la recuperation des enquetes collecter avec le code d\'état: ${response.statusCode}');
       return enqueteCollecteList = [];
     }
+   }catch(e){
+    print("Une erreur s'est produit lors de la recuperation des enquetes collectes $e");
+    return [];
+   }
   }
   
-   Future<List<Enquete>> fetchEnquete() async {
+  Future<List<Enquete>> fetchEnquete() async {
+  try {
     final response = await http.get(Uri.parse("$apiUrl/all-enquete/"));
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-     final String jsonString = utf8.decode(response.bodyBytes);
-              List<dynamic> body = json.decode(jsonString);
-      enqueteList =
-          body.map((item) => Enquete.fromMap(item)).toList();
+      final String jsonString = utf8.decode(response.bodyBytes);
+      List<dynamic> body = json.decode(jsonString);
+      enqueteList = body.map((item) => Enquete.fromMap(item)).toList();
       print(response.body);
       return enqueteList;
     } else {
-      
-      print('Échec de la requête lors de la recuperation des enquetes collecter avec le code d\'état: ${response.statusCode}');
-      return enqueteList = [];
+      print('Échec de la requête lors de la récupération des enquêtes collectées avec le code d\'état: ${response.statusCode}');
+      return []; // Renvoie une liste vide en cas d'échec
     }
+  } catch (e) {
+    // Capture les erreurs potentielles et les affiche
+    print('Erreur lors de la récupération des enquêtes: $e');
+    return []; // Renvoie une liste vide en cas d'erreur
   }
+}
+
 
    Future<List<EnqueteGrossiste>> fetchEnqueteGrossiste() async {
+     try{
     final response = await http.get(Uri.parse("$apiUrl/all-enquete-grossiste"));
-
     if (response.statusCode == 200 || response.statusCode == 201) {
      final String jsonString = utf8.decode(response.bodyBytes);
               List<dynamic> body = json.decode(jsonString);
@@ -71,6 +81,9 @@ class EnqueteService extends ChangeNotifier {
       
       print('Échec de la requête lors de la recuperation des enquetes collecter avec le code d\'état: ${response.statusCode}');
       return enqueteGrossisteList = [];
+    }}catch(e){
+      print('Erreur lors de la recuperation des enquetes collecter : $e');
+      return [];
     }
   }
 

@@ -50,6 +50,7 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
+    checkEnqueteurSession();
    
   }
 
@@ -191,15 +192,15 @@ void _showPermissionDeniedDialog(BuildContext context) {
   @override
   Widget build(BuildContext context) {
         // Simuler une attente avant la navigation
-    Future.delayed(const Duration(seconds: 2), () async {
-  // Attendre que la méthode asynchrone finisse de s'exécuter
-  bool permissionsGranted = await requestPermissions();
+//     Future.delayed(const Duration(seconds: 2), () async {
+//   // Attendre que la méthode asynchrone finisse de s'exécuter
+//   bool permissionsGranted = await requestPermissions();
 
-  if (permissionsGranted) {
-    // Si les permissions sont accordées, naviguer vers la page suivante
-    checkEnqueteurSession();
-  }
-});
+//   if (permissionsGranted) {
+//     // Si les permissions sont accordées, naviguer vers la page suivante
+//     checkEnqueteurSession();
+//   }
+// });
 
 
     return  Scaffold(
