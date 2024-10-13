@@ -65,6 +65,7 @@ class PrixMarcheGrossiste {
   });
 
 
+
   PrixMarcheGrossiste copyWith({
     int? enquete,
     String? grossiste,
@@ -165,35 +166,40 @@ class PrixMarcheGrossiste {
 
   factory PrixMarcheGrossiste.fromMap(Map<String, dynamic> map) {
     return PrixMarcheGrossiste(
-      enquete: map['enquete'] ,
-      grossiste: map['grossiste'] ,
-      produit: map['produit'],
-      unite_stock: map['unite_stock'] ,
-      nombre_unite_stock: map['nombre_unite_stock'] ,
-      poids_moyen_unite_stock: map['poids_moyen_unite_stock'],
-      poids_stock: map['poids_stock'] ,
-      unite_achat: map['unite_achat'] ,
-      isSynced: map['isSynced'] ,
-      nombre_unite_achat: map['nombre_unite_achat'] ,
-      poids_moyen_unite_achat: map['poids_moyen_unite_achat'] ,
-      poids_total_achat: map['poids_total_achat'],
-      localite_achat: map['localite_achat'] ,
-      fournisseur_achat: map['fournisseur_achat'] ,
-      unite_vente: map['unite_vente'] ,
-      nombre_unite_vente: map['nombre_unite_vente'] ,
-      poids_moyen_unite_vente: map['poids_moyen_unite_vente'] ,
-      poids_total_unite_vente: map['poids_total_unite_vente'] ,
-      prix_unitaire_vente: map['prix_unitaire_vente'] ,
-      client_vente: map['client_vente'] ,
-      localite_vente: map['localite_vente'] ,
-      app_mobile: map['app_mobile'] ,
-      observation: map['observation'] ,
-      statut: map['statut'] ,
-      id_personnel: map['id_personnel'] ,
-      date_enregistrement: map['date_enregistrement'] ,
-      modifier_le: map['modifier_le'],
-      modifier_par: map['modifier_par'] ,
-      id_fiche: map['id_fiche'] ,
+      enquete: map['enquete'] != null ? map['enquete'] as int : null,
+      grossiste: map['grossiste'] != null ? map['grossiste'] as String : null,
+      produit: map['produit'] != null ? map['produit'] as String : null,
+      unite_stock: map['unite_stock'] != null ? map['unite_stock'] as int : null,
+      nombre_unite_stock: map['nombre_unite_stock'] != null ? map['nombre_unite_stock'] as double : null,
+      poids_moyen_unite_stock: map['poids_moyen_unite_stock'] != null ? map['poids_moyen_unite_stock'] as double : null,
+      poids_stock: map['poids_stock'] != null ? map['poids_stock'] as double : null,
+      unite_achat: map['unite_achat'] != null ? map['unite_achat'] as int : null,
+      isSynced: map['isSynced'] != null ? map['isSynced'] as int : null,
+      nombre_unite_achat: map['nombre_unite_achat'] != null ? map['nombre_unite_achat'] as double : null,
+      poids_moyen_unite_achat: map['poids_moyen_unite_achat'] != null ? map['poids_moyen_unite_achat'] as double : null,
+      poids_total_achat: map['poids_total_achat'] != null ? map['poids_total_achat'] as double : null,
+      localite_achat: map['localite_achat'] != null ? map['localite_achat'] as String : null,
+      fournisseur_achat: map['fournisseur_achat'] != null ? map['fournisseur_achat'] as int : null,
+      unite_vente: map['unite_vente'] != null ? map['unite_vente'] as int : null,
+      nombre_unite_vente: map['nombre_unite_vente'] != null ? map['nombre_unite_vente'] as double : null,
+      poids_moyen_unite_vente: map['poids_moyen_unite_vente'] != null ? map['poids_moyen_unite_vente'] as double : null,
+      poids_total_unite_vente: map['poids_total_unite_vente'] != null ? map['poids_total_unite_vente'] as double : null,
+prix_unitaire_vente: map['prix_unitaire_vente'] != null
+    ? (map['prix_unitaire_vente'] is int 
+        ? (map['prix_unitaire_vente'] as int).toDouble() 
+        : map['prix_unitaire_vente'] as double)
+    : null,
+
+      client_vente: map['client_vente'] != null ? map['client_vente'] as int : null,
+      localite_vente: map['localite_vente'] != null ? map['localite_vente'] as String : null,
+      app_mobile: map['app_mobile'] != null ? map['app_mobile'] as int : null,
+      observation: map['observation'] != null ? map['observation'] as String : null,
+      statut: map['statut'] != null ? map['statut'] as int : null,
+      id_personnel: map['id_personnel'] != null ? map['id_personnel'] as String : null,
+      date_enregistrement: map['date_enregistrement'] != null ? map['date_enregistrement'] as String : null,
+      modifier_le: map['modifier_le'] != null ? map['modifier_le'] as String : null,
+      modifier_par: map['modifier_par'] != null ? map['modifier_par'] as String : null,
+      id_fiche: map['id_fiche'] != null ? map['id_fiche'] as int : null,
     );
   }
 

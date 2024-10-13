@@ -32,39 +32,30 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
 
    List<PrixMarcheGrossiste> prixMarcheGrossisteList = [];
   
-  Future<List<PrixMarcheGrossiste>> fetchPrixMarcheGrossiste() async {
-  setState(() {
-    isLoading = true; // Assurez-vous que le shimmer est visible
-  });
-
+   Future<List<PrixMarcheGrossiste>> fetchPrixMarcheGrossiste() async {
   try {
-    // Étape 1 : Récupérer les données locales
-    List<PrixMarcheGrossiste> localData = await LocalDatabaseService().getAllPrixMarcheGrossiste();
-
-    // Mettre à jour l'UI avec les données locales
+    // Appel du service pour récupérer les données d'enquêtes
+     
+    List<PrixMarcheGrossiste> fetchedList = await PrixMarcheService().fetchPrixMarcheGrossiste().then((prixMarcheGrossiste) {
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
     setState(() {
-      prixMarcheGrossisteList = localData; // Mettez à jour la liste avec les données locales
+      prixMarcheGrossisteList.addAll(prixMarcheGrossiste);
     });
-
-    // Étape 2 : Récupérer les données en ligne
-    List<PrixMarcheGrossiste> fetchedList = await PrixMarcheService().fetchPrixMarcheGrossiste();
-   print(fetchedList);
-
-    // Étape 3 : Ajouter les données en ligne à la liste existante
-    setState(() {
-      prixMarcheGrossisteList.addAll(fetchedList); // Ajouter les données en ligne
-      isLoading = false; // Le chargement est terminé, on cache l'effet shimmer
-    });
+    return prixMarcheGrossisteList;
+  });
     
+      prixMarcheGrossisteList = fetchedList;
+        // Retourner la liste mise à jour
+    return prixMarcheGrossisteList;
   } catch (e) {
-    print("Erreur lors de la récupération des prix marché grossiste : $e");
-    // En cas d'erreur, désactiver l'effet de chargement
-    setState(() {
-      isLoading = false; // Assurez-vous de cacher le shimmer même en cas d'erreur
-    });
+    print("Erreur lors de la récupération des prix marche collecte : $e");
+    return [];
   }
-  
-  return prixMarcheGrossisteList; // Retourner la liste mise à jour
 }
 
 
@@ -73,7 +64,19 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
   void initState() {
     _searchController = TextEditingController();
     super.initState();
-    fetchPrixMarcheGrossiste();
+   LocalDatabaseService().getAllPrixMarcheGrossiste().then((value) {
+             // Désactiver le chargement
+             setState(() {
+                prixMarcheGrossisteList = value;
+      isLoading = false;  
+             });
+     PrixMarcheService().fetchPrixMarcheGrossiste().then((prixMarcheGrossiste) {
+    setState(() {
+      prixMarcheGrossisteList.addAll(prixMarcheGrossiste);  // Assigner les produits récupérés à la liste locale
+    });
+  });
+ });
+ 
   }
 
  
@@ -234,7 +237,8 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                                  unite_vente:filteredList[index].unite_vente!,
                                 client_vente:filteredList[index].client_vente! ,
                                    statut: filteredList[index].statut!, poids_moyen_unite_vente: filteredList[index].poids_moyen_unite_vente!,
-                                    poids_total_unite_vente: filteredList[index].poids_total_unite_vente!,  prix_unitaire_vente: filteredList[index].prix_unitaire_vente!,
+                                    poids_total_unite_vente: filteredList[index].poids_total_unite_vente!,
+                                      prix_unitaire_vente: filteredList[index].prix_unitaire_vente!.toDouble(),
                                      id_personnel: filteredList[index].id_personnel!).then((value) {
 
     LocalDatabaseService().deleteEnqueteGrossiste(filteredList[index].id_fiche!).then((value) {
@@ -242,6 +246,10 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
     });
   });
 
+   // Update the original list used by ListView.builder
+                          setState(() {
+                            prixMarcheGrossisteList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
+                          });
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 

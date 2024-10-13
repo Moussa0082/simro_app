@@ -54,7 +54,18 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
   void initState() {
     // TODO: implement initState
     super.initState();
-    fetchPrixMarcheConsommation();
+     LocalDatabaseService().getAllPrixMarcheConsommation().then((value) {
+             // Désactiver le chargement
+             setState(() {
+                prixMarcheConsommationList = value;
+      isLoading = false;  
+             });
+     PrixMarcheService().fetchPrixMarcheConsommation().then((prixMarcheGrossiste){
+    setState(() {
+      prixMarcheConsommationList.addAll(prixMarcheGrossiste);  // Assigner les produits récupérés à la liste locale
+    });
+  });
+ });
     _searchController = TextEditingController();
   }
 
@@ -219,6 +230,10 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
     });
   });
 
+   // Update the original list used by ListView.builder
+                          setState(() {
+                            prixMarcheConsommationList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
+                          });
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 

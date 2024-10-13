@@ -1480,12 +1480,13 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                  unite_vente:int.parse(uniteVenteController.text) ,
                                 client_vente:int.parse(clientVenteController.text) ,
                                    statut: 0, poids_moyen_unite_vente: double.parse(poidsMoyenUniteVenteController.text),
-                                    poids_total_unite_vente: double.parse(poidsTotalUniteVenteController.text),  prix_unitaire_vente: double.parse(prixUnitaireVenteController.text),
+                                    poids_total_unite_vente: double.parse(poidsTotalUniteVenteController.text), 
+                                     prix_unitaire_vente: double.parse(prixUnitaireVenteController.text),
                                      id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
         isSynced: 0,
   );
     await LocalDatabaseService().insertPrixMarcheGrossiste(prixMarcheGrossiste).then((value) => {
-        LocalDatabaseService().getAllPrixMarcheConsommation().then((value) {
+        LocalDatabaseService().getAllPrixMarcheGrossiste().then((value) {
     setState(() {
       isLoading = false;
     });

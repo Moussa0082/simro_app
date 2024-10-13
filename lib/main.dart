@@ -10,6 +10,7 @@ import 'package:simro/screens/splash.dart';
 import 'package:simro/services/Connectivity_Service.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
+import 'package:simro/services/Prix_Marche_Service.dart';
 import 'package:simro/widgets/Connectivity_Banner.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -32,6 +33,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => LocalDatabaseService()),
         ChangeNotifierProvider(create: (_) => EnqueteurProvider()),
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
+        ChangeNotifierProvider(create: (_) => PrixMarcheService()),
         ChangeNotifierProvider(create: (_) => EnqueteService()),
         ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
       ],
