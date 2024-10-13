@@ -56,8 +56,7 @@ class NetworkController extends GetxController {
   StreamSubscription? _internetConnectionStreamSubscription;
 
 
-
- @override
+@override
 void onInit() {
   super.onInit();
   InternetConnection().onStatusChange.listen((event) {
@@ -66,47 +65,46 @@ void onInit() {
       case InternetStatus.connected:
         isConnectedToInternet = true;
         print("connecté");
-        
+
         // Fermer tous les SnackBars existants si l'utilisateur se reconnecte
         if (context != null) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Vous êtes connecté à internet'),
-              duration: Duration(seconds:2 ), // Garde le SnackBar affiché
-              backgroundColor: Colors.green,
-              // action: SnackBarAction(
-              //   label: 'OK',
-              //   onPressed: () {
-              //     Get.back();
-              //     // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
-              //   },
-              // ),
-            ),
-          );
+          
+          // Utiliser un post-frame callback pour garantir que le SnackBar s'affiche correctement
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Vous êtes connecté à internet'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green,
+              ),
+            );
+          });
         }
         break;
 
       case InternetStatus.disconnected:
         isConnectedToInternet = false;
         print("déconnecté");
-        
-        // Si l'utilisateur n'a pas de connexion, afficher un SnackBar permanent
+
         if (context != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Vous êtes hors connexion'),
-              duration: Duration(days: 1), // Garde le SnackBar affiché
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'OK',
-                onPressed: () {
-                  Get.back();
-                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
-                },
+          // Utiliser un post-frame callback pour garantir que le SnackBar s'affiche correctement
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Vous êtes hors connexion'),
+                duration: Duration(days: 1), // Garde le SnackBar affiché
+                backgroundColor: Colors.red,
+                action: SnackBarAction(
+                  label: 'OK',
+                  onPressed: () {
+                    // Juste fermer le SnackBar sans revenir à la page précédente
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          });
         }
         break;
 
@@ -119,6 +117,7 @@ ScaffoldMessenger.of(context).showSnackBar(
 
   _updateConnectivityStatus();
 }
+
 
 
     @override

@@ -77,18 +77,28 @@ TextEditingController dateController = TextEditingController();
 }
 
 
- Future<List<Enquete>> fetchEnquete() async {
+      Future<List<Enquete>> fetchEnquete() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
-    List<Enquete> fetchedList = await EnqueteService().fetchEnquete();
+     
+    List<Enquete> fetchedList = await EnqueteService().fetchEnquete().then((enquetes) {
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
+    setState(() {
+      enqueteList.addAll(enquetes);
+    });
+    return enqueteList;
+  });
     
-    // Mettre à jour la liste locale avec les nouvelles données
-    enqueteList = fetchedList;
-    
-    // Retourner la liste mise à jour
+      enqueteList = fetchedList;
+        // Retourner la liste mise à jour
     return enqueteList;
   } catch (e) {
-    print("Erreur lors de la récupération des enquêtes : $e");
+    print("Erreur lors de la récupération des enquetes consommation : $e");
     return [];
   }
 }
@@ -279,6 +289,8 @@ TextEditingController dateController = TextEditingController();
       hideLoadingDialog(context);
     })
   });
+            enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -294,7 +306,6 @@ TextEditingController dateController = TextEditingController();
   marcheController.clear();
 
   // Fermer le dialogue
-  Navigator.of(context).pop();
 
 } catch (e) {
   final String errorMessage = e.toString();
