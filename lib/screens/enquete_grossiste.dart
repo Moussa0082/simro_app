@@ -75,18 +75,28 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   }
 }
 
- Future<List<EnqueteGrossiste>> fetchEnqueteGrossiste() async {
+      Future<List<EnqueteGrossiste>> fetchEnqueteGrossiste() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
-    List<EnqueteGrossiste> fetchedList = await EnqueteService().fetchEnqueteGrossiste();
+     
+    List<EnqueteGrossiste> fetchedList = await EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
+    setState(() {
+      enqueteGrossisteList.addAll(enquetes);
+    });
+    return enqueteGrossisteList;
+  });
     
-    // Mettre à jour la liste locale avec les nouvelles données
-    enqueteGrossisteList = fetchedList;
-    
-    // Retourner la liste mise à jour
+      enqueteGrossisteList = fetchedList;
+        // Retourner la liste mise à jour
     return enqueteGrossisteList;
   } catch (e) {
-    print("Erreur lors de la récupération des enquêtes : $e");
+    print("Erreur lors de la récupération des enquetes collecte : $e");
     return [];
   }
 }
@@ -100,13 +110,17 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
     _marcheList =
         http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
-             // Appel pour récupérer les produits au chargement de la page
+ 
+    // Appel pour récupérer les produits au chargement de la page
+             LocalDatabaseService().getAllEnqueteGrossiste().then((value) {
+              enqueteGrossisteList = value;
      EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
     setState(() {
-      enqueteGrossisteList = enquetes;  // Assigner les produits récupérés à la liste locale
+      enqueteGrossisteList.addAll(enquetes);  // Assigner les produits récupérés à la liste locale
       isLoading = false;  // Désactiver le chargement
     });
   });
+   });
   }
 
    Future<void> _openDialog(bool isEditMode,{EnqueteGrossiste? enqueteCollecte}) async {
@@ -558,6 +572,7 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
 
   // Récupérer la nouvelle liste d'enquêtes collectées
   List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+          enqueteGrossisteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
 
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
@@ -569,7 +584,6 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   marcheController.clear();
 
   // Fermer le dialogue
-  Navigator.of(context).pop();
 
 } catch (e) {
   final String errorMessage = e.toString();
