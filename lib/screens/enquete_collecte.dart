@@ -154,36 +154,6 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 }
 
 
-//      Future<List<EnqueteCollecte>> fetchEnqueteCollecte() async {
-//   try {
-//     // Appel du service pour récupérer les données d'enquêtes
-   
-     
-//     List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte().then((enquetes) {
-//      LocalDatabaseService().getAllEnquetes().then((enquetes) {
-//     setState(() {
-//       enqueteCollecteList = enquetes;
-//       isLoading = false;
-//     });
-//   });
-//     setState(() {
-//       enqueteCollecteList.addAll(enquetes);
-//       isLoading = false;
-//     });
-//     return enqueteCollecteList;
-//   });
-    
-//     // Mettre à jour la liste locale avec les nouvelles données
-//     enqueteCollecteList = fetchedList;
-    
-//     // Retourner la liste mise à jour
-//     return enqueteCollecteList;
-//   } catch (e) {
-//     print("Erreur lors de la récupération des enquêtes : $e");
-//     return [];
-//   }
-// }
-
  
  @override
   void initState() {
@@ -193,15 +163,7 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     _marcheList =
         http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
-             // Appel pour récupérer les produits au chargement de la page
-  //    EnqueteService().fetchEnqueteCollecte().then((enquetes) {
-  //   setState(() {
-  //     enqueteCollecteList = enquetes;  // Assigner les produits récupérés à la liste locale
-  //     isLoading = false;  // Désactiver le chargement
-  //   });
-  // });
-   // Charger les enquêtes locales au démarrage
-
+          
  // Charger les enquêtes locales
   LocalDatabaseService().getAllEnquetes().then((enquetes) {
     setState(() {

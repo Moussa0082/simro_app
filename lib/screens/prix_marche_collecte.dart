@@ -32,17 +32,18 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
 
        List<PrixMarcheCollecte> prixMarcheCollecteList = [];
   
-     Future<List<PrixMarcheCollecte>> fetchPrixMarcheCollecte() async {
+
+  Future<List<PrixMarcheCollecte>> fetchPrixMarcheCollecte() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
     List<PrixMarcheCollecte> fetchedList = await PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarcheCollecte) {
-     LocalDatabaseService().getAllPrixMarcheCollecte().then((prixMarcheCollecte) {
-    setState(() {
-      prixMarcheCollecteList = prixMarcheCollecte;
-      // isLoading = false;
-    });
-  });
+  //    LocalDatabaseService().getAllEnquetes().then((enquete) {
+  //   setState(() {
+  //     enqueteCollecteList = enquete;
+  //     // isLoading = false;
+  //   });
+  // });
     setState(() {
       prixMarcheCollecteList.addAll(prixMarcheCollecte);
     });
@@ -53,7 +54,7 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
         // Retourner la liste mise à jour
     return prixMarcheCollecteList;
   } catch (e) {
-    print("Erreur lors de la récupération des prix marché collecte : $e");
+    print("Erreur lors de la récupération des prix marche collecte : $e");
     return [];
   }
 }
@@ -63,13 +64,19 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
   void initState() {
     _searchController = TextEditingController();
     super.initState();
-
-  fetchPrixMarcheCollecte().then((value) {
-   setState(() {
-     isLoading = false;
-     prixMarcheCollecteList = value;
-   });
+   LocalDatabaseService().getAllPrixMarcheCollecte().then((value) {
+             // Désactiver le chargement
+             setState(() {
+                prixMarcheCollecteList = value;
+      isLoading = false;  
+             });
+     PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarcheCollecte) {
+    setState(() {
+      prixMarcheCollecteList.addAll(prixMarcheCollecte);  // Assigner les produits récupérés à la liste locale
+    });
   });
+ });
+
   }
   
  
@@ -166,7 +173,8 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                     
                       itemCount: filteredList.length, // Par exemple, 3 fiches pour l'instant
                       itemBuilder: (context, index) {
-                      
+                      final prixMarche = filteredList[index];
+
                         return Card(
                           margin: EdgeInsets.symmetric(vertical: 10),
                           child: Padding(
@@ -214,7 +222,7 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                       Get.to(DetailPrixMarcheCollecteScreen(prixMarcheCollecte:filteredList[index] ,));
                                       print('Détail sélectionné');
                                     } 
-                                       else if (result == 'synchroniser' && filteredList[index].isSynced != null &&  filteredList[index].isSynced != 1)  {
+                                       else if (result == 'synchroniser' && prixMarche.isSynced != null &&  prixMarche.isSynced != 1)  {
    showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                                        try {
   //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
@@ -237,16 +245,17 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                     
     
   ).then((value) => {
-    LocalDatabaseService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
-       // Supprimer l'objet de la liste après suppression en base
-      setState(() {
-        filteredList.removeAt(index); // Supprime l'élément de la liste
-      });
+    LocalDatabaseService().deletePrixMarcheCollecte(prixMarche.id_fiche!).then((value) {
+
           hideLoadingDialog(context); // Cache le dialogue de chargement
 
     })
   });
 
+setState(() {
+  
+  prixMarcheCollecteList.removeWhere((item) => item.id_fiche == prixMarche.id_fiche);
+});
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 

@@ -12,6 +12,7 @@ import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/detail_enquete_consommation.dart';
 import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
 import 'package:simro/services/Enquete_Service.dart';
@@ -258,7 +259,7 @@ TextEditingController dateController = TextEditingController();
                                     print('Modifier sélectionné');
                                   } else if (result == 'detail') {
                                     // Action pour détail
-                                    // Get.to(DetailEnqueteCollecteScreen(enqueteCollecte: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
+                                    Get.to(DetailEnqueteConsommationScreen(enqueteConsommation: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
                                     print('Détail sélectionné');
                                   } else if (result == 'supprimer') {
                                     // Action pour supprimer
