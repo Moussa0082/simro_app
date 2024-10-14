@@ -53,19 +53,20 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
   TextEditingController localiteVenteController = TextEditingController();
   TextEditingController enqueteController = TextEditingController();
   TextEditingController niveauApprovisionnementController = TextEditingController();
-  TextEditingController localiteController = TextEditingController();
+  // TextEditingController localiteController = TextEditingController();
   TextEditingController produitController = TextEditingController();
   TextEditingController grossiteController = TextEditingController();
   bool isLoading = true;
       late Commune commune;
-      late Commune commune1;
-    late Future _communeList;
       late Produit produit;
     late Future _produitList;
+      late Commune commune1;
+    late Future _communeList;
       late EnqueteGrossiste enquete;
     late Future _enqueteList;
 
-     void showEnquete() async {
+   
+  void showEnquete() async {
   final BuildContext context = this.context;
 
   showDialog(
@@ -107,11 +108,8 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                 }
 
                 if (snapshot.hasData) {
-                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
-                  if (responseData is List) {
-                    List<EnqueteGrossiste> typeListe = responseData
-                        .map((e) => EnqueteGrossiste.fromMap(e))
-                        .toList();
+               List<EnqueteGrossiste> typeListe = snapshot.data as List<EnqueteGrossiste>;
+
 
                     if (typeListe.isEmpty) {
                       return const Padding(
@@ -175,7 +173,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                               },
                             ),
                           );
-                  }
+                  
                 }
 
                 return const SizedBox(height: 8); // Si aucune donnée n'est chargée
@@ -212,7 +210,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
 }
 
 
-    void showProduit() async {
+  void showProduit() async {
     final BuildContext context = this.context;
 
     showDialog(
@@ -254,18 +252,14 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Produit> typeListe = responseData
-                          .map((e) => Produit.fromMap(e))
-                          .toList();
+                List<Produit> typeListe = snapshot.data as List<Produit>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Center(child: Text("Aucun marché trouvée")),
+                              Center(child: Text("Aucun produit trouvé")),
                         );
                       }
 
@@ -324,7 +318,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                 },
                               ),
                             );
-                    }
+                   
                   }
 
                   return const SizedBox(height: 8);
@@ -360,9 +354,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
     );
   }
 
-
-
-   void showLocalite() async {
+  void showLocalite() async {
     final BuildContext context = this.context;
 
     showDialog(
@@ -404,18 +396,14 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Commune> typeListe = responseData
-                          .map((e) => Commune.fromMap(e))
-                          .toList();
+              List<Commune> typeListe = snapshot.data as List<Commune>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Center(child: Text("Aucun marché trouvée")),
+                              Center(child: Text("Aucune localité trouvée")),
                         );
                       }
 
@@ -473,7 +461,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                               ),
                             );
                     }
-                  }
+                  
 
                   return const SizedBox(height: 8);
                 },
@@ -507,6 +495,94 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
       },
     );
   }
+   
+     LocalDatabaseService dbHelper = LocalDatabaseService();
+
+  
+   // Récupérer les produits depuis l'API et les synchroniser
+   Future<void> fetchAndSyncProduits() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-produits/"));
+
+      if (response.statusCode == 200) {
+        // final List<dynamic> responseData = json.decode(response.body);
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+
+        List<Produit> produits = responseData.map((e) => Produit.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllProduits();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var produit in produits) {
+          await dbHelper.insertProduit(produit);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des produits : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+  _produitList = dbHelper.getAllProduits();
+}
+
+
+   Future<void> fetchAndSyncEnqueteGrossiste() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-enquete-grossiste/"));
+
+      if (response.statusCode == 200) {
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<EnqueteGrossiste> enquetes = responseData.map((e) => EnqueteGrossiste.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllEnqueteGrossiste();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var enquete in enquetes) {
+          await dbHelper.insertEnqueteGrossistee(enquete);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des enquetes grossistes : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+     _enqueteList = dbHelper.getAllEnqueteGrossiste();
+   }
+
+   Future<void> fetchAndSyncCommune() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-commune/"));
+
+      if (response.statusCode == 200) {
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<Commune> communes = responseData.map((e) => Commune.fromMap(e)).toList();
+
+        // Supprimer les communes existants en local avant de les mettre à jour
+        await dbHelper.deleteAllCommunes();
+
+        // Insérer les communes récupérés dans la base de données locale
+        for (var commune in communes) {
+          await dbHelper.insertCommune(commune);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des communes : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les communes locaux
+     _communeList = dbHelper.getAllCommunes();
+   }
 
 
    void showLocaliteAchat() async {
@@ -551,18 +627,14 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Commune> typeListe = responseData
-                          .map((e) => Commune.fromMap(e))
-                          .toList();
+                List<Commune> typeListe = snapshot.data as List<Commune>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Center(child: Text("Aucun marché trouvée")),
+                              Center(child: Text("Aucun commune trouvée")),
                         );
                       }
 
@@ -619,7 +691,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
                                 },
                               ),
                             );
-                    }
+                    
                   }
 
                   return const SizedBox(height: 8);
@@ -657,19 +729,19 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
 
 
    
-    Future<void> _fetchEnqueteGrossisteList() async {
-    _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-grossiste/'));
-  }
+  //   Future<void> _fetchEnqueteGrossisteList() async {
+  //   _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-grossiste/'));
+  // }
 
-    Future<void> _fetchProduitList() async {
-    _produitList = http.get(Uri.parse('$apiUrl/all-produits/'));
-  }
+  //   Future<void> _fetchProduitList() async {
+  //   _produitList = http.get(Uri.parse('$apiUrl/all-produits/'));
+  // }
 
 
-    Future<void> _fetchCommuneList() async {
-    _communeList =
-        http.get(Uri.parse('$apiUrl/all-commune/'));
-    }
+  //   Future<void> _fetchCommuneList() async {
+  //   _communeList =
+  //       http.get(Uri.parse('$apiUrl/all-commune/'));
+  //   }
 
 
 
@@ -679,19 +751,19 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
     // TODO: implement initState
     super.initState();
     
-     _fetchCommuneList().then((value) => {
+     fetchAndSyncCommune().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
 
-     _fetchProduitList().then((value) => {
+     fetchAndSyncProduits().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
 
-     _fetchEnqueteGrossisteList().then((value) => {
+     fetchAndSyncEnqueteGrossiste().then((value) => {
       setState(() {
         isLoading = false;
       })

@@ -50,7 +50,8 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
-    checkEnqueteurSession();
+    // checkEnqueteurSession();
+    requestPermissions();
    
   }
 
@@ -107,6 +108,7 @@ Future<bool> requestPermissions() async {
 
   if (allPermissionsGranted) {
     print('Toutes les permissions ont été accordées');
+    Get.off(const PublicHomeScreen());
   } else {
     // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
     _showDialog();

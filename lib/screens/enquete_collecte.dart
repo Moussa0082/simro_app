@@ -151,7 +151,43 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     print("Erreur lors de la récupération des enquetes collecte : $e");
     return [];
   }
+  
 }
+ 
+       LocalDatabaseService dbHelper = LocalDatabaseService();
+
+Future<void> fetchAndSyncMarche() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+  final enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/"));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<Marche> marches = responseData.map((e) => Marche.fromMap(e)).toList();
+
+        // Récupérer la liste des marchés déjà présents en local
+       await dbHelper.deleteAllMarches();
+
+        // Filtrer les marchés pour éviter les doublons (basé sur le nom du marché)
+        for (var marche in marches) {
+          // Si le marché n'existe pas déjà en local (par nom), on l'insère
+            await dbHelper.addMarche(marche);
+          
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des marches : $e");
+    }
+  }
+
+  // Récupérer et mettre à jour la liste locale après synchronisation
+  _marcheList =  dbHelper.getAllMarche();
+}
+
+
 
 
  
@@ -159,11 +195,10 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-     final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
-    _marcheList =
-        http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
+    // _marcheList =
+    //     http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
-          
+       fetchAndSyncMarche();   
  // Charger les enquêtes locales
   LocalDatabaseService().getAllEnquetes().then((enquetes) {
     setState(() {
@@ -731,162 +766,7 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
     );
   }
 
-   // Fonction pour récupérer la liste des marchés depuis l'API
-
-// void showMarche() async {
-//   final BuildContext context = this.context;
-
-//   // Vérification de la connectivité réseau
-//   var connectivityResult = await Connectivity().checkConnectivity();
-//   bool isOnline = connectivityResult != ConnectivityResult.none;
-
-//   // Si l'utilisateur est hors ligne, charger la liste des marchés depuis la base locale
-//   if (!isOnline) {
-//     List<Marche> localMarcheList = await LocalDatabaseService().getAllMarche();
-
-//     if (localMarcheList.isEmpty) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text("Aucun marché disponible en local")),
-//       );
-//       return;
-//     }
-
-//     // Afficher la boîte de dialogue avec les marchés locaux
-//     _showMarcheDialog(localMarcheList);
-//   } else {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return StatefulBuilder(
-//           builder: (context, setState) {
-//             return AlertDialog(
-//               title: Padding(
-//                 padding: const EdgeInsets.all(10.0),
-//                 child: TextField(
-//                   controller: _searchController,
-//                   onChanged: (value) {
-//                     if (mounted) setState(() {});
-//                   },
-//                   decoration: InputDecoration(
-//                     hintText: 'Rechercher un marché',
-//                     border: UnderlineInputBorder(
-//                       borderSide: BorderSide(
-//                         color: Colors.grey[300]!,
-//                         width: 1,
-//                       ),
-//                     ),
-//                     suffixIcon: const Icon(Icons.search),
-//                   ),
-//                 ),
-//               ),
-//               content: FutureBuilder(
-//                 future: _marcheList,
-//                 builder: (_, snapshot) {
-//                   if (snapshot.connectionState == ConnectionState.waiting) {
-//                     return buildShimmerSelectList();
-//                   }
-
-//                   if (snapshot.hasError) {
-//                     return const Center(
-//                       child: Text("Erreur lors du chargement des données"),
-//                     );
-//                   }
-
-//                   if (snapshot.hasData) {
-//                     final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
-//                     if (responseData is List) {
-//                       List<Marche> typeListe = responseData.map((e) => Marche.fromMap(e)).toList();
-
-//                       if (typeListe.isEmpty) {
-//                         return const Padding(
-//                           padding: EdgeInsets.all(10),
-//                           child: Center(child: Text("Aucun marché trouvé")),
-//                         );
-//                       }
-
-//                       String searchText = _searchController.text.toLowerCase();
-//                       List<Marche> filteredSearch = typeListe
-//                           .where((type) => type.nom_marche!.toLowerCase().contains(searchText))
-//                           .toList();
-
-//                       return filteredSearch.isEmpty
-//                           ? const Text(
-//                               'Aucun marché trouvé',
-//                               style: TextStyle(color: Colors.black, fontSize: 17),
-//                             )
-//                           : SizedBox(
-//                               width: double.maxFinite,
-//                               child: ListView.builder(
-//                                 itemCount: filteredSearch.length,
-//                                 itemBuilder: (context, index) {
-//                                   final type = filteredSearch[index];
-//                                   final isSelected = marcheController.text == type.nom_marche!;
-//                                   return Column(
-//                                     children: [
-//                                       ListTile(
-//                                         title: Text(
-//                                           type.nom_marche!,
-//                                           style: TextStyle(
-//                                             color: Colors.black,
-//                                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-//                                             fontSize: 16,
-//                                           ),
-//                                         ),
-//                                         trailing: isSelected
-//                                             ? const Icon(
-//                                                 Icons.check_box_outlined,
-//                                                 color: vert,
-//                                               )
-//                                             : null,
-//                                         onTap: () {
-//                                           setState(() {
-//                                             marche = type; // Définit le marché sélectionné
-//                                             marcheController.text = type.nom_marche!; // Met à jour le texte du contrôleur
-//                                           });
-//                                         },
-//                                       ),
-//                                       Divider()
-//                                     ],
-//                                   );
-//                                 },
-//                               ),
-//                             );
-//                     }
-//                   }
-
-//                   return const SizedBox(height: 8);
-//                 },
-//               ),
-//               actions: <Widget>[
-//                 TextButton(
-//                   child: const Text(
-//                     'Annuler',
-//                     style: TextStyle(color: d_colorOr, fontSize: 16),
-//                   ),
-//                   onPressed: () {
-//                     _searchController.clear();
-//                     Navigator.of(context).pop();
-//                   },
-//                 ),
-//                 TextButton(
-//                   child: const Text(
-//                     'Valider',
-//                     style: TextStyle(color: d_colorOr, fontSize: 16),
-//                   ),
-//                   onPressed: () {
-//                     _searchController.clear();
-//                     print('Options sélectionnées : $marche'); // Affiche le marché sélectionné
-//                     Navigator.of(context).pop();
-//                   },
-//                 ),
-//               ],
-//             );
-//           },
-//         );
-//       },
-//     );
-//   }
-// }
+  
 
 void showMarche() async {
     final BuildContext context = this.context;
@@ -930,12 +810,8 @@ void showMarche() async {
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Marche> typeListe = responseData
-                          .map((e) => Marche.fromMap(e))
-                          .toList();
+                   
+                   List<Marche> typeListe = snapshot.data as List<Marche>;
 
                       if (typeListe.isEmpty) {
                         return const Padding(
@@ -1000,7 +876,7 @@ void showMarche() async {
                                 },
                               ),
                             );
-                    }
+                    
                   }
 
                   return const SizedBox(height: 8);

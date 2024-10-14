@@ -67,156 +67,6 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
     late Future _enqueteList;
 
    
-   // Fonction pour récupérer la liste des marchés depuis l'API
-
-  // void showMarche() async {
-  //   final BuildContext context = this.context;
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //             title: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: TextField(
-  //                 controller: _searchController,
-  //                 onChanged: (value) {
-  //                   if (mounted) setState(() {});
-  //                 },
-  //                 decoration: InputDecoration(
-  //                   hintText: 'Rechercher un marché',
-  //                   border: UnderlineInputBorder(
-  //                     borderSide: BorderSide(
-  //                       color: Colors.grey[300]!,
-  //                       width: 1,
-  //                     ),
-  //                   ),
-  //                   suffixIcon: const Icon(Icons.search),
-  //                 ),
-  //               ),
-  //             ),
-  //             content: FutureBuilder(
-  //               future: _marcheList,
-  //               builder: (_, snapshot) {
-  //                 if (snapshot.connectionState == ConnectionState.waiting) {
-  //                   return buildShimmerSelectList();
-  //                 }
-
-  //                 if (snapshot.hasError) {
-  //                   return const Center(
-  //                     child: Text("Erreur lors du chargement des données"),
-  //                   );
-  //                 }
-
-  //                 if (snapshot.hasData) {
-  //                   final responseData =
-  //                       json.decode(utf8.decode(snapshot.data.bodyBytes));
-  //                   if (responseData is List) {
-  //                     List<Marche> typeListe = responseData
-  //                         .map((e) => Marche.fromMap(e))
-  //                         .toList();
-
-  //                     if (typeListe.isEmpty) {
-  //                       return const Padding(
-  //                         padding: EdgeInsets.all(10),
-  //                         child:
-  //                             Center(child: Text("Aucun marché trouvée")),
-  //                       );
-  //                     }
-               
-  //                     String searchText = _searchController.text.toLowerCase();
-  //                     List<Marche> filteredSearch = typeListe
-  //                         .where((type) => type.nom_marche!
-  //                             .toLowerCase()
-  //                             .contains(searchText))
-  //                         .toList();
-
-  //                     return 
-  //                filteredSearch.isEmpty
-  //                   ? const Padding(
-  //                       padding: EdgeInsets.all(10),
-  //                       child: Center(child: Text("Aucun marché trouvée")),
-  //                     ) : SizedBox(
-  //                             width: double.maxFinite,
-  //                             child: ListView.builder(
-  //                               itemCount: filteredSearch.length,
-  //                               itemBuilder: (context, index) {
-  //                                 final type = filteredSearch[index];
-  //                                 final isSelected = marcheController.text ==
-  //                                     type.nom_marche!;
-                                      
-
-  //                                 return Column(
-  //                                   children: [
-  //                                     ListTile(
-  //                                       title: Text(
-  //                                         type.nom_marche!,
-  //                                         style: TextStyle(
-  //                                           color: Colors.black,
-  //                                           fontWeight: isSelected
-  //                                               ? FontWeight.bold
-  //                                               : FontWeight.normal,
-  //                                           fontSize: 16,
-  //                                         ),
-  //                                       ),
-  //                                       trailing: isSelected
-  //                                           ? const Icon(
-  //                                               Icons.check_box_outlined,
-  //                                               color: vert,
-  //                                             )
-  //                                           : null,
-  //                                       onTap: () {
-  //                                         setState(() {
-  //                                           marche = type;
-  //                                           marcheController.text =
-  //                                               type.nom_marche!;
-  //                                         });
-  //                                       },
-  //                                     ),
-  //                                     Divider()
-  //                                   ],
-  //                                 );
-  //                               },
-  //                             ),
-  //                           );
-  //                   }
-  //                 }
-
-  //                 return const SizedBox(height: 8);
-  //               },
-  //             ),
-  //             actions: <Widget>[
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Annuler',
-  //                   style: TextStyle(color: d_colorOr, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //               TextButton(
-  //                 child: const Text(
-  //                   'Valider',
-  //                   style: TextStyle(color: d_colorOr, fontSize: 16),
-  //                 ),
-  //                 onPressed: () {
-  //                   _searchController.clear();
-  //                   print('Options sélectionnées : $marche');
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
   void showEnquete() async {
   final BuildContext context = this.context;
 
@@ -259,11 +109,8 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                 }
 
                 if (snapshot.hasData) {
-                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
-                  if (responseData is List) {
-                    List<EnqueteCollecte> typeListe = responseData
-                        .map((e) => EnqueteCollecte.fromMap(e))
-                        .toList();
+               List<EnqueteCollecte> typeListe = snapshot.data as List<EnqueteCollecte>;
+
 
                     if (typeListe.isEmpty) {
                       return const Padding(
@@ -327,7 +174,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                               },
                             ),
                           );
-                  }
+                  
                 }
 
                 return const SizedBox(height: 8); // Si aucune donnée n'est chargée
@@ -406,18 +253,14 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Produit> typeListe = responseData
-                          .map((e) => Produit.fromMap(e))
-                          .toList();
+                List<Produit> typeListe = snapshot.data as List<Produit>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Center(child: Text("Aucun marché trouvée")),
+                              Center(child: Text("Aucun produit trouvé")),
                         );
                       }
 
@@ -476,7 +319,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 },
                               ),
                             );
-                    }
+                   
                   }
 
                   return const SizedBox(height: 8);
@@ -554,18 +397,14 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Commune> typeListe = responseData
-                          .map((e) => Commune.fromMap(e))
-                          .toList();
+              List<Commune> typeListe = snapshot.data as List<Commune>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Center(child: Text("Aucun marché trouvée")),
+                              Center(child: Text("Aucune localité trouvée")),
                         );
                       }
 
@@ -623,7 +462,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                               ),
                             );
                     }
-                  }
+                  
 
                   return const SizedBox(height: 8);
                 },
@@ -658,24 +497,113 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
     );
   }
    
+     LocalDatabaseService dbHelper = LocalDatabaseService();
 
+  
+   // Récupérer les produits depuis l'API et les synchroniser
+   Future<void> fetchAndSyncProduits() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-produits/"));
+
+      if (response.statusCode == 200) {
+        // final List<dynamic> responseData = json.decode(response.body);
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+
+        List<Produit> produits = responseData.map((e) => Produit.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllProduits();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var produit in produits) {
+          await dbHelper.insertProduit(produit);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des produits : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+  _produitList = dbHelper.getAllProduits();
+}
+
+
+   Future<void> fetchAndSyncEnqueteCollecte() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-enquete-collecte/"));
+
+      if (response.statusCode == 200) {
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<EnqueteCollecte> enquetes = responseData.map((e) => EnqueteCollecte.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllEnqueteCollecte();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var enquete in enquetes) {
+          await dbHelper.insertEnqueteCollecte(enquete);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des enquetes collectes : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+     _enqueteList = dbHelper.getAllEnquetes();
+   }
+
+   Future<void> fetchAndSyncCommune() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-commune/"));
+
+      if (response.statusCode == 200) {
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<Commune> communes = responseData.map((e) => Commune.fromMap(e)).toList();
+
+        // Supprimer les communes existants en local avant de les mettre à jour
+        await dbHelper.deleteAllCommunes();
+
+        // Insérer les communes récupérés dans la base de données locale
+        for (var commune in communes) {
+          await dbHelper.insertCommune(commune);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des communes : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les communes locaux
+     _communeList = dbHelper.getAllCommunes();
+   }
+
+
+   
    // Fonction pour récupérer la liste des marchés depuis l'API
-  Future<void> _fetchEnqueteCollecteList() async {
-    // Ajoutez votre logique pour récupérer la liste des marchés ici
-    _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-collecte/'));
-  }
+  // Future<void> _fetchEnqueteCollecteList() async {
+  //   // Ajoutez votre logique pour récupérer la liste des marchés ici
+  //   _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete-collecte/'));
+  // }
 
-  Future<void> _fetchCommuneList() async {
-    // Ajoutez votre logique pour récupérer la liste des marchés ici
-    _communeList =
-        http.get(Uri.parse('$apiUrl/all-commune/'));
-  }
+  // Future<void> _fetchCommuneList() async {
+  //   // Ajoutez votre logique pour récupérer la liste des marchés ici
+  //   _communeList =
+  //       http.get(Uri.parse('$apiUrl/all-commune/'));
+  // }
 
-  Future<void> _fetchProduitList() async {
-    // Ajoutez votre logique pour récupérer la liste des marchés ici
-      _produitList =
-        http.get(Uri.parse('$apiUrl/all-produits/'));
-  }
+  // Future<void> _fetchProduitList() async {
+  //   // Ajoutez votre logique pour récupérer la liste des marchés ici
+  //     _produitList =
+  //       http.get(Uri.parse('$apiUrl/all-produits/'));
+  // }
 
 
 
@@ -705,19 +633,19 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
         // _marcheList =
         // http.get(Uri.parse('$apiUrl/all-marche/'));
 
-     _fetchEnqueteCollecteList().then((value) => {
+     fetchAndSyncEnqueteCollecte().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
 
-     _fetchProduitList().then((value) => {
+     fetchAndSyncProduits().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
 
-     _fetchCommuneList().then((value) => {
+     fetchAndSyncCommune().then((value) => {
       setState(() {
         isLoading = false;
       })

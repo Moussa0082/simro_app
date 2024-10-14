@@ -50,78 +50,137 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
     late Produit produit;
     late Future _produitList;
 
-   
-   void showProduit() async {
-    final BuildContext context = this.context;
+     LocalDatabaseService dbHelper = LocalDatabaseService();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    if (mounted) setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un produit',
-                    border: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+// Vérifier la connectivité
+
+
+// Récupérer les produits depuis l'API et les synchroniser
+   Future<void> fetchAndSyncProduits() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-produits/"));
+
+      if (response.statusCode == 200) {
+        // final List<dynamic> responseData = json.decode(response.body);
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+
+        List<Produit> produits = responseData.map((e) => Produit.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllProduits();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var produit in produits) {
+          await dbHelper.insertProduit(produit);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des produits : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+  _produitList = dbHelper.getAllProduits();
+}
+
+
+   Future<void> fetchAndSyncEnquete() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-enquete/"));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(response.body);
+        List<Enquete> enquetes = responseData.map((e) => Enquete.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllEnqueteConsommation();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var enquete in enquetes) {
+          await dbHelper.insertEnqueteConsommationn(enquete);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des enquetes consommations : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+     _enqueteList = dbHelper.getAllEnquetesConsommation();
+   }
+
+
+  void showProduit() async {
+  final BuildContext context = this.context;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  if (mounted) setState(() {});
+                },
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un produit',
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
                     ),
-                    suffixIcon: const Icon(Icons.search),
                   ),
+                  suffixIcon: const Icon(Icons.search),
                 ),
               ),
-              content: FutureBuilder(
-                future: _produitList,
-                builder: (_, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return  buildShimmerSelectList();
-                  }
+            ),
+            content: FutureBuilder(
+              future: _produitList, // Utilisez la future contenant la liste des produits
+              builder: (_, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return buildShimmerSelectList();
+                }
 
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Erreur lors du chargement des données"),
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("Erreur lors du chargement des données"),
+                  );
+                }
+
+                if (snapshot.hasData) {
+                  // Suppression du décodage utf8.decode() puisque snapshot.data est déjà une liste
+                  List<Produit> typeListe = snapshot.data as List<Produit>;
+
+                  if (typeListe.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Center(child: Text("Aucun produit trouvé")),
                     );
                   }
 
-                  if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Produit> typeListe = responseData
-                          .map((e) => Produit.fromMap(e))
-                          .toList();
+                  String searchText = _searchController.text.toLowerCase();
+                  List<Produit> filteredSearch = typeListe
+                      .where((type) => type.nom_produit!
+                          .toLowerCase()
+                          .contains(searchText))
+                      .toList();
 
-                      if (typeListe.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Center(child: Text("Aucun marché trouvée")),
-                        );
-                      }
-
-                      String searchText = _searchController.text.toLowerCase();
-                      List<Produit> filteredSearch = typeListe
-                          .where((type) => type.nom_produit!
-                              .toLowerCase()
-                              .contains(searchText))
-                          .toList();
-
-                      return isLoading
-                ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
-                : filteredSearch.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucun produit trouvé")),
-                      ) : SizedBox(
+                  return isLoading
+                      ? buildShimmerSelectList() // Ajoute l'effet shimmer pendant le chargement
+                      : filteredSearch.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Center(child: Text("Aucun produit trouvé")),
+                            )
+                          : SizedBox(
                               width: double.maxFinite,
                               child: ListView.builder(
                                 itemCount: filteredSearch.length,
@@ -157,58 +216,58 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                           });
                                         },
                                       ),
-                                      Divider()
+                                      Divider(),
                                     ],
                                   );
                                 },
                               ),
                             );
-                    }
-                  }
+                }
 
-                  return const SizedBox(height: 8);
+                return const SizedBox(height: 8);
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  Navigator.of(context).pop();
                 },
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text(
-                    'Annuler',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    Navigator.of(context).pop();
-                  },
+              TextButton(
+                child: const Text(
+                  'Valider',
+                  style: TextStyle(color: d_colorOr, fontSize: 16),
                 ),
-                TextButton(
-                  child: const Text(
-                    'Valider',
-                    style: TextStyle(color: d_colorOr, fontSize: 16),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    print('Options sélectionnées : $produit');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                onPressed: () {
+                  _searchController.clear();
+                  print('Options sélectionnées : $produit');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
-   Future<void> _fetchProduitList() async {
-    // Ajoutez votre logique pour récupérer la liste des marchés ici
-      _produitList =
-        http.get(Uri.parse('$apiUrl/all-produits/'));
-  }
 
-  Future<void> _fetchEnqueteCollecteList() async {
-    // Ajoutez votre logique pour récupérer la liste des marchés ici
-    _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete/'));
-  }
+  //  Future<void> _fetchProduitList() async {
+  //   // Ajoutez votre logique pour récupérer la liste des marchés ici
+  //     _produitList =
+  //       http.get(Uri.parse('$apiUrl/all-produits/'));
+  // }
+
+  // Future<void> _fetchEnqueteCollecteList() async {
+  //   // Ajoutez votre logique pour récupérer la liste des marchés ici
+  //   _enqueteList = http.get(Uri.parse('$apiUrl/all-enquete/'));
+  // }
 
   @override
   void initState() {
@@ -229,13 +288,13 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
 
     _searchController = TextEditingController();
     
-     _fetchEnqueteCollecteList().then((value) => {
+     fetchAndSyncEnquete().then((value) => {
       setState(() {
         isLoading = false;
       })
      });
 
-     _fetchProduitList().then((value) => {
+     fetchAndSyncProduits().then((value) => {
       setState(() {
         isLoading = false;
       })
@@ -287,12 +346,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                 }
 
                 if (snapshot.hasData) {
-                  final responseData = json.decode(utf8.decode(snapshot.data.bodyBytes));
-                  if (responseData is List) {
-                    List<Enquete> typeListe = responseData
-                        .map((e) => Enquete.fromMap(e))
-                        .toList();
-
+          List<Enquete> typeListe = snapshot.data as List<Enquete>;
                     if (typeListe.isEmpty) {
                       return const Padding(
                         padding: EdgeInsets.all(10),
@@ -355,7 +409,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                               },
                             ),
                           );
-                  }
+                  
                 }
 
                 return const SizedBox(height: 8); // Si aucune donnée n'est chargée

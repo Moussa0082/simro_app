@@ -78,6 +78,39 @@ TextEditingController dateController = TextEditingController();
 }
 
 
+   LocalDatabaseService dbHelper = LocalDatabaseService();
+
+ Future<void> fetchAndSyncMarche() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+  final enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/"));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<Marche> marches = responseData.map((e) => Marche.fromMap(e)).toList();
+
+        // Récupérer la liste des marchés déjà présents en local
+       await dbHelper.deleteAllMarches();
+
+        // Filtrer les marchés pour éviter les doublons (basé sur le nom du marché)
+        for (var marche in marches) {
+          // Si le marché n'existe pas déjà en local (par nom), on l'insère
+            await dbHelper.addMarche(marche);
+          
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des marches : $e");
+    }
+  }
+
+  // Récupérer et mettre à jour la liste locale après synchronisation
+  _marcheList =  dbHelper.getAllMarche();
+}
+
       Future<List<Enquete>> fetchEnquete() async {
   try {
     // Appel du service pour récupérer les données d'enquêtes
@@ -108,11 +141,8 @@ TextEditingController dateController = TextEditingController();
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-     final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
-    _marcheList =
-        http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
-
-             // Appel pour récupérer les produits au chargement de la page
+      fetchAndSyncMarche();    
+     // Appel pour récupérer les produits au chargement de la page
              LocalDatabaseService().getAllEnquetesConsommation().then((value) {
               enqueteList = value;
      EnqueteService().fetchEnquete().then((enquetes) {
@@ -741,12 +771,8 @@ TextEditingController dateController = TextEditingController();
                   }
 
                   if (snapshot.hasData) {
-                    final responseData =
-                        json.decode(utf8.decode(snapshot.data.bodyBytes));
-                    if (responseData is List) {
-                      List<Marche> typeListe = responseData
-                          .map((e) => Marche.fromMap(e))
-                          .toList();
+                                      List<Marche> typeListe = snapshot.data as List<Marche>;
+
 
                       if (typeListe.isEmpty) {
                         return const Padding(
@@ -811,7 +837,7 @@ TextEditingController dateController = TextEditingController();
                                 },
                               ),
                             );
-                    }
+                    
                   }
 
                   return const SizedBox(height: 8);

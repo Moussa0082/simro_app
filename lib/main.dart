@@ -22,7 +22,7 @@ Future<void> main() async {
    // Supprimez l'ancienne base de données (si nécessaire)
     // await deleteDatabase("collecte.db");
   // Initialisez la base de données
-  //  await LocalDatabaseService().initDB();
+   await LocalDatabaseService().initDB();
   // Initialise les dépendances
   DependancyInjection().init();
   

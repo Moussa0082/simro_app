@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:simro/models/Commune.dart';
 import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Enquete_Grossiste.dart';
@@ -8,12 +9,13 @@ import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/models/Prix_Marche_Consommation.dart';
 import 'package:simro/models/Prix_Marche_Consommation_New.dart';
 import 'package:simro/models/Prix_Marche_Grossiste.dart';
+import 'package:simro/models/Produit.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class LocalDatabaseService extends ChangeNotifier{
   static final LocalDatabaseService _instance = LocalDatabaseService._();
-  static Database? _database;
+   Database? _database;
 
   LocalDatabaseService._();
 
@@ -40,7 +42,7 @@ class LocalDatabaseService extends ChangeNotifier{
   String path = join(await getDatabasesPath(), 'collecte.db');
   return await openDatabase(
     path,
-    version: 1,
+    version: 2,
     // version: 2, // Augmentez la version de la base de données
 onCreate: (db, version) async {
   // _onUpgrade(db, 1, 2);
@@ -64,16 +66,16 @@ onCreate: (db, version) async {
           id_marche INTEGER PRIMARY KEY AUTOINCREMENT,
           code_marche TEXT, 
           nom_marche TEXT,
-          type_marche INTEGER,
+          type_marche TEXT,
           jour_marche TEXT,
           localite TEXT,
           longitude TEXT,
           latitude TEXT,
-          superficie TEXT,
+          superficie REAL,
           description TEXT,
           commune TEXT,
           collecteur TEXT,
-          idPersonnel TEXT,
+          id_personnel TEXT,
           date_enregistrement TEXT,
           modifier_le TEXT,
           modifier_par TEXT
@@ -220,9 +222,30 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
+
+       
   
     },
     
+     onUpgrade: (db, oldVersion, newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+      CREATE TABLE commune (
+        id_commune INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_commune TEXT,
+        nom_commune TEXT,
+        abrege_commune TEXT,
+        departement TEXT,
+        prefecture INTEGER,
+        etat TEXT,
+        id_personnel TEXT,
+        date_enregistrement TEXT,
+        modifier_le TEXT,
+        modifier_par TEXT
+      )
+    ''');
+    }
+  },
       //   onUpgrade: (db, oldVersion, newVersion) async {
       // if (oldVersion < 2) {
       //   // Supprimer et recréer la table prix_marche_consommation
@@ -282,10 +305,38 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
         modifier_par TEXT
       )
     ''');
+    
   }
+
+  
 }
 
 
+ // Méthode pour supprimer et recréer la table marche
+  Future<void> resetMarcheTable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS marche'); // Supprime la table si elle existe
+    await db.execute('''
+        CREATE TABLE marche (
+          id_marche INTEGER PRIMARY KEY AUTOINCREMENT,
+          code_marche TEXT, 
+          nom_marche TEXT,
+          type_marche TEXT,
+          jour_marche TEXT,
+          localite TEXT,
+          longitude TEXT,
+          latitude TEXT,
+          superficie REAL,
+          description TEXT,
+          commune INTEGER,
+          collecteur TEXT,
+          id_personnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      '''); // Recréation de la table avec les bonnes colonnes
+  }
 // Future<Database> initDB() async {
 //   String path = join(await getDatabasesPath(), 'collecte.db');
 //   return await openDatabase(
@@ -333,6 +384,9 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
  }
 
 
+  
+
+
   // Méthode pour ajouter un marché dans la base locale
   Future<void> addMarche(Marche marche) async {
     final db = await database;
@@ -340,7 +394,6 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     await db.insert(
       'marche',
       marche.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -353,6 +406,18 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
       where: 'id_marche = ?',
       whereArgs: [id_marche],
     );
+  }
+  
+   Future<List<Produit>> getAllProduits() async {
+    final db = await database;
+    final result = await db.query('produit');
+    return result.map((e) => Produit.fromMap(e)).toList();
+  }
+
+   Future<List<Commune>> getAllCommunes() async {
+    final db = await database;
+    final result = await db.query('commune');
+    return result.map((e) => Commune.fromMap(e)).toList();
   }
   
 
@@ -372,10 +437,25 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
 }
 
 
+  Future<void> insertProduit(Produit produit) async {
+    final db = await database;
+    await db.insert('produit', produit.toMap());
+  }
+
+  Future<void> insertCommune(Commune commune) async {
+    final db = await database;
+    await db.insert('commune', commune.toMap());
+  }
+
   Future<void> insertEnquete(EnqueteCollecte enquete) async {
     final db = await database;
     await db.insert('enquete_collecte', enquete.toMap());
     Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<void> insertEnqueteCollecte(EnqueteCollecte enquete) async {
+    final db = await database;
+    await db.insert('enquete_collecte', enquete.toMap());
   }
 
   Future<List<EnqueteCollecte>> getAllEnquetes() async {
@@ -417,6 +497,11 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
   }
 
+  Future<void> insertEnqueteConsommationn(Enquete enquete) async {
+    final db = await database;
+    await db.insert('enquete', enquete.toMap());
+  }
+
   Future<List<Enquete>> getAllEnquetesConsommation() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('enquete');
@@ -453,6 +538,12 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     final db = await database;
     await db.insert('enquete_grossiste', enquete.toMap());
     Get.snackbar("Succes", "Ajouter avec succès", snackPosition: SnackPosition.BOTTOM);
+  }
+
+ //Enquete consommation grossiste
+  Future<void> insertEnqueteGrossistee(EnqueteGrossiste enquete) async {
+    final db = await database;
+    await db.insert('enquete_grossiste', enquete.toMap());
   }
 
   Future<List<EnqueteGrossiste>> getAllEnqueteGrossiste() async {
@@ -602,5 +693,40 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
   }
 
 
+ // Supprimer tous les produits
+  Future<void> deleteAllProduits() async {
+    final db = await database;
+    await db.delete('produit');
+  }
+
+ // Supprimer tous les marches
+  Future<void> deleteAllMarches() async {
+    final db = await database;
+    await db.delete('marche');
+  }
+
+ // Supprimer tous les communes
+  Future<void> deleteAllCommunes() async {
+    final db = await database;
+    await db.delete('commune');
+  }
+ // Supprimer tous les enquete_collecte
+  Future<void> deleteAllEnqueteCollecte() async {
+    final db = await database;
+    await db.delete('enquete_collecte');
+  }
+
+ // Supprimer tous les enquete_grossiste
+  Future<void> deleteAllEnqueteGrossiste() async {
+    final db = await database;
+    await db.delete('enquete_grossiste');
+  }
+
+
+ // Supprimer tous les enquête consommation
+  Future<void> deleteAllEnqueteConsommation() async {
+    final db = await database;
+    await db.delete('enquete');
+  }
 
 }

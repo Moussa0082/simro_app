@@ -14,6 +14,7 @@ import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/add_prix_marche_consommation.dart';
 import 'package:simro/screens/add_prix_marche_grossiste.dart';
 import 'package:simro/screens/add_product.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:simro/screens/enquete_collecte.dart';
 import 'package:simro/screens/enquete_consommation.dart';
@@ -62,28 +63,39 @@ class _HomeScreenState extends State<HomeScreen> {
   // Stocker l'objet Enqueteur sous forme de chaîne JSON
   await prefs.setString('enqueteur', enqueteurJson);
 }
- Future<Map<String, dynamic>> getTotalEnquetes() async {
-  Database? database;
-  final db = await database; // Suppose que tu as déjà configuré ton instance SQLite
 
-  final result = await db?.rawQuery('''
+Future<Map<String, dynamic>> getTotalEnquetes() async {
+  // Récupérer l'instance de la base de données
+final dbService = LocalDatabaseService();  // Créer une instance
+final db = await dbService.database;       // Accéder à la méthode via l'instance
+  
+  // Exécuter la requête pour récupérer les totaux
+  final result = await db.rawQuery('''
     SELECT 
-      (SELECT COUNT(*) FROM  enquete  WHERE isSynced = 0) AS total_consommation,
-      (SELECT COUNT(*) FROM  enquete_collecte WHERE isSynced = 0 ) AS total_collecte,
-      (SELECT COUNT(*) FROM enquete_grossiste WHERE isSynced = 0) AS total_grossiste,
+      (SELECT COUNT(*) FROM enquete) AS total_consommation,
+      (SELECT COUNT(*) FROM enquete_collecte) AS total_collecte,
+      (SELECT COUNT(*) FROM enquete_grossiste) AS total_grossiste,
       (
-        (SELECT COUNT(*) FROM enquete  WHERE isSynced = 0) +
-        (SELECT COUNT(*) FROM enquete_collecte WHERE isSynced = 0) +
-        (SELECT COUNT(*) FROM enquete_grossiste WHERE isSynced = 0)
+        (SELECT COUNT(*) FROM enquete) +
+        (SELECT COUNT(*) FROM enquete_collecte) +
+        (SELECT COUNT(*) FROM enquete_grossiste)
       ) AS total_general;
   ''');
 
-  if (result!.isNotEmpty) {
-    return result.first;
+  // Vérification si la requête retourne des résultats
+  if (result.isNotEmpty) {
+    return result.first; // Retourner le premier résultat sous forme de Map
   } else {
-    return {'total_consommation': 0, 'total_collecte': 0, 'total_grossiste': 0, 'total_general': 0};
+    // Retourner des valeurs par défaut si aucun résultat n'est trouvé
+    return {
+      'total_consommation': 0,
+      'total_collecte': 0,
+      'total_grossiste': 0,
+      'total_general': 0,
+    };
   }
 }
+
 
 
   @override
@@ -181,54 +193,65 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               // Total collectes d'enquête
-              Container(
-                color:griss,
-                // elevation: 2,
-                child: FutureBuilder<Map<String, dynamic>>(
-  future: getTotalEnquetes(),
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return _buildShimmerEffect(); // Affiche un loader pendant le chargement
-    }
+             Container(
+  color: griss,
+  child: FutureBuilder<Map<String, dynamic>>(
+    future: getTotalEnquetes(),
+    builder: (context, snapshot) {
+      // Gestion de l'état de la connexion
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return _buildShimmerEffect(); // Loader pendant le chargement
+      }
 
-    final data = snapshot.data;
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Column(
-        children: [
-          Text(
-            'Total de collectes d\'enquête de',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Consommation : ${data?['total_consommation'] != null ? data!['total_consommation'] : "0" }',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Collecte : ${data?['total_collecte'] != null ? data!['total_collecte'] : "0" }',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Align(
-            alignment: Alignment.topLeft,
-            child: Text(
-              'Grossiste : ${data?['total_grossiste'] != null ? data!['total_grossiste'] : "0" } ',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+      if (snapshot.hasError) {
+        // Affiche un message d'erreur s'il y a un problème
+        return Text('Erreur: ${snapshot.error}');
+      }
+
+      if (!snapshot.hasData || snapshot.data == null) {
+        // Cas où il n'y a pas de données
+        return Text('Aucune donnée trouvée.');
+      }
+
+      final data = snapshot.data!; // Extraction des données
+
+      return Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            Text(
+              'Total de collectes d\'enquête de',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-          ),
-        ],
-      ),
-    );
-  },
-)
-
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Consommation : ${data['total_consommation'] ?? "0"}',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Collecte : ${data['total_collecte'] ?? "0"}',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                'Grossiste : ${data['total_grossiste'] ?? "0"} ',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
+            ),
+          ],
+        ),
+      );
+    },
+  ),
+),
+
               const SizedBox(height: 16),
 
                    SizedBox(
