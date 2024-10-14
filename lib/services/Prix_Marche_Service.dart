@@ -40,6 +40,8 @@ class PrixMarcheService extends ChangeNotifier{
               List<dynamic> body = json.decode(jsonString);
       prixInfoList =
           body.map((item) => PrixInfo.fromMap(item)).toList();
+      print("fetch prix info body"+ response.body);
+      print("fetch prix info list"+ prixInfoList.toString());
       print(response.body);
       return prixInfoList;
     } else {

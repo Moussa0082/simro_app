@@ -7,6 +7,8 @@ import 'package:simro/models/Categorie_Produit.dart';
 import 'package:simro/models/Produit.dart';
 import 'package:simro/models/Produit_Info.dart';
 import 'package:simro/models/Produit_With_Price.dart';
+import 'package:simro/models/Produit_With_Price.dart';
+import 'package:simro/models/Produit_With_Price.dart';
 import 'package:simro/screens/detail_product.dart';
 import 'package:simro/screens/enquete_collecte.dart';
 import 'package:simro/screens/enquete_consommation.dart';
@@ -45,6 +47,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
      List<CategorieProduit> categorieList = [];
 
   List<ProduitAvecPrix> produitList = [];
+    late Future<List<ProduitAvecPrix>> _produitFuture;
+
 
  Future<void> loadData() async {
   List<Produit> produits = await ProduitService().fetchProduit();
@@ -67,6 +71,49 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   });
 }
 
+//  Future<List<ProduitAvecPrix>> loadDataByCategorie(int id) async {
+//   List<Produit> produits = await ProduitService().fetchProduitByCategorie(id);
+//   List<PrixInfo> prixProduits = await PrixMarcheService().fetchPrixInfo();
+
+//   // Construire la liste des produits avec leur prix
+//   List<ProduitAvecPrix> produitAvecPrixList = produits.map((produit) {
+//     // Trouver les prix correspondants au produit
+//     PrixInfo? prixAssocie = prixProduits.firstWhere(
+//       (prix) => prix.produit == produit.nom_produit,
+//       orElse: () => PrixInfo(prix_min: 0, prix_max: 0, prix_moy: 0),
+//     );
+
+//     // Retourne un ProduitAvecPrix
+//     return ProduitAvecPrix(
+//       produit: produit,
+//       prixInfo: prixAssocie,
+//     );
+//   }).toList();
+
+//   // Mettre à jour l'état
+//   setState(() {
+//     produitList = produitAvecPrixList;
+//   });
+
+//   // Retourner la liste des produits avec leur prix
+//   return produitAvecPrixList;
+// }
+  Future<List<ProduitAvecPrix>> loadDataByCategorie(int id) async {
+    List<Produit> produits = await ProduitService().fetchProduitByCategorie(id);
+    List<PrixInfo> prixProduits = await PrixMarcheService().fetchPrixInfo();
+
+    return produits.map((produit) {
+      PrixInfo? prixAssocie = prixProduits.firstWhere(
+        (prix) => prix.produit == produit.nom_produit,
+        orElse: () => PrixInfo(prix_min: 0, prix_max: 0, prix_moy: 0),
+      );
+
+      return ProduitAvecPrix(
+        produit: produit,
+        prixInfo: prixAssocie,
+      );
+    }).toList();
+  }
   
 
 
@@ -183,7 +230,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         categorieList.length,
         (index) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1.0),
-          child: categoryItem(categorieList[index].nom_categorie_produit!, index),
+          child: categoryItem(categorieList[index], index),
         ),
       ),
     ),
@@ -195,22 +242,35 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           // Corps de la page avec les cartes de prix
            Expanded(
             child: 
-      isLoadingP ? 
+      isLoadingP && produitList.isEmpty ? 
                 ListView.builder(
                   itemCount: 6, // Nombre de shimmer cards que vous voulez afficher
                   itemBuilder: (context, index) {
                     return buildShimmerCardPublicHomme();
                   },
                 )
-                : ListView.builder(
+                : !isLoadingP && produitList.isEmpty ?
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(
+                          child: Text("Aucun produit trouvé", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+                                              ),
+                        ],
+                      )
+                  :
+                
+                ListView.builder(
   itemCount: produitList.length,
   itemBuilder: (context, index) {
     final produit = produitList[index];
+      
     return GestureDetector(
       onTap: (){
         Get.to(DetailProductScreen(produit: produit,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
       },
-      child: buildPriceCard(
+      child: 
+      buildPriceCard(
         produit.produit.nom_produit ?? 'Nom Indisponible',  // Vérification du nom produit
         // "packagingType",   // Vérification du type de packaging
         produit.produit.image?.isNotEmpty == true ? produit.produit.image! : '',  // Vérification de l'image
@@ -285,7 +345,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   },
   errorBuilder: (context, error, stackTrace) {
     return Image.asset(
-      "assets/images/riz.jpeg",  // Afficher cette image en cas d'erreur
+      "assets/images/riz.jpg",  // Afficher cette image en cas d'erreur
       fit: BoxFit.cover,
       height: 80,
       width: 80,
@@ -314,8 +374,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       border: Border.all(color: Colors.yellow),
       borderRadius: BorderRadius.circular(20),
     ),
-    child: Padding(
-      padding: const EdgeInsets.all(4.0),
+    child: const Padding(
+      padding:  EdgeInsets.all(4.0),
       child: Center(
         child: Text(
           'Prix (Fcfa)',
@@ -330,7 +390,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   ),
 ),
 
-                      SizedBox(height: 8.0),
+                     const SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -339,11 +399,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           _buildPriceInfo('Maximum', maxPrice),
                         ],
                       ),
-                      SizedBox(height: 8.0),
+                     const SizedBox(height: 8.0),
                       Text(
                         overflow:TextOverflow.ellipsis,
                         date,
-                        style: TextStyle(
+                        style:const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.bold,
                         ),
@@ -364,7 +424,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       '$productName',
                       // '$productName ($packagingType)',
                       overflow:TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style:const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: Colors.green,
@@ -375,7 +435,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     child: Text(
                       'Nombre de marché : $marketCount',
                       overflow:TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style:const TextStyle(
                         color: Colors.grey,
                       ),
                     ),
@@ -424,24 +484,30 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 //   );
 // }
 
- Widget categoryItem(String categoryName, int index) {
+ Widget categoryItem(CategorieProduit category, int index) {
   return GestureDetector(
-    onTap: () {
+    onTap: () async {
       setState(() {
-        print("nom" + categoryName);
-        selectedCategoryIndex = index;  // Supposons que tu utilises un index pour marquer la sélection
+        selectedCategoryIndex = index;
+      });
+
+      // Charge les données de manière asynchrone
+      List<ProduitAvecPrix> produits = await loadDataByCategorie(category.id_categorie_produit!);
+
+      setState(() {
+        produitList = produits;
       });
     },
     child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding:const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       // decoration: BoxDecoration(
       //   color: selectedCategoryIndex == index ? Colors.yellow : Colors.green[600],
         // borderRadius: BorderRadius.circular(20.0),
       // ),
       child: Center(
         child: Text(
-          categoryName,
-          style: TextStyle(
+          category.nom_categorie_produit!,
+          style:const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),

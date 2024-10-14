@@ -101,8 +101,7 @@ ScaffoldMessenger.of(context).showSnackBar(
               action: SnackBarAction(
                 label: 'OK',
                 onPressed: () {
-                  Get.back();
-                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+ScaffoldMessenger.of(context).hideCurrentSnackBar();                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
                 },
               ),
             ),

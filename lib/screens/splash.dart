@@ -50,8 +50,8 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
-    // checkEnqueteurSession();
-    requestPermissions();
+    checkEnqueteurSession();
+    // requestPermissions();
    
   }
 
