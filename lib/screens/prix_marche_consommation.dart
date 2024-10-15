@@ -9,8 +9,10 @@ import 'package:simro/models/Prix_Marche_Consommation.dart';
 import 'package:simro/screens/add_prix_marche_consommation.dart';
 import 'package:simro/screens/detail_marche.dart';
 import 'package:simro/screens/detail_prix_marche_consommation.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
 import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -31,16 +33,14 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<PrixMarcheConsommation> fetchedList = await PrixMarcheService().fetchPrixMarcheConsommation().then((prixMarcheConsommation) {
+    List<PrixMarcheConsommation> fetchedList = await LocalDatabaseService().getAllPrixMarcheConsommation().then((prixMarcheConsommation) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      prixMarcheConsommationList.addAll(prixMarcheConsommation);
+      prixMarcheConsommationList = prixMarcheConsommation;
+      // isLoading = false;
     });
+  // });
+ 
     return prixMarcheConsommationList;
   });
     
@@ -60,14 +60,10 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
      LocalDatabaseService().getAllPrixMarcheConsommation().then((value) {
              // Désactiver le chargement
              setState(() {
-                prixMarcheConsommationList = value;
+       prixMarcheConsommationList = value;
       isLoading = false;  
              });
-     PrixMarcheService().fetchPrixMarcheConsommation().then((prixMarcheGrossiste){
-    setState(() {
-      prixMarcheConsommationList.addAll(prixMarcheGrossiste);  // Assigner les produits récupérés à la liste locale
-    });
-  });
+    
  });
     _searchController = TextEditingController();
   }
@@ -87,7 +83,7 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
         backgroundColor: vert,
         leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                actions:[
@@ -142,6 +138,9 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
             SizedBox(height: 10),
             // Liste des prix de marché de consommation
             Text(
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               'Liste des prix du marché de consomation',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -220,23 +219,29 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
    showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                                        try {
   //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
-                             PrixMarcheService().addPrixMarcheConsommation(enquete: filteredList[index].enquete!,
+                             PrixMarcheService().addPrixMarcheConsommation(
+                              enquete: filteredList[index].enquete!,
                               produit: filteredList[index].produit!, unite: filteredList[index].unite!, 
                               prix_mesure: filteredList[index].prix_mesure!,
                                poids_unitaire: filteredList[index].poids_unitaire!, 
                                prix_kg_litre: filteredList[index].prix_kg_litre!, app_mobile: filteredList[index].app_mobile!, 
                                niveau_approvisionement: filteredList[index].niveau_approvisionement!, statut: filteredList[index].statut!,
                                  id_personnel:filteredList[index].id_personnel!).then((value) {
+    if(value != null){
 
-    LocalDatabaseService().deletePrixMarcheConsommation(filteredList[index].id_fiche!).then((value) {
-          hideLoadingDialog(context); // Cache le dialogue de chargement
-    });
-  });
-
-   // Update the original list used by ListView.builder
+    LocalDatabaseService().deletePrixMarcheGrossiste(filteredList[index].id_fiche!).then((value) {
+      
                           setState(() {
                             prixMarcheConsommationList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
                           });
+          hideLoadingDialog(context); // Cache le dialogue de chargement
+    });
+    }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer plus tard");
+     }
+  });
+
+   // Update the original list used by ListView.builder
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 
@@ -260,7 +265,7 @@ class _PrixMarcheConsommationScreenState extends State<PrixMarcheConsommationScr
                                     } 
                                      else if (result == 'supprimee') {
                                       // Action pour supprimer
-                                      LocalDatabaseService().deletePrixMarcheCollecte(filteredList[index].id_fiche!).then((value) {
+                                      LocalDatabaseService().deletePrixMarcheGrossiste(filteredList[index].id_fiche!).then((value) {
                           // Update the original list used by ListView.builder
                           setState(() {
                             prixMarcheConsommationList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);

@@ -10,6 +10,7 @@ import 'package:simro/models/Produit_Info.dart';
 import 'package:simro/models/Produit_With_Price.dart';
 import 'package:simro/screens/add_product.dart';
 import 'package:simro/screens/detail_product.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
 import 'package:simro/services/Produit_Service.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
@@ -79,7 +80,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         iconTheme: IconThemeData(color: Colors.black), // Black icons for back button, etc.
         leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                actions:[

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:simro/models/Commune.dart';
@@ -7,7 +9,6 @@ import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/models/Prix_Marche_Consommation.dart';
-import 'package:simro/models/Prix_Marche_Consommation_New.dart';
 import 'package:simro/models/Prix_Marche_Grossiste.dart';
 import 'package:simro/models/Produit.dart';
 import 'package:sqflite/sqflite.dart';
@@ -28,6 +29,196 @@ class LocalDatabaseService extends ChangeNotifier{
     _database = await initDB();
     return _database!;
   }
+
+Future<int> generateUniqueId(Database db) async {
+  int id = _generateRandomId(); // Générer un ID aléatoire
+  bool exists = await _idExists(db, id);
+
+  // Si l'ID existe déjà, générer un autre jusqu'à ce qu'il soit unique
+  while (exists) {
+    id = _generateRandomId();
+    exists = await _idExists(db, id);
+  }
+
+  return id; // Retourner un ID unique
+}
+
+ int _generateRandomId() {
+  Random random = Random();
+  // Générer deux parties d'entiers pour constituer un ID de 12 chiffres
+  int part1 = random.nextInt(900000) + 100000; // Générer 6 chiffres (100000 à 999999)
+  int part2 = random.nextInt(900000) + 100000; // Générer 6 chiffres (100000 à 999999)
+
+  // Combiner les deux parties pour obtenir un ID de 12 chiffres
+  String idStr = '$part1$part2';
+  return int.parse(idStr); // Convertir la chaîne en entier
+}
+
+
+Future<bool> _idExists(Database db, int id) async {
+  // Requête pour vérifier si l'ID existe déjà dans la base de données
+  final result = await db.query(
+    'enquete_collecte',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+
+  return result.isNotEmpty; // Retourner vrai si l'ID existe, sinon faux
+}
+
+Future<int> insertEnqueteCollecteAndsendId(EnqueteCollecte enquete) async {
+  final db = await database;
+
+  try {
+    // Générer un ID unique
+    int uniqueId = await generateUniqueId(db);
+
+    print('Generated unique ID: $uniqueId');
+
+    // Ajouter l'ID généré à l'enquête
+    enquete.id_enquete = uniqueId;
+
+    // Insérer l'enquête dans la base de données
+    int generatedId = await db.insert('enquete_collecte', enquete.toMap());
+
+    print('Insertion réussie avec ID: $generatedId');
+
+    return generatedId; // Retourner l'ID de l'insertion
+  } catch (e) {
+    print('Erreur lors de l\'insertion de l\'enquête: $e');
+    return 0; // Retourner une valeur spéciale en cas d'échec
+  }
+}
+
+//    Future<int> generateUniqueId(Database db) async {
+//   int id = _generateRandomId(); // Générer un ID aléatoire
+//   bool exists = await _idExists(db, id);
+
+//   // Si l'ID existe déjà, générer un autre jusqu'à ce qu'il soit unique
+//   while (exists) {
+//     id = _generateRandomId();
+//     exists = await _idExists(db, id);
+//   }
+
+//   return id; // Retourner un ID unique
+// }
+
+// int _generateRandomId() {
+//   Random random = Random();
+//   // Générer un nombre aléatoire à 12 chiffres
+//   return 100000000000 + random.nextInt(900000000000); // Nombre entre 100000000000 et 999999999999
+// }
+
+// Future<bool> _idExists(Database db, int id) async {
+//   // Requête pour vérifier si l'ID existe déjà dans la base de données
+//   final result = await db.query(
+//     'enquete_collecte',
+//     where: 'id_enquete = ?',
+//     whereArgs: [id],
+//   );
+
+//   return result.isNotEmpty; // Retourner vrai si l'ID existe, sinon faux
+// }
+
+//    Future<int> insertEnqueteCollecteAndsendId(EnqueteCollecte enquete) async {
+//    final db = await database;
+
+//   // Générer un ID unique
+//   int uniqueId = await generateUniqueId(db);
+
+//   // Ajouter l'ID généré à l'enquête
+//   enquete.id_enquete = uniqueId;
+
+//   // Insérer l'enquête dans la base de données
+//   int generatedId = await db.insert('enquete_collecte', enquete.toMap());
+
+//   return generatedId; // Retourner l'ID de l'insertion
+//   }
+
+  //Debut ECons
+
+  Future<int> generateUniqueIdForEnqueteConsommation(Database db) async {
+  int id = _generateRandomId(); // Générer un ID aléatoire
+  bool exists = await _idExists(db, id);
+
+  // Si l'ID existe déjà, générer un autre jusqu'à ce qu'il soit unique
+  while (exists) {
+    id = _generateRandomId();
+    exists = await _idExistsConsommationEnquete(db, id);
+  }
+
+  return id; // Retourner un ID unique
+}
+
+
+
+   Future<bool> _idExistsConsommationEnquete(Database db, int id) async {
+  // Requête pour vérifier si l'ID existe déjà dans la base de données
+  final result = await db.query(
+    'enquete',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+
+  return result.isNotEmpty; // Retourner vrai si l'ID existe, sinon faux
+}
+
+
+
+   Future<int> insertEnqueteConsommationteAndsendId(Enquete enquete) async {
+    final db = await database;
+
+  // Générer un ID unique pour l'enquête
+  int uniqueId = await generateUniqueIdForEnqueteConsommation(db);
+
+  // Ajouter l'ID unique à l'enquête
+  enquete.id_enquete = uniqueId;
+
+  // Insérer l'enquête dans la base de données
+  int generatedId = await db.insert('enquete', enquete.toMap());
+
+  return generatedId; // Retourner l'ID de l'insertion
+    }
+  
+  // debut enGros 
+ Future<int> generateUniqueIdForEnqueteGrossiste(Database db) async {
+  int id = _generateRandomId(); // Générer un ID aléatoire
+  bool exists = await _idExists(db, id);
+
+  // Si l'ID existe déjà, générer un autre jusqu'à ce qu'il soit unique
+  while (exists) {
+    id = _generateRandomId();
+    exists = await _idExistsEnqueteGrossiste(db, id);
+  }
+
+  return id; // Retourner un ID unique
+}
+
+  Future<bool> _idExistsEnqueteGrossiste(Database db, int id) async {
+  // Requête pour vérifier si l'ID existe déjà dans la base de données
+  final result = await db.query(
+    'enquete',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+
+  return result.isNotEmpty; // Retourner vrai si l'ID existe, sinon faux
+}
+
+   Future<int> insertEnqueteGrossisteAndsendId(EnqueteGrossiste enquete) async {
+    final db = await database;
+
+  // Générer un ID unique pour l'enquête
+  int uniqueId = await generateUniqueIdForEnqueteGrossiste(db);
+
+  // Ajouter l'ID unique à l'enquête
+  enquete.id_enquete = uniqueId;
+
+  // Insérer l'enquête dans la base de données
+  int generatedId = await db.insert('enquete_grossiste', enquete.toMap());
+
+  return generatedId; // Retourner l'ID de l'insertion
+  }
   //  Future<Database> get database async {
   //   if (_database != null) return _database!;
 
@@ -42,7 +233,7 @@ class LocalDatabaseService extends ChangeNotifier{
   String path = join(await getDatabasesPath(), 'collecte.db');
   return await openDatabase(
     path,
-    version: 2,
+    version: 1,
     // version: 2, // Augmentez la version de la base de données
 onCreate: (db, version) async {
   // _onUpgrade(db, 1, 2);
@@ -53,6 +244,7 @@ onCreate: (db, version) async {
         isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
         marche TEXT,
         collecteur TEXT,
+        id_code_mobile INTEGER,
         date_enquete TEXT,
         date_enregistrement TEXT,
         id_personnel TEXT,
@@ -73,7 +265,7 @@ onCreate: (db, version) async {
           latitude TEXT,
           superficie REAL,
           description TEXT,
-          commune TEXT,
+          commune INTEGER,
           collecteur TEXT,
           id_personnel TEXT,
           date_enregistrement TEXT,
@@ -138,13 +330,14 @@ onCreate: (db, version) async {
         // Création de la table enquete_grossiste
       await db.execute('''
         CREATE TABLE enquete_grossiste (
-          id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_enquete INTEGER PRIMARY KEY ,
           isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
           num_fiche TEXT,
           marche TEXT,
           collecteur TEXT,
           date_enquete TEXT,
           date_enregistrement TEXT,
+          id_code_mobile INTEGER,
           id_personnel TEXT,
           etat TEXT,
           modifier_le TEXT,
@@ -155,11 +348,12 @@ onCreate: (db, version) async {
       
        // Création de la table enquete_simple
       await db.execute('''CREATE TABLE enquete (
-        id_enquete INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_enquete INTEGER PRIMARY KEY ,
         isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
         marche TEXT,
         collecteur int,
         statut TEXT,
+        id_code_mobile INTEGER,
         date_enquete TEXT,
         observation TEXT
       )''');
@@ -186,6 +380,22 @@ onCreate: (db, version) async {
           modifier_par TEXT
         )
       ''');
+
+      await db.execute('''
+      CREATE TABLE commune (
+        id_commune INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_commune TEXT,
+        nom_commune TEXT,
+        abrege_commune TEXT,
+        departement TEXT,
+        prefecture INTEGER,
+        etat TEXT,
+        id_personnel TEXT,
+        date_enregistrement TEXT,
+        modifier_le TEXT,
+        modifier_par TEXT
+      )
+    ''');
 
 
       // Création de la table prix_marche_grossiste
@@ -227,25 +437,25 @@ onCreate: (db, version) async {
   
     },
     
-     onUpgrade: (db, oldVersion, newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('''
-      CREATE TABLE commune (
-        id_commune INTEGER PRIMARY KEY AUTOINCREMENT,
-        code_commune TEXT,
-        nom_commune TEXT,
-        abrege_commune TEXT,
-        departement TEXT,
-        prefecture INTEGER,
-        etat TEXT,
-        id_personnel TEXT,
-        date_enregistrement TEXT,
-        modifier_le TEXT,
-        modifier_par TEXT
-      )
-    ''');
-    }
-  },
+  //    onUpgrade: (db, oldVersion, newVersion) async {
+  //   if (oldVersion < 2) {
+  //     await db.execute('''
+  //     CREATE TABLE commune (
+  //       id_commune INTEGER PRIMARY KEY AUTOINCREMENT,
+  //       code_commune TEXT,
+  //       nom_commune TEXT,
+  //       abrege_commune TEXT,
+  //       departement TEXT,
+  //       prefecture INTEGER,
+  //       etat TEXT,
+  //       id_personnel TEXT,
+  //       date_enregistrement TEXT,
+  //       modifier_le TEXT,
+  //       modifier_par TEXT
+  //     )
+  //   ''');
+  //   }
+  // },
       //   onUpgrade: (db, oldVersion, newVersion) async {
       // if (oldVersion < 2) {
       //   // Supprimer et recréer la table prix_marche_consommation
@@ -312,30 +522,164 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
 }
 
 
- // Méthode pour supprimer et recréer la table marche
-  Future<void> resetMarcheTable() async {
+//  // Méthode pour supprimer et recréer la table marche
+  Future<void> resetPMCTable() async {
     final db = await database;
-    await db.execute('DROP TABLE IF EXISTS marche'); // Supprime la table si elle existe
-    await db.execute('''
-        CREATE TABLE marche (
-          id_marche INTEGER PRIMARY KEY AUTOINCREMENT,
-          code_marche TEXT, 
-          nom_marche TEXT,
-          type_marche TEXT,
-          jour_marche TEXT,
-          localite TEXT,
-          longitude TEXT,
-          latitude TEXT,
-          superficie REAL,
-          description TEXT,
-          commune INTEGER,
-          collecteur TEXT,
+    await db.execute('DROP TABLE IF EXISTS prix_marche_collecte'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+      await db.execute('''
+        CREATE TABLE prix_marche_collecte (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          produit TEXT,
+          isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
+          unite INTEGER,
+          poids_unitaire REAL,
+          montant_achat REAL,
+          prix_fg_kg REAL,
+          localite_origine TEXT,
+          distance_origine_marche REAL,
+          montant_transport INTEGER,
+          etat_route TEXT,
+          quantite_collecte REAL,
+          client_principal INTEGER,
+          fournisseur_principal INTEGER,
+          niveau_approvisionement INTEGER,
+          app_mobile INTEGER,
+          
+          observation TEXT,
+          statut INTEGER,
           id_personnel TEXT,
           date_enregistrement TEXT,
           modifier_le TEXT,
           modifier_par TEXT
         )
       '''); // Recréation de la table avec les bonnes colonnes
+  }
+  Future<void> resetPMGable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS new_prix_marche_consommation'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+      await db.execute('''
+        CREATE TABLE new_prix_marche_consommation (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          produit TEXT,
+          unite INTEGER,
+          isSynced INTEGER,
+          poids_unitaire REAL,
+          prix_mesure REAL,
+          prix_kg_litre REAL,
+          niveau_approvisionement INTEGER,
+          observation TEXT,
+          document TEXT,
+          app_mobile INTEGER,
+          statut INTEGER,
+          id_personnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+ // Recréation de la table avec les bonnes colonnes
+  }
+  Future<void> resetEnqueteTable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS enquete'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+       await db.execute('''CREATE TABLE enquete (
+        id_enquete INTEGER PRIMARY KEY,
+        isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
+        marche TEXT,
+        collecteur int,
+        statut TEXT,
+        id_code_mobile INTEGER,
+        date_enquete TEXT,
+        observation TEXT
+      )''');
+ // Recréation de la table avec les bonnes colonnes
+  }
+  Future<void> resetEnqueteGrossisteTable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS enquete_grossiste'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+       await db.execute('''
+        CREATE TABLE enquete_grossiste (
+          id_enquete INTEGER PRIMARY KEY ,
+          isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
+          num_fiche TEXT,
+          marche TEXT,
+          collecteur TEXT,
+          date_enquete TEXT,
+          date_enregistrement TEXT,
+          id_code_mobile INTEGER,
+          id_personnel TEXT,
+          etat TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+ // Recréation de la table avec les bonnes colonnes
+  }
+  Future<void> resetEnqueteCollecteTable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS enquete_collecte'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+        await db.execute('''CREATE TABLE enquete_collecte (
+        id_enquete INTEGER PRIMARY KEY,
+        num_fiche TEXT,
+        isSynced INTEGER,  -- Remplacez BOOLEAN par INTEGER (0 ou 1 pour représenter false/true)
+        marche TEXT,
+        collecteur TEXT,
+        id_code_mobile INTEGER,
+        date_enquete TEXT,
+        date_enregistrement TEXT,
+        id_personnel TEXT,
+        etat TEXT,
+        modifier_le TEXT,
+        modifier_par TEXT
+      )''');
+ // Recréation de la table avec les bonnes colonnes
+  }
+  Future<void> resetPMCable() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS prix_marche_grossiste'); // Supprime la table si elle existe
+ // Création de la table prix_marche_collecte
+     await db.execute('''
+        CREATE TABLE prix_marche_grossiste (
+          id_fiche INTEGER PRIMARY KEY AUTOINCREMENT,
+          enquete INTEGER,
+          grossiste TEXT,
+          produit TEXT,
+          unite_stock INTEGER,
+          nombre_unite_stock REAL,
+          poids_moyen_unite_stock REAL,
+          poids_stock REAL,
+          unite_achat INTEGER,
+          isSynced INTEGER,
+          nombre_unite_achat REAL,
+          poids_moyen_unite_achat REAL,
+          poids_total_achat REAL,
+          localite_achat TEXT,
+          fournisseur_achat INTEGER,
+          unite_vente INTEGER,
+          nombre_unite_vente REAL,
+          poids_moyen_unite_vente REAL,
+          poids_total_unite_vente REAL,
+          prix_unitaire_vente INTEGER,
+          client_vente INTEGER,
+          localite_vente TEXT,
+          app_mobile INTEGER,
+          observation TEXT,
+          statut INTEGER,
+          id_personnel TEXT,
+          date_enregistrement TEXT,
+          modifier_le TEXT,
+          modifier_par TEXT
+        )
+      ''');
+
+ // Recréation de la table avec les bonnes colonnes
   }
 // Future<Database> initDB() async {
 //   String path = join(await getDatabasesPath(), 'collecte.db');
@@ -411,6 +755,7 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
    Future<List<Produit>> getAllProduits() async {
     final db = await database;
     final result = await db.query('produit');
+    print(result);
     return result.map((e) => Produit.fromMap(e)).toList();
   }
 
@@ -576,6 +921,39 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
   );
     Get.snackbar("Succes", "Supprimer avec succès", snackPosition: SnackPosition.BOTTOM);
 }
+  Future<int> deleteEnqueteGrossisteThen(int id) async {
+  final db = await database;
+
+  // Supprime l'enquête dont l'ID correspond
+  int idDelete = await db.delete(
+    'enquete_grossiste',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+return idDelete;
+}
+  Future<int> deleteEnqueteThen(int id) async {
+  final db = await database;
+
+  // Supprime l'enquête dont l'ID correspond
+  int idDelete = await db.delete(
+    'enquete',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+return idDelete;
+}
+  Future<int> deleteEnqueteCollecteThen(int id) async {
+  final db = await database;
+
+  // Supprime l'enquête dont l'ID correspond
+  int idDelete = await db.delete(
+    'enquete_collecte',
+    where: 'id_enquete = ?',
+    whereArgs: [id],
+  );
+return idDelete;
+}
 
  //Marche collecte crud
   Future<void> insertPrixMarcheCollecte(PrixMarcheCollecte prixMarcheCollecte) async {
@@ -728,5 +1106,29 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     final db = await database;
     await db.delete('enquete');
   }
+
+
+
+
+
+
+  //  get ALLs
+  Future<List<Commune>> getAllCommuness() async {
+    final db = await database;
+  final List<Map<String, dynamic>> maps = await db.query('commune');
+  return List.generate(maps.length, (i) {
+    return Commune.fromMap(maps[i]);
+  });
+}
+  Future<List<Produit>> getAllProduit() async {
+    final db = await database;
+  final List<Map<String, dynamic>> maps = await db.query('produit');
+  return List.generate(maps.length, (i) {
+    return Produit.fromMap(maps[i]);
+  });
+}
+
+
+
 
 }

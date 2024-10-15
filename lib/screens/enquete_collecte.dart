@@ -16,8 +16,10 @@ import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Collecte.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_enquete_collecte.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Marche_Service.dart';
@@ -49,8 +51,8 @@ class _EnqueteCollecteScreenState extends State<EnqueteCollecteScreen> {
     bool isLoading =true;
     bool isLoading1 =false;
     late Marche marche;
-    late Future _marcheList;
-  bool isOffline = false;
+    late Future<List<Marche>> _marcheList;
+    bool isOffline = false;
 
      bool isConnected = false;
 
@@ -131,16 +133,16 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<EnqueteCollecte> fetchedList = await EnqueteService().fetchEnqueteCollecte().then((enquetes) {
+    List<EnqueteCollecte> fetchedList = await LocalDatabaseService().getAllEnquetes().then((enquetes) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      enqueteCollecteList.addAll(enquetes);
+      enqueteCollecteList = enquetes;
+      // isLoading = false;
     });
+  // });
+    // setState(() {
+    //   enqueteCollecteList.addAll(enquetes);
+    // });
     return enqueteCollecteList;
   });
     
@@ -156,7 +158,7 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
  
        LocalDatabaseService dbHelper = LocalDatabaseService();
 
-Future<void> fetchAndSyncMarche() async {
+   Future<void> fetchAndSyncMarche() async {
   final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
   final enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
 
@@ -195,6 +197,8 @@ Future<void> fetchAndSyncMarche() async {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _marcheList = dbHelper.getAllMarche();
+
     // _marcheList =
     //     http.get(Uri.parse('$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/'));
 
@@ -206,12 +210,7 @@ Future<void> fetchAndSyncMarche() async {
       isLoading = false;  // Désactiver le chargement
     });
 
-    // Tenter de synchroniser avec l'API si connecté
-    EnqueteService().fetchEnqueteCollecte().then((enquetes) {
-      setState(() {
-        enqueteCollecteList.addAll(enquetes);
-      });
-    });
+   
   });
 }
 
@@ -284,7 +283,7 @@ Future<void> fetchAndSyncMarche() async {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.number,
                     validator: (val) {
                       if (val == null || val.isEmpty) {
                         return "Veuillez entrer le numéro de fiche";
@@ -355,117 +354,135 @@ Future<void> fetchAndSyncMarche() async {
         child: ElevatedButton(
                           onPressed: () async  {
                           
-                          if (!isEditMode && formkey.currentState!.validate()) {
-     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-//  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
- final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+if (!isEditMode && formkey.currentState!.validate()) {
+  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-// This condition is for demo purposes only to explain every connection type.
-// Use conditions which work for your requirements.
-   if (st == false) {
-   print("hors ligne");
-  // Mobile network available.
-    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  // Si l'utilisateur est hors ligne
+  if (st == false) {
+    print("hors ligne");
+    Snack.error(titre: "Alerte", message: "Vous êtes hors connexion");
+
     EnqueteCollecte enquete = EnqueteCollecte(
-      collecteur:enqueteurProvider.enqueteur!.id_personnel!,
-    num_fiche: numFicheController.text,
-    marche: marcheController.text,
-    date_enquete: dateController.text,
-    isSynced: 0,
-  );
-    await LocalDatabaseService().insertEnquete(enquete).then((value) => {
-        LocalDatabaseService().getAllEnquetes().then((enquetes) {
-    setState(() {
-      enqueteCollecteList = enquetes;
-      isLoading = false;
-    });
-  hideLoadingDialog(context);
-  Get.back();
-  })
-    });
-  }else{
-      print("en ligne");
-           showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+      collecteur: enqueteurProvider.enqueteur!.id_personnel!,
+      num_fiche: numFicheController.text,
+      marche: marcheController.text,
+      date_enquete: dateController.text,
+      isSynced: 0,
+    );
 
-                                            //   print("valid");
-                          try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
+    // Insérer l'enquête localement et récupérer l'ID généré
+    await LocalDatabaseService().insertEnqueteCollecteAndsendId(enquete).then((generatedId) {
+      // Mettre à jour l'objet enquete avec l'ID généré
+      enquete.id_enquete = generatedId;
 
-  // Ajouter l'enquête collectée
-  await EnqueteService().addEnqueteCollecte(
-    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
-    num_fiche: numFicheController.text,
-    marche: marche.id_marche!.toString(),
-    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
-    date_enquete: dateEnquete,
-  ).then((value) {
-    hideLoadingDialog(context);
-  });
-
-  // Appliquer les changements via le Provider
-  Provider.of<EnqueteService>(context, listen: false).applyChange();
-
-  // Récupérer la nouvelle liste d'enquêtes collectées
-  List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
-
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading = false;
-    enqueteCollecteList = nouvelleListe;
-  });
-  numFicheController.clear();
-  dateController.clear();
-  marcheController.clear();
-
-  // Fermer le dialogue
-  Navigator.of(context).pop();
-
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("Erreur : " + errorMessage);
-
-  // Gérer l'erreur ici
-}
-}
-
-                          }else if(formkey.currentState!.validate() && isEditMode ) {
-                              showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-   
-                             try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
-
-
-  await EnqueteService()
-      .updateEnqueteCollecte(
-        id_enquete: enqueteCollecte!.id_enquete!,
-        num_fiche: numFicheController.text,
-        marche: marcheController.text,
-        date_enquete: dateEnquete,
-      collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
-      ).then((value) {
+      LocalDatabaseService().getAllEnquetes().then((enquetes) {
+        setState(() {
+          enqueteCollecteList = enquetes;
+          isLoading = false;
+        });
+        numFicheController.clear();
+        dateController.clear();
+        marcheController.clear();
         hideLoadingDialog(context);
-      });
-            Provider.of<EnqueteService>(context, listen: false).applyChange();
-           List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
 
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading = false;
-    enqueteCollecteList = nouvelleListe;
-  });
-   numFicheController.clear();
-  dateController.clear();
-  marcheController.clear();
-            Navigator.of(context).pop();
-          
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("erreur m: " + errorMessage);
+        // Redirection après mise à jour de l'UI avec l'ID correct
+        Get.to(AddPrixMarcheCollecteScreen(isEditMode: false, id_enquete: enquete.id_enquete!));
+      });
+    }).catchError((error) {
+      // Gérer l'erreur
+      print("Erreur lors de l'insertion locale : $error");
+      Snack.error(titre: "Erreur", message: "Impossible de sauvegarder l'enquête");
+      hideLoadingDialog(context);
+    });
+  }
 }
 
-                                }
+//   else{
+//       print("en ligne");
+//            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
+//                                             //   print("valid");
+//                           try {
+//   // Convertir la date de String à DateTime
+//   DateTime dateEnquete = DateTime.parse(dateController.text);
+
+//   // Ajouter l'enquête collectée
+//   await EnqueteService().addEnqueteCollecte(
+//     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+//     num_fiche: numFicheController.text,
+//     marche: marche.id_marche!.toString(),
+//     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
+//     date_enquete: dateEnquete,
+//   ).then((value) {
+//     hideLoadingDialog(context);
+//   });
+
+//   // Appliquer les changements via le Provider
+//   Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+//   // Récupérer la nouvelle liste d'enquêtes collectées
+//   List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
+
+//   // Mettre à jour l'état avec la nouvelle liste
+//   setState(() {
+//     isLoading = false;
+//     enqueteCollecteList = nouvelleListe;
+//   });
+//   numFicheController.clear();
+//   dateController.clear();
+//   marcheController.clear();
+
+//   // Fermer le dialogue
+//   Navigator.of(context).pop();
+
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("Erreur : " + errorMessage);
+
+//   // Gérer l'erreur ici
+// }
+// }
+
+                          
+//                           else if(formkey.currentState!.validate() && isEditMode ) {
+//                               showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+   
+//                              try {
+//   // Convertir la date de String à DateTime
+//   DateTime dateEnquete = DateTime.parse(dateController.text);
+
+
+//   await EnqueteService()
+//       .updateEnqueteCollecte(
+//         id_enquete: enqueteCollecte!.id_enquete!,
+//         num_fiche: numFicheController.text,
+//         marche: marcheController.text,
+//         date_enquete: dateEnquete,
+//       collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
+//       ).then((value) {
+//         hideLoadingDialog(context);
+//       });
+//             Provider.of<EnqueteService>(context, listen: false).applyChange();
+//            List<EnqueteCollecte> nouvelleListe = await fetchEnqueteCollecte();
+
+//   // Mettre à jour l'état avec la nouvelle liste
+//   setState(() {
+//     isLoading = false;
+//     enqueteCollecteList = nouvelleListe;
+//   });
+//    numFicheController.clear();
+//   dateController.clear();
+//   marcheController.clear();
+//             Navigator.of(context).pop();
+          
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("erreur m: " + errorMessage);
+// }
+
+//                                 }
                         },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code
@@ -503,7 +520,7 @@ Future<void> fetchAndSyncMarche() async {
         backgroundColor: vert,
        leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                 actions:[
@@ -651,18 +668,25 @@ Future<void> fetchAndSyncMarche() async {
    DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
   // Ajouter l'enquête collectée
   await EnqueteService().addEnqueteCollecte(
+    id_code_mobile: enquete.id_enquete!,
     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
     num_fiche: enquete.num_fiche!,
     marche: enquete.marche!,
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
     date_enquete:parsedDate,
-  ).then((value) => {
+  ).then((value) {
+    if(value != null){
     LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
           hideLoadingDialog(context); // Cache le dialogue de chargement
-    })
-
+    });
+      setState(() {
+                  enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+      });
+   }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer");
+            hideLoadingDialog(context);
+    }
   });
-          enqueteCollecteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
 
   // Appliquer les changements via le Provider
   Provider.of<EnqueteService>(context, listen: false).applyChange();
@@ -672,7 +696,7 @@ Future<void> fetchAndSyncMarche() async {
 
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
-    isLoading1 = false;
+    isLoading = false;
     enqueteCollecteList.addAll(nouvelleListe);
   });
   numFicheController.clear();
@@ -685,6 +709,7 @@ Future<void> fetchAndSyncMarche() async {
 } catch (e) {
   final String errorMessage = e.toString();
   print("Erreur : " + errorMessage);
+      hideLoadingDialog(context);
 
   // Gérer l'erreur ici
 }
@@ -700,7 +725,38 @@ Future<void> fetchAndSyncMarche() async {
                         });
                                       print('Supprimer sélectionné');
                                     }
+                                    else if (result == 'lier') {
+                                    Get.to(AddPrixMarcheCollecteScreen(isEditMode: false, id_enquete: enquete.id_enquete,));
+                                      print('Supprimer sélectionné');
+                                    }
                                     else if (result == 'supprimee') {
+                                      final dbService = LocalDatabaseService();  // Créer une instance
+final db = await dbService.database;  
+  final result = await db.rawQuery('''
+    SELECT * FROM prix_marche_collecte WHERE enquete = ?
+  ''', [enquete.id_enquete]);
+
+  if (result.isNotEmpty) {
+    // Si des objets liés à l'enquête sont trouvés dans la table prix_marche_grossiste
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enquête non synchronisée'),
+          content: Text('Vous devez synchroniser l\'enquête avant de la supprimer.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    // Si l'enquête n'est pas liée, permettre la suppression
                                       // Action pour supprimer
                                       LocalDatabaseService().deleteEnqueteCollecte(enquete.id_enquete!).then((value) {
                           // Update the original list used by ListView.builder
@@ -709,7 +765,7 @@ Future<void> fetchAndSyncMarche() async {
                           });
                         });
                                       print('Supprimer sélectionné');
-                                    }
+                                    }}
                                   },
                                   itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
                                      <PopupMenuEntry<String>>  [
@@ -721,6 +777,10 @@ Future<void> fetchAndSyncMarche() async {
                                   const  PopupMenuItem<String>(
                                       value: 'detail',
                                       child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'lier',
+                                      child: Text('Ajouter une colllecte'),
                                     ),
                                   const  PopupMenuItem<String>(
                                       value: 'supprimee',

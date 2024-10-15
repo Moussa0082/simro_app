@@ -55,7 +55,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                     height: 200,
                                     width: double.infinity, // Occupe toute la largeur
                                     child: Image.asset(
-                                      "assets/images/riz.jpeg",
+                                      "assets/images/riz.jpg",
                                       fit: BoxFit.cover, // Permet de s'assurer que l'image couvre tout en respectant le ratio
                                     ),
                                   ),

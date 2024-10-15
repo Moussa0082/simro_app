@@ -4,11 +4,16 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:profile_photo/profile_photo.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
+import 'package:simro/models/Commune.dart';
 import 'package:simro/models/Enqueteur.dart';
+import 'package:simro/models/Marche.dart';
+import 'package:simro/models/Produit.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/add_prix_marche_consommation.dart';
@@ -44,10 +49,123 @@ class _HomeScreenState extends State<HomeScreen> {
   late Enqueteur enqueteurProvider;
       late TextEditingController _searchController;
 
+        late Produit produit;
+     late Future _produitList ;
+      late Commune commune;
+    late Future<List<Commune>> _communeList;
+    late Marche marche;
+    late Future<List<Marche>> _marcheList;
+
+
+      LocalDatabaseService dbHelper = LocalDatabaseService();
+
+  
+    Future<List<Commune>> fetchAndSyncCommune() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-commune/"));
+
+      if (response.statusCode == 200) {
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+        List<Commune> communes = responseData.map((e) => Commune.fromMap(e)).toList();
+
+        // Supprimer les communes existants en local avant de les mettre à jour
+        await dbHelper.deleteAllCommunes();
+
+        // Insérer les communes récupérés dans la base de données locale
+        for (var commune in communes) {
+          await dbHelper.insertCommune(commune);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des communes : $e");
+    }
+  }
+  // Une fois la synchronisation terminée, on récupère tous les communes locaux
+   return  _communeList = dbHelper.getAllCommunes();
+   }
+
+
+   // Récupérer les produits depuis l'API et les synchroniser
+   Future<void> fetchAndSyncProduits() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+
+  if (st == true) {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/all-produits/"));
+
+      if (response.statusCode == 200) {
+        // final List<dynamic> responseData = json.decode(response.body);
+            final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+
+        List<Produit> produits = responseData.map((e) => Produit.fromMap(e)).toList();
+
+        // Supprimer les produits existants en local avant de les mettre à jour
+        await dbHelper.deleteAllProduits();
+
+        // Insérer les produits récupérés dans la base de données locale
+        for (var produit in produits) {
+          await dbHelper.insertProduit(produit);
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des produits : $e");
+    }
+        _produitList = dbHelper.getAllProduits();
+
+  }else{
+        _produitList = dbHelper.getAllProduits();
+
+  }
+
+  // Une fois la synchronisation terminée, on récupère tous les produits locaux
+}
+
+Future<List<Marche>> fetchAndSyncMarche() async {
+  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+  final enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
+
+  if (st == true) {
+    if (enqueteurProvider.enqueteur != null) {
+      try {
+        final response = await http.get(Uri.parse(
+          "$apiUrl/marche-by-collecteur-code/${enqueteurProvider.enqueteur!.code}/",
+        ));
+
+        if (response.statusCode == 200) {
+          final List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+          List<Marche> marches = responseData.map((e) => Marche.fromMap(e)).toList();
+
+          // Supprimer les marchés existants avant de les insérer
+          await dbHelper.deleteAllMarches();
+
+          // Insérer les nouveaux marchés récupérés
+          for (var marche in marches) {
+            await dbHelper.addMarche(marche);
+          }
+        }
+      } catch (e) {
+        print("Erreur lors de la récupération des marches : $e");
+      }
+    } else {
+      print("Enqueteur est null");
+    }
+  }
+
+  // Récupérer et mettre à jour la liste locale après synchronisation
+  return _marcheList = dbHelper.getAllMarche();
+}
+
+
 
    @override
   void initState() {
     super.initState();
+     _produitList = fetchAndSyncProduits();
+    _communeList = fetchAndSyncCommune();
+    _marcheList = fetchAndSyncMarche();
     _searchController = TextEditingController();
       enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false).enqueteur!;
   }
@@ -72,13 +190,13 @@ final db = await dbService.database;       // Accéder à la méthode via l'inst
   // Exécuter la requête pour récupérer les totaux
   final result = await db.rawQuery('''
     SELECT 
-      (SELECT COUNT(*) FROM enquete) AS total_consommation,
-      (SELECT COUNT(*) FROM enquete_collecte) AS total_collecte,
-      (SELECT COUNT(*) FROM enquete_grossiste) AS total_grossiste,
+      (SELECT COUNT(*) FROM enquete where isSynced = 0) AS total_consommation,
+      (SELECT COUNT(*) FROM enquete_collecte where isSynced = 0) AS total_collecte,
+      (SELECT COUNT(*) FROM enquete_grossiste where isSynced = 0) AS total_grossiste,
       (
-        (SELECT COUNT(*) FROM enquete) +
-        (SELECT COUNT(*) FROM enquete_collecte) +
-        (SELECT COUNT(*) FROM enquete_grossiste)
+        (SELECT COUNT(*) FROM enquete where isSynced = 0) +
+        (SELECT COUNT(*) FROM enquete_collecte where isSynced = 0) +
+        (SELECT COUNT(*) FROM enquete_grossiste where isSynced = 0)
       ) AS total_general;
   ''');
 

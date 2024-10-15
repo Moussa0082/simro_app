@@ -101,13 +101,23 @@ class _DetailPrixMarcheGrossisteScreenState extends State<DetailPrixMarcheGrossi
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+         Expanded(
+            child: Text(
+              textAlign: TextAlign.left,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              label,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
           ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16),
+          Expanded(
+            child: Text(
+             textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              value,
+              style: TextStyle(fontSize: 16),
+            ),
           ),
         ],
       ),

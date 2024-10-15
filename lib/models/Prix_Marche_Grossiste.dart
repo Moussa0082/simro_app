@@ -71,6 +71,7 @@ class PrixMarcheGrossiste {
     String? grossiste,
     String? produit,
     int? unite_stock,
+    int? id_code_mobile,
     double? nombre_unite_stock,
     double? poids_moyen_unite_stock,
     double? poids_stock,
@@ -209,7 +210,7 @@ prix_unitaire_vente: map['prix_unitaire_vente'] != null
 
   @override
   String toString() {
-    return 'PrixMarcheGrossiste(enquete: $enquete, grossiste: $grossiste, produit: $produit, unite_stock: $unite_stock, nombre_unite_stock: $nombre_unite_stock, poids_moyen_unite_stock: $poids_moyen_unite_stock, poids_stock: $poids_stock, unite_achat: $unite_achat, isSynced: $isSynced, nombre_unite_achat: $nombre_unite_achat, poids_moyen_unite_achat: $poids_moyen_unite_achat, poids_total_achat: $poids_total_achat, localite_achat: $localite_achat, fournisseur_achat: $fournisseur_achat, unite_vente: $unite_vente, nombre_unite_vente: $nombre_unite_vente, poids_moyen_unite_vente: $poids_moyen_unite_vente, poids_total_unite_vente: $poids_total_unite_vente, prix_unitaire_vente: $prix_unitaire_vente, client_vente: $client_vente, localite_vente: $localite_vente, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
+    return 'PrixMarcheGrossiste(enquete: $enquete, grossiste: $grossiste, produit: $produit, unite_stock: $unite_stock, nombre_unite_stock: $nombre_unite_stock, poids_moyen_unite_stock: $poids_moyen_unite_stock, poids_stock: $poids_stock, unite_achat: $unite_achat, isSynced: $isSynced,  nombre_unite_achat: $nombre_unite_achat, poids_moyen_unite_achat: $poids_moyen_unite_achat, poids_total_achat: $poids_total_achat, localite_achat: $localite_achat, fournisseur_achat: $fournisseur_achat, unite_vente: $unite_vente, nombre_unite_vente: $nombre_unite_vente, poids_moyen_unite_vente: $poids_moyen_unite_vente, poids_total_unite_vente: $poids_total_unite_vente, prix_unitaire_vente: $prix_unitaire_vente, client_vente: $client_vente, localite_vente: $localite_vente, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
   }
 
   @override

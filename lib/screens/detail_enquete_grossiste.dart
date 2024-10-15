@@ -34,15 +34,15 @@ class _DetailEnqueteGrossisteScreenState extends State<DetailEnqueteGrossisteScr
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDetailRow("Marché :", widget.enqueteGrossiste!.marche!),
+              buildDetailRow("Marché :", widget.enqueteGrossiste!.marche!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("N° Fiche :", widget.enqueteGrossiste!.num_fiche!),
+              buildDetailRow("N° Fiche :", widget.enqueteGrossiste!.num_fiche!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Date Enquête :", widget.enqueteGrossiste!.date_enquete!),
+              buildDetailRow("Date Enquête :", widget.enqueteGrossiste!.date_enquete!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Collecteur :", widget.enqueteGrossiste!.collecteur!),
+              buildDetailRow("Collecteur :", widget.enqueteGrossiste!.collecteur!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Statut :", "Terminé"),
+              // buildDetailRow("Statut :", "Terminé"),
               Divider(thickness: 1),
               SizedBox(height: 20),
               // Center(
@@ -72,11 +72,17 @@ class _DetailEnqueteGrossisteScreenState extends State<DetailEnqueteGrossisteScr
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+            Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
             label,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
             value,
             style: TextStyle(fontSize: 16),
           ),

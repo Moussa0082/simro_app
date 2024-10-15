@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/screens/products.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 import 'package:path/path.dart' as path;
@@ -271,7 +272,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         backgroundColor: vert,
                 leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
       ),

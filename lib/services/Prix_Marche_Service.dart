@@ -106,7 +106,7 @@ class PrixMarcheService extends ChangeNotifier{
     }
   }
 
-  Future<void> addPrixMarcheCollecte({
+  Future<PrixMarcheCollecte?> addPrixMarcheCollecte({
   required int enquete,
   required String produit,
   required int unite,
@@ -123,28 +123,26 @@ class PrixMarcheService extends ChangeNotifier{
   required int statut,
   required String localite_origine,
   required String etat_route,
-  // required String observation,
   required String id_personnel,
 }) async {
   var addPrixMarcheCollecte = jsonEncode({
-    'id_personnel': id_personnel,//
-    'enquete': enquete,//
-    'produit': produit,//
-    'poids_unitaire': poids_unitaire,//
-    'montant_achat': montant_achat,//
-    'prix_fg_kg': prix_fg_kg,//
-    'localite_origine': localite_origine,//
-    'distance_origine_marche': distance_origine_marche,//
-    'montant_transport': montant_transport,//
-    'etat_route': etat_route,//
-    'statut': statut,//
-    'unite': unite,//
-    // 'observation': observation,//
-    'quantite_collecte': quantite_collecte,//
-    'client_principal': client_principal,//
-    'fournisseur_principal': fournisseur_principal,//
-    'niveau_approvisionement': niveau_approvisionement,//
-    'app_mobile': app_mobile,//
+    'id_personnel': id_personnel,
+    'produit': produit,
+    'poids_unitaire': poids_unitaire,
+    'montant_achat': montant_achat,
+    'enquete': enquete,
+    'prix_fg_kg': prix_fg_kg,
+    'localite_origine': localite_origine,
+    'distance_origine_marche': distance_origine_marche,
+    'montant_transport': montant_transport,
+    'etat_route': etat_route,
+    'statut': statut,
+    'unite': unite,
+    'quantite_collecte': quantite_collecte,
+    'client_principal': client_principal,
+    'fournisseur_principal': fournisseur_principal,
+    'niveau_approvisionement': niveau_approvisionement,
+    'app_mobile': app_mobile,
   });
 
   try {
@@ -161,8 +159,28 @@ class PrixMarcheService extends ChangeNotifier{
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print("Objet envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
+
+      // Retourner l'objet envoyé en cas de succès
+      return PrixMarcheCollecte(
+        id_personnel: id_personnel,
+        produit: produit,
+        // id_code_mobile: id_code_mobile,
+        poids_unitaire: poids_unitaire,
+        montant_achat: montant_achat,
+        prix_fg_kg: prix_fg_kg,
+        localite_origine: localite_origine,
+        distance_origine_marche: distance_origine_marche,
+        montant_transport: montant_transport,
+        etat_route: etat_route,
+        statut: statut,
+        unite: unite,
+        quantite_collecte: quantite_collecte,
+        client_principal: client_principal,
+        fournisseur_principal: fournisseur_principal,
+        niveau_approvisionement: niveau_approvisionement,
+        app_mobile: app_mobile,
+      );
     } else {
-      // Capturer et afficher l'erreur exacte
       final Map<String, dynamic> errorResponse = jsonDecode(response.body);
       String errorMessage = errorResponse['message'] ?? 'Une erreur s\'est produite.';
       Snack.error(titre: "Erreur", message: errorMessage);
@@ -172,10 +190,13 @@ class PrixMarcheService extends ChangeNotifier{
     Snack.error(titre: "Erreur", message: "Une erreur s'est produite, veuillez réessayer plus tard.");
     print('Erreur lors de l\'ajout: $e');
   }
+
+  // Retourner null en cas d'erreur ou d'échec de la requête
+  return null;
 }
 
 
-  Future<void> addPrixMarcheGrossiste({
+  Future<PrixMarcheGrossiste?> addPrixMarcheGrossiste({
   required int enquete,
   required String produit,
   required int unite_stock,
@@ -203,11 +224,12 @@ class PrixMarcheService extends ChangeNotifier{
 
   var addPrixMarcheGrossiste = jsonEncode({
     'id_personnel': id_personnel,
-    'enquete': enquete,
+    // 'enquete': enquete,
     'produit': produit,
     'unite_stock': unite_stock,
     'client_vente': client_vente,
     'unite_vente': unite_vente,
+    'enquete': enquete,
     'nombre_unite_stock': nombre_unite_stock,
     'poids_moyen_unite_stock': poids_moyen_unite_stock,
     'poids_stock': poids_stock,
@@ -239,8 +261,18 @@ class PrixMarcheService extends ChangeNotifier{
     print('Response Body: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
-      print("Objet envoyé avec succès");
+           print("Objet envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
+     return  PrixMarcheGrossiste(
+      app_mobile: app_mobile,
+      unite_vente: unite_vente,
+      produit: produit,
+      unite_stock: unite_stock,
+      poids_total_unite_vente: poids_total_unite_vente,
+      poids_total_achat: poids_total_achat,
+      prix_unitaire_vente: prix_unitaire_vente,
+      unite_achat: unite_achat,
+     );
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
       print("Erreur: ${response.body}");
@@ -253,7 +285,7 @@ class PrixMarcheService extends ChangeNotifier{
 
   
 
-  Future<void> addPrixMarcheConsommation({
+  Future<PrixMarcheConsommation?> addPrixMarcheConsommation({
   required int enquete,
   required String produit,
   required int unite,
@@ -300,6 +332,12 @@ class PrixMarcheService extends ChangeNotifier{
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print("Objet envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
+      return PrixMarcheConsommation(
+        unite: unite,
+        produit: produit,
+        prix_kg_litre: prix_kg_litre,
+        prix_mesure: prix_mesure
+      );
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
       print("Erreur: ${response.body}");

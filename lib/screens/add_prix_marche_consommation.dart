@@ -11,6 +11,7 @@ import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Prix_Marche_Consommation.dart';
 import 'package:simro/models/Produit.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/screens/prix_marche_consommation.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
@@ -20,8 +21,9 @@ import 'package:simro/widgets/shimmer_effect.dart';
 
 class AddPrixMarcheConsommationScreen extends StatefulWidget {
   bool? isEditMode;
+  int? id_enquete;
   PrixMarcheConsommation? prixMarcheConsommation;
-   AddPrixMarcheConsommationScreen({super.key, this.isEditMode, this.prixMarcheConsommation});
+   AddPrixMarcheConsommationScreen({super.key, this.isEditMode, this.prixMarcheConsommation, this.id_enquete});
 
   @override
   State<AddPrixMarcheConsommationScreen> createState() => _AddPrixMarcheConsommationScreenState();
@@ -45,8 +47,8 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
   TextEditingController produitController = TextEditingController();
   bool isLoading = true;
 
-   late Enquete enquete;
-    late Future _enqueteList;
+  //  late Enquete enquete;
+  //   late Future _enqueteList;
     late Produit produit;
     late Future _produitList;
 
@@ -54,8 +56,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
 
 // Vérifier la connectivité
 
-
-// Récupérer les produits depuis l'API et les synchroniser
+ // Récupérer les produits depuis l'API et les synchroniser
    Future<void> fetchAndSyncProduits() async {
   final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
@@ -86,32 +87,6 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
 }
 
 
-   Future<void> fetchAndSyncEnquete() async {
-  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
-
-  if (st == true) {
-    try {
-      final response = await http.get(Uri.parse("$apiUrl/all-enquete/"));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> responseData = json.decode(response.body);
-        List<Enquete> enquetes = responseData.map((e) => Enquete.fromMap(e)).toList();
-
-        // Supprimer les produits existants en local avant de les mettre à jour
-        await dbHelper.deleteAllEnqueteConsommation();
-
-        // Insérer les produits récupérés dans la base de données locale
-        for (var enquete in enquetes) {
-          await dbHelper.insertEnqueteConsommationn(enquete);
-        }
-      }
-    } catch (e) {
-      print("Erreur lors de la récupération des enquetes consommations : $e");
-    }
-  }
-  // Une fois la synchronisation terminée, on récupère tous les produits locaux
-     _enqueteList = dbHelper.getAllEnquetesConsommation();
-   }
 
 
   void showProduit() async {
@@ -288,162 +263,162 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
 
     _searchController = TextEditingController();
     
-     fetchAndSyncEnquete().then((value) => {
-      setState(() {
-        isLoading = false;
-      })
-     });
+    //  fetchAndSyncEnquete().then((value) => {
+    //   setState(() {
+    //     isLoading = false;
+    //   })
+    //  });
 
-     fetchAndSyncProduits().then((value) => {
+    fetchAndSyncProduits().then((value) {
       setState(() {
         isLoading = false;
-      })
-     });
+      });
+    });
 
 
   
   }
 
-    void showEnquete() async {
-  final BuildContext context = this.context;
+//     void showEnquete() async {
+//   final BuildContext context = this.context;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  if (mounted) setState(() {}); // Mise à jour de l'état lors de la recherche
-                },
-                decoration: InputDecoration(
-                  hintText: 'Rechercher une enquête',
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey[300]!,
-                      width: 1,
-                    ),
-                  ),
-                  suffixIcon: const Icon(Icons.search),
-                ),
-              ),
-            ),
-            content: FutureBuilder(
-              future: _enqueteList,
-              builder: (_, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return buildShimmerSelectList(); // Simule le chargement
-                }
+//   showDialog(
+//     context: context,
+//     builder: (BuildContext context) {
+//       return StatefulBuilder(
+//         builder: (context, setState) {
+//           return AlertDialog(
+//             title: Padding(
+//               padding: const EdgeInsets.all(10.0),
+//               child: TextField(
+//                 controller: _searchController,
+//                 onChanged: (value) {
+//                   if (mounted) setState(() {}); // Mise à jour de l'état lors de la recherche
+//                 },
+//                 decoration: InputDecoration(
+//                   hintText: 'Rechercher une enquête',
+//                   border: UnderlineInputBorder(
+//                     borderSide: BorderSide(
+//                       color: Colors.grey[300]!,
+//                       width: 1,
+//                     ),
+//                   ),
+//                   suffixIcon: const Icon(Icons.search),
+//                 ),
+//               ),
+//             ),
+//             content: FutureBuilder(
+//               future: _enqueteList,
+//               builder: (_, snapshot) {
+//                 if (snapshot.connectionState == ConnectionState.waiting) {
+//                   return buildShimmerSelectList(); // Simule le chargement
+//                 }
 
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Erreur lors du chargement des données"),
-                  );
-                }
+//                 if (snapshot.hasError) {
+//                   return const Center(
+//                     child: Text("Erreur lors du chargement des données"),
+//                   );
+//                 }
 
-                if (snapshot.hasData) {
-          List<Enquete> typeListe = snapshot.data as List<Enquete>;
-                    if (typeListe.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Center(child: Text("Aucune enquête trouvée")),
-                      );
-                    }
+//                 if (snapshot.hasData) {
+//           List<Enquete> typeListe = snapshot.data as List<Enquete>;
+//                     if (typeListe.isEmpty) {
+//                       return const Padding(
+//                         padding: EdgeInsets.all(10),
+//                         child: Center(child: Text("Aucune enquête trouvée")),
+//                       );
+//                     }
 
-                    // Filtre les résultats en fonction de la recherche
-                    String searchText = _searchController.text.toLowerCase();
-                    List<Enquete> filteredSearch = typeListe
-                        .where((type) => type.id_enquete.toString()
-                            .toLowerCase()
-                            .contains(searchText))
-                        .toList();
+//                     // Filtre les résultats en fonction de la recherche
+//                     String searchText = _searchController.text.toLowerCase();
+//                     List<Enquete> filteredSearch = typeListe
+//                         .where((type) => type.id_enquete.toString()
+//                             .toLowerCase()
+//                             .contains(searchText))
+//                         .toList();
 
-                    return filteredSearch.isEmpty
-                        ? const Padding(
-                            padding: EdgeInsets.all(10),
-                            child: Center(child: Text("Aucun résultat trouvé")),
-                          )
-                        : SizedBox(
-                            width: double.maxFinite,
-                            child: ListView.builder(
-                              itemCount: filteredSearch.length,
-                              itemBuilder: (context, index) {
-                                final type = filteredSearch[index];
+//                     return filteredSearch.isEmpty
+//                         ? const Padding(
+//                             padding: EdgeInsets.all(10),
+//                             child: Center(child: Text("Aucun résultat trouvé")),
+//                           )
+//                         : SizedBox(
+//                             width: double.maxFinite,
+//                             child: ListView.builder(
+//                               itemCount: filteredSearch.length,
+//                               itemBuilder: (context, index) {
+//                                 final type = filteredSearch[index];
 
-                                // Comparer correctement les types : ici en convertissant `id_enquete` en String
-                                final isSelected = enqueteController.text == type.id_enquete.toString();
+//                                 // Comparer correctement les types : ici en convertissant `id_enquete` en String
+//                                 final isSelected = enqueteController.text == type.id_enquete.toString();
 
-                                return Column(
-                                  children: [
-                                    ListTile(
-                                      title: Text(
-                                        type.id_enquete.toString(),
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      trailing: isSelected
-                                          ? const Icon(
-                                              Icons.check_box_outlined,
-                                              color: Colors.green, // Assure que `vert` est bien défini, sinon utilise une couleur par défaut
-                                            )
-                                          : null,
-                                      onTap: () {
-                                        setState(() {
-                                          enquete = type;
-                                          enqueteController.text = type.id_enquete.toString(); // Met à jour le controller avec l'id sélectionné
-                                        });
-                                      },
-                                    ),
-                                    const Divider(),
-                                  ],
-                                );
-                              },
-                            ),
-                          );
+//                                 return Column(
+//                                   children: [
+//                                     ListTile(
+//                                       title: Text(
+//                                         type.id_enquete.toString(),
+//                                         style: TextStyle(
+//                                           color: Colors.black,
+//                                           fontWeight: isSelected
+//                                               ? FontWeight.bold
+//                                               : FontWeight.normal,
+//                                           fontSize: 16,
+//                                         ),
+//                                       ),
+//                                       trailing: isSelected
+//                                           ? const Icon(
+//                                               Icons.check_box_outlined,
+//                                               color: Colors.green, // Assure que `vert` est bien défini, sinon utilise une couleur par défaut
+//                                             )
+//                                           : null,
+//                                       onTap: () {
+//                                         setState(() {
+//                                           enquete = type;
+//                                           enqueteController.text = type.id_enquete.toString(); // Met à jour le controller avec l'id sélectionné
+//                                         });
+//                                       },
+//                                     ),
+//                                     const Divider(),
+//                                   ],
+//                                 );
+//                               },
+//                             ),
+//                           );
                   
-                }
+//                 }
 
-                return const SizedBox(height: 8); // Si aucune donnée n'est chargée
-              },
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text(
-                  'Annuler',
-                  style: TextStyle(color: Colors.orange, fontSize: 16),
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text(
-                  'Valider',
-                  style: TextStyle(color: Colors.orange, fontSize: 16),
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  print('Options sélectionnées : $enquete');
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+//                 return const SizedBox(height: 8); // Si aucune donnée n'est chargée
+//               },
+//             ),
+//             actions: <Widget>[
+//               TextButton(
+//                 child: const Text(
+//                   'Annuler',
+//                   style: TextStyle(color: Colors.orange, fontSize: 16),
+//                 ),
+//                 onPressed: () {
+//                   _searchController.clear();
+//                   Navigator.of(context).pop();
+//                 },
+//               ),
+//               TextButton(
+//                 child: const Text(
+//                   'Valider',
+//                   style: TextStyle(color: Colors.orange, fontSize: 16),
+//                 ),
+//                 onPressed: () {
+//                   _searchController.clear();
+//                   print('Options sélectionnées : $enquete');
+//                   Navigator.of(context).pop();
+//                 },
+//               ),
+//             ],
+//           );
+//         },
+//       );
+//     },
+//   );
+// }
 
 
   @override
@@ -455,7 +430,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
         backgroundColor: vert,
                 leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
       ),
@@ -485,7 +460,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez l'unité";
@@ -516,7 +491,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le poids unitaire";
@@ -547,7 +522,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le prix par kilogramme ou litre";
@@ -578,7 +553,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le prix messure";
@@ -642,7 +617,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le niveau d'approvisionnement";
@@ -774,36 +749,36 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                                ),
                              ),
                            ),
-                        const  SizedBox(
-                            height: 15,
-                          ),
+                        // const  SizedBox(
+                        //     height: 15,
+                        //   ),
 
-                              const Padding(
-                            padding:  EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              "Enquete *",
-                              style:
-                                  TextStyle(color: (Colors.black), fontSize: 18),
-                            ),
-                          ),
-                           GestureDetector(
-                             onTap: showEnquete,
-                             child: TextFormField(
-                               onTap: showEnquete,
-                               controller: enqueteController,
-                               keyboardType: TextInputType.text,
-                               decoration: InputDecoration(
-                                 suffixIcon: Icon(Icons.arrow_drop_down,
-                                     color: Colors.blueGrey[400]),
-                                 hintText: "Sélectionner un produit ",
-                                 contentPadding: const EdgeInsets.symmetric(
-                                     vertical: 10, horizontal: 20),
-                                 border: OutlineInputBorder(
-                                   borderRadius: BorderRadius.circular(8),
-                                 ),
-                               ),
-                             ),
-                           ),
+                        //       const Padding(
+                        //     padding:  EdgeInsets.only(left: 10.0),
+                        //     child: Text(
+                        //       "Enquete *",
+                        //       style:
+                        //           TextStyle(color: (Colors.black), fontSize: 18),
+                        //     ),
+                        //   ),
+                        //    GestureDetector(
+                        //      onTap: showEnquete,
+                        //      child: TextFormField(
+                        //        onTap: showEnquete,
+                        //        controller: enqueteController,
+                        //        keyboardType: TextInputType.text,
+                        //        decoration: InputDecoration(
+                        //          suffixIcon: Icon(Icons.arrow_drop_down,
+                        //              color: Colors.blueGrey[400]),
+                        //          hintText: "Sélectionner un produit ",
+                        //          contentPadding: const EdgeInsets.symmetric(
+                        //              vertical: 10, horizontal: 20),
+                        //          border: OutlineInputBorder(
+                        //            borderRadius: BorderRadius.circular(8),
+                        //          ),
+                        //        ),
+                        //      ),
+                        //    ),
                        
                             
      const SizedBox(height: 20,),
@@ -828,7 +803,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
   // Mobile network available.
     Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
     PrixMarcheConsommation prixMarcheConsommation = PrixMarcheConsommation(
-              enquete: enquete.id_enquete!,
+              enquete: widget.id_enquete!,
                               produit: produit.nom_produit!, unite:int.parse(uniteController.text), 
                               prix_mesure: double.parse(prixMesureController.text),
                                poids_unitaire: double.parse(poidsUnitaireController.text), 
@@ -845,42 +820,44 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
   hideLoadingDialog(context);
   })
     });
-  }else{
-      print("en ligne");
+  }
+  // else{
+  //     print("en ligne");
 
-                             showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-                             PrixMarcheService().addPrixMarcheConsommation(
-                              enquete: enquete.id_enquete!,
-                              produit: produit.nom_produit!, unite:int.parse(uniteController.text), 
-                              prix_mesure: double.parse(prixMesureController.text),
-                               poids_unitaire: double.parse(poidsUnitaireController.text), 
-                               prix_kg_litre: double.parse(prixParKilogrammeOuLitreController.text), app_mobile: 1, 
-                               niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
-                                 id_personnel:enqueteurProvider.enqueteur!.id_personnel!).then((value) {
-    hideLoadingDialog(context); // Cache le dialogue de chargement
+  //                            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+  //                            PrixMarcheService().addPrixMarcheConsommation(
+  //                             enquete: widget.id_enquete!,
+  //                             produit: produit.nom_produit!, unite:int.parse(uniteController.text), 
+  //                             prix_mesure: double.parse(prixMesureController.text),
+  //                              poids_unitaire: double.parse(poidsUnitaireController.text), 
+  //                              prix_kg_litre: double.parse(prixParKilogrammeOuLitreController.text), app_mobile: 1, 
+  //                              niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
+  //                                id_personnel:enqueteurProvider.enqueteur!.id_personnel!).then((value) {
+  //   hideLoadingDialog(context); // Cache le dialogue de chargement
 
-    // Reviens à la page précédente
-    Navigator.pop(context);
-  });
-                              }  
+  //   // Reviens à la page précédente
+  //   Navigator.pop(context);
+  // });
+  //                             }  
 
-                              }else if(widget.isEditMode == true && formkey.currentState!.validate()){
-                                      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-                             PrixMarcheService().updatePrixMarcheConsommation(
-                              id_fiche: widget.prixMarcheConsommation!.id_fiche!,
-                              enquete: int.parse(enqueteController.text),
-                              produit: produitController.text, unite:int.parse(uniteController.text), 
-                              prix_mesure: double.parse(prixMesureController.text),
-                               poids_unitaire: double.parse(poidsUnitaireController.text),  
-                               prix_kg_litre: double.parse(prixParKilogrammeOuLitreController.text), app_mobile: 1, 
-                               niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
-                                 id_personnel:enqueteurProvider.enqueteur!.id_personnel!).then((value) {
-    hideLoadingDialog(context); // Cache le dialogue de chargement
-
-    // Reviens à la page précédente
-    Navigator.pop(context);
-  });
                               }
+  //                             else if(widget.isEditMode == true && formkey.currentState!.validate()){
+  //                                     showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+  //                            PrixMarcheService().updatePrixMarcheConsommation(
+  //                             id_fiche: widget.prixMarcheConsommation!.id_fiche!,
+  //                             enquete: int.parse(enqueteController.text),
+  //                             produit: produitController.text, unite:int.parse(uniteController.text), 
+  //                             prix_mesure: double.parse(prixMesureController.text),
+  //                              poids_unitaire: double.parse(poidsUnitaireController.text),  
+  //                              prix_kg_litre: double.parse(prixParKilogrammeOuLitreController.text), app_mobile: 1, 
+  //                              niveau_approvisionement: int.parse(niveauApprovisionnementController.text), statut: 0,
+  //                                id_personnel:enqueteurProvider.enqueteur!.id_personnel!).then((value) {
+  //   hideLoadingDialog(context); // Cache le dialogue de chargement
+
+  //   // Reviens à la page précédente
+  //   Navigator.pop(context);
+  // });
+  //                             }
                            
                             },
                             style: ElevatedButton.styleFrom(

@@ -7,7 +7,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
+import 'package:simro/models/Commune.dart';
 import 'package:simro/models/Enqueteur.dart';
+import 'package:simro/models/Marche.dart';
+import 'package:simro/models/Produit.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
 import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/add_product.dart';
@@ -18,6 +22,7 @@ import 'package:simro/screens/enquete_consommation.dart';
 import 'package:simro/screens/products.dart';
 import 'package:simro/screens/profil.dart';
 import 'package:simro/screens/public_home.dart';
+import 'package:simro/services/Local_DataBase_Service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,8 +37,15 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
   late AnimationController _controller2;
   late AnimationController _controller3;
 
+      
+
+
+
+
  @override
   void initState() {
+
+   
     // Initialiser les trois contrôleurs d'animation avec des durées différentes
     _controller1 = AnimationController(
       vsync: this,
@@ -50,8 +62,8 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
-    checkEnqueteurSession();
     // requestPermissions();
+    checkEnqueteurSession();
    
   }
 
@@ -102,13 +114,13 @@ Future<bool> requestPermissions() async {
   ].request();
 
   // Vérifier si toutes les permissions sont accordées
-  bool allPermissionsGranted = statuses[Permission.camera]!.isGranted &&
+  bool allPermissionsGranted = 
       statuses[Permission.location]!.isGranted &&
       statuses[Permission.storage]!.isGranted;
 
   if (allPermissionsGranted) {
     print('Toutes les permissions ont été accordées');
-    Get.off(const PublicHomeScreen());
+    checkEnqueteurSession();
   } else {
     // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
     _showDialog();
@@ -150,17 +162,17 @@ void _showDialog() {
 Future<void> _retryPermissions(BuildContext context) async {
   // Redemander les permissions une deuxième fois
   Map<Permission, PermissionStatus> statuses = await [
-    Permission.camera,
     Permission.storage,
     Permission.location,
   ].request();
 
-  bool allPermissionsGranted = statuses[Permission.camera]!.isGranted &&
+  bool allPermissionsGranted = 
       statuses[Permission.location]!.isGranted &&
       statuses[Permission.storage]!.isGranted;
 
   if (allPermissionsGranted) {
     print('Toutes les permissions ont été accordées lors de la seconde demande.');
+    checkEnqueteurSession();
   } else if (context.mounted) {
     // Si encore refusé, afficher un autre message ou rediriger l'utilisateur vers les paramètres
     _showPermissionDeniedDialog(context);
@@ -181,6 +193,7 @@ void _showPermissionDeniedDialog(BuildContext context) {
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Ferme le dialogue
+                    checkEnqueteurSession();
               },
             ),
           ],

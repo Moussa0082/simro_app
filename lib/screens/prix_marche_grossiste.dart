@@ -9,8 +9,10 @@ import 'package:simro/models/Prix_Marche_Grossiste.dart';
 import 'package:simro/screens/add_prix_marche_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
 import 'package:simro/screens/detail_prix_marche_grossiste.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
 import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -36,16 +38,14 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<PrixMarcheGrossiste> fetchedList = await PrixMarcheService().fetchPrixMarcheGrossiste().then((prixMarcheGrossiste) {
+    List<PrixMarcheGrossiste> fetchedList = await LocalDatabaseService().getAllPrixMarcheGrossiste().then((prixMarcheGrossiste) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      prixMarcheGrossisteList.addAll(prixMarcheGrossiste);
+      prixMarcheGrossisteList = prixMarcheGrossiste;
+      // isLoading = false;
     });
+  // });
+
     return prixMarcheGrossisteList;
   });
     
@@ -70,11 +70,7 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                 prixMarcheGrossisteList = value;
       isLoading = false;  
              });
-     PrixMarcheService().fetchPrixMarcheGrossiste().then((prixMarcheGrossiste) {
-    setState(() {
-      prixMarcheGrossisteList.addAll(prixMarcheGrossiste);  // Assigner les produits récupérés à la liste locale
-    });
-  });
+    
  });
  
   }
@@ -93,7 +89,7 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
         backgroundColor: vert,
         leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                 actions:[
@@ -104,19 +100,19 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                               if (result == 'ajouter') {
                                 Get.to(AddPrixMarcheGrossisteScreen(isEditMode: false,), transition: Transition.downToUp, duration: Duration(seconds: 1));
                               }
-                                   if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              //      if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'synchroniser',
+                              //   child: Text('Synchroniser'),
+                              // ),
                             ],
                           ),
               ],
@@ -148,6 +144,9 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
             SizedBox(height: 10),
             // Liste des prix de marché de consommation
             Text(
+               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               'Liste des prix du marché de grossiste',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -227,7 +226,9 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                                        try {
   //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
                                 await PrixMarcheService().addPrixMarcheGrossiste(
-                                enquete: filteredList[index].enquete!, localite_vente:filteredList[index].localite_vente!,
+                                      enquete:filteredList[index].enquete! ,
+                                // enquete: filteredList[index].enquete!, 
+                                localite_vente:filteredList[index].localite_vente!,
                                 produit: filteredList[index].produit!, unite_stock: filteredList[index].unite_stock!, 
                                 poids_moyen_unite_stock: filteredList[index].poids_moyen_unite_stock!, nombre_unite_stock: filteredList[index].nombre_unite_stock!,
                                  poids_stock: filteredList[index].poids_stock!,  nombre_unite_achat: filteredList[index].nombre_unite_achat!,
@@ -240,16 +241,20 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                                     poids_total_unite_vente: filteredList[index].poids_total_unite_vente!,
                                       prix_unitaire_vente: filteredList[index].prix_unitaire_vente!.toDouble(),
                                      id_personnel: filteredList[index].id_personnel!).then((value) {
-
-    LocalDatabaseService().deleteEnqueteGrossiste(filteredList[index].id_fiche!).then((value) {
+     if(value != null){
+      
+    LocalDatabaseService().deletePrixMarcheGrossiste(filteredList[index].id_fiche!).then((value) {
           hideLoadingDialog(context); // Cache le dialogue de chargement
-    });
-  });
-
-   // Update the original list used by ListView.builder
                           setState(() {
                             prixMarcheGrossisteList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);
                           });
+    });
+     }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer plus tard");
+     }
+  });
+
+   // Update the original list used by ListView.builder
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 
@@ -273,7 +278,7 @@ class _PrixMarcheGrossisteScreenState extends State<PrixMarcheGrossisteScreen> {
                                     } 
                                      else if (result == 'supprimee') {
                                       // Action pour supprimer
-                                      LocalDatabaseService().deleteEnqueteGrossiste(filteredList[index].id_fiche!).then((value) {
+                                      LocalDatabaseService().deletePrixMarcheGrossiste(filteredList[index].id_fiche!).then((value) {
                           // Update the original list used by ListView.builder
                           setState(() {
                             prixMarcheGrossisteList.removeWhere((item) => item.id_fiche == filteredList[index].id_fiche);

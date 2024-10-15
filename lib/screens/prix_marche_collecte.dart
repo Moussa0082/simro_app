@@ -11,8 +11,10 @@ import 'package:simro/screens/add_prix_marche_collecte.dart';
 import 'package:simro/screens/detail_enquete_collecte.dart';
 import 'package:simro/screens/detail_marche.dart';
 import 'package:simro/screens/detail_prix_marche_collecte.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/services/Prix_Marche_Service.dart';
+import 'package:simro/widgets/Snackbar.dart';
 import 'package:simro/widgets/loading_over_lay.dart';
 import 'package:simro/widgets/shimmer_effect.dart';
 
@@ -37,16 +39,14 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<PrixMarcheCollecte> fetchedList = await PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarcheCollecte) {
+    List<PrixMarcheCollecte> fetchedList = await LocalDatabaseService().getAllPrixMarcheCollecte().then((prixMarcheCollecte) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      prixMarcheCollecteList.addAll(prixMarcheCollecte);
+      prixMarcheCollecteList = prixMarcheCollecte;
+      // isLoading = false;
     });
+  // });
+ 
     return prixMarcheCollecteList;
   });
     
@@ -70,11 +70,7 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                 prixMarcheCollecteList = value;
       isLoading = false;  
              });
-     PrixMarcheService().fetchPrixMarcheCollecte().then((prixMarcheCollecte) {
-    setState(() {
-      prixMarcheCollecteList.addAll(prixMarcheCollecte);  // Assigner les produits récupérés à la liste locale
-    });
-  });
+     
  });
 
   }
@@ -92,7 +88,7 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
         backgroundColor: vert,
         leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
               actions:[
@@ -103,19 +99,19 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                               if (result == 'ajouter') {
                                 Get.to(AddPrixMarcheCollecteScreen(isEditMode: false,), transition: Transition.downToUp);
                               }
-                              if (result == 'synchroniser') {
-                               showSyncDialog(context);
-                              }
+                              // if (result == 'synchroniser') {
+                              //  showSyncDialog(context);
+                              // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               PopupMenuItem<String>(
                                 value: 'ajouter',
                                 child: Text('Ajouter'),
                               ),
-                              PopupMenuItem<String>(
-                                value: 'synchroniser',
-                                child: Text('Synchroniser'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'synchroniser',
+                              //   child: Text('Synchroniser'),
+                              // ),
                              
                             ],
                           ),
@@ -149,6 +145,9 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
             SizedBox(height: 10),
             // Liste des prix de marché de consommation
             Text(
+               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               'Liste des prix du marché de collecte',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -227,7 +226,7 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                        try {
   //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
   await PrixMarcheService().addPrixMarcheCollecte(
-    enquete: filteredList[index].enquete!,
+    enquete:filteredList[index].enquete! ,
                               produit: filteredList[index].produit!, unite: filteredList[index].unite!, 
                               poids_unitaire: filteredList[index].poids_unitaire!, 
                               montant_achat: filteredList[index].montant_achat!,
@@ -245,17 +244,21 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                     
     
   ).then((value) => {
-    LocalDatabaseService().deletePrixMarcheCollecte(prixMarche.id_fiche!).then((value) {
+    if(value != null){
+      LocalDatabaseService().deletePrixMarcheCollecte(prixMarche.id_fiche!).then((value) {
 
           hideLoadingDialog(context); // Cache le dialogue de chargement
-
-    })
-  });
-
 setState(() {
   
   prixMarcheCollecteList.removeWhere((item) => item.id_fiche == prixMarche.id_fiche);
 });
+    })
+    }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer plus tard")
+     }
+    
+  });
+
   // Appliquer les changements via le Provider
   Provider.of<PrixMarcheService>(context, listen: false).applyChange();
 

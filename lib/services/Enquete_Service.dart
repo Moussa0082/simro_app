@@ -45,6 +45,7 @@ class EnqueteService extends ChangeNotifier {
    }
   }
   
+  
   Future<List<Enquete>> fetchEnquete() async {
   try {
     final response = await http.get(Uri.parse("$apiUrl/all-enquete/"));
@@ -88,7 +89,8 @@ class EnqueteService extends ChangeNotifier {
   }
 
 
- Future<void> addEnqueteCollecte({
+ Future<EnqueteCollecte?> addEnqueteCollecte({
+  required int id_code_mobile,
   required String num_fiche,
   required String marche,
   required String collecteur,
@@ -103,6 +105,7 @@ class EnqueteService extends ChangeNotifier {
   var addEnqueteCollecte = jsonEncode({
     'id_personnel': id_personnel,
     'num_fiche': num_fiche,
+    'id_code_mobile': id_code_mobile,
     'collecteur': collecteur,
     'marche': marche,
     'date_enquete': formattedDate,  // Envoyer la date formatée
@@ -122,6 +125,12 @@ class EnqueteService extends ChangeNotifier {
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print("Objet enquete collecte envoyé avec succès");
       Snack.success(titre: "Succès", message: "Ajouté avec succès");
+      return EnqueteCollecte(
+        num_fiche: num_fiche,
+        collecteur: collecteur,
+        date_enquete: date_enquete.toString(),
+        marche: marche
+      );
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
       throw Exception("Erreur: ${response.body}");
@@ -134,8 +143,9 @@ class EnqueteService extends ChangeNotifier {
 
 
 
-  Future<void> addEnquete({
+  Future<Enquete?> addEnquete({
       required String observation,
+      required int id_code_mobile,
       required String statut,
       required String marche,
       required int collecteur,
@@ -145,6 +155,7 @@ class EnqueteService extends ChangeNotifier {
 
     var addEnquete = jsonEncode({
       'id_enquete': null,
+      'id_code_mobile': id_code_mobile,
       'observation': observation,
       'statut': statut,
       'collecteur': collecteur,
@@ -158,15 +169,23 @@ class EnqueteService extends ChangeNotifier {
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print(response.body);
             Snack.success(titre: "Succès", message: "Ajouté avec succès");
+            return Enquete(
+              date_enquete: formattedDate,
+             marche: marche,
+             collecteur: collecteur,
+             observation: observation,
+             statut: statut
+            );
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
       throw Exception("Une erreur s'est produite lors de l'ajout denquete consommation' : ${response.statusCode}");
     }
   }
 
-  Future<void> addEnqueteGrossiste({
+  Future<EnqueteGrossiste?> addEnqueteGrossiste({
       required String id_personnel,
       required String num_fiche,
+      required int id_code_mobile,
       required String marche,
       required String collecteur,
       required DateTime date_enquete,
@@ -177,6 +196,7 @@ class EnqueteService extends ChangeNotifier {
     'id_personnel': id_personnel,
     'num_fiche': num_fiche,
     'collecteur': collecteur,
+    'id_code_mobile': id_code_mobile,
     'marche': marche,
     'date_enquete': formattedDate, 
     });
@@ -187,6 +207,12 @@ class EnqueteService extends ChangeNotifier {
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
       print(response.body);
             Snack.success(titre: "Succès", message: "Ajouté avec succès");
+            return EnqueteGrossiste(
+        num_fiche: num_fiche,
+        collecteur: collecteur,
+        date_enquete: formattedDate,
+        marche: marche
+      );
     } else {
       Snack.error(titre: "Erreur", message: "une erreur s'est produite veuillez réessayer plus tard");
       throw Exception("Une erreur s'est produite lors de l'ajout denquete collecte' : ${response.statusCode}");

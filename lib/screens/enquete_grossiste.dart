@@ -12,6 +12,8 @@ import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete_Grossiste.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/add_prix_marche_grossiste.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/widgets/Snackbar.dart';
@@ -81,14 +83,14 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
      
     List<EnqueteGrossiste> fetchedList = await EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      enqueteGrossisteList.addAll(enquetes);
+      enqueteGrossisteList = enquetes;
+      // isLoading = false;
     });
+  // });
+    // setState(() {
+    //   enqueteGrossisteList.addAll(enquetes);
+    // });
     return enqueteGrossisteList;
   });
     
@@ -143,13 +145,11 @@ Future<void> fetchAndSyncMarche() async {
      fetchAndSyncMarche();
     // Appel pour récupérer les produits au chargement de la page
              LocalDatabaseService().getAllEnqueteGrossiste().then((value) {
-              enqueteGrossisteList = value;
-     EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
-    setState(() {
-      enqueteGrossisteList.addAll(enquetes);  // Assigner les produits récupérés à la liste locale
+          setState(() {
+      enqueteGrossisteList = value;
       isLoading = false;  // Désactiver le chargement
-    });
-  });
+          });
+
    });
   }
 
@@ -222,7 +222,7 @@ Future<void> fetchAndSyncMarche() async {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.number,
                     validator: (val) {
                       if (val == null || val.isEmpty) {
                         return "Veuillez entrer le numéro de fiche";
@@ -311,99 +311,117 @@ Future<void> fetchAndSyncMarche() async {
     date_enquete: dateController.text,
     isSynced: 0,
   );
-    await LocalDatabaseService().insertEnqueteGrossiste(enquete).then((value) => {
-        LocalDatabaseService().getAllEnqueteGrossiste().then((enquetes) {
-    setState(() {
-      enqueteGrossisteList = enquetes;
-      isLoading = false;
+ // Insérer l'enquête localement et récupérer l'ID généré
+    await LocalDatabaseService().insertEnqueteGrossisteAndsendId(enquete).then((generatedId) {
+      // Mettre à jour l'objet enquete avec l'ID généré
+      enquete.id_enquete = generatedId;
+
+      LocalDatabaseService().getAllEnqueteGrossiste().then((enquetes) {
+        setState(() {
+          enqueteGrossisteList = enquetes;
+          isLoading = false;
+        });
+        numFicheController.clear();
+        dateController.clear();
+        marcheController.clear();
+        hideLoadingDialog(context);
+
+        // Redirection après mise à jour de l'UI avec l'ID correct
+        Get.to(AddPrixMarcheGrossisteScreen(isEditMode: false, id_enquete: enquete.id_enquete!));
+      });
+    }).catchError((error) {
+      // Gérer l'erreur
+      print("Erreur lors de l'insertion locale : $error");
+      Snack.error(titre: "Erreur", message: "Impossible de sauvegarder l'enquête");
+      hideLoadingDialog(context);
     });
-    hideLoadingDialog(context);
-  })
-    });
-  }else{
-      print("en ligne");
-           showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-                          //   print("valid");
-                          try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
+  }
+//   else{
+//       print("en ligne");
+//            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-  // Ajouter l'enquête collectée
-  await EnqueteService().addEnqueteGrossiste(
-    id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
-    num_fiche: numFicheController.text,
-    marche: marche.id_marche!.toString(),
-    collecteur: enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
-    date_enquete: dateEnquete,
-  ).then((value) {
-    hideLoadingDialog(context);
-  });
+//                           //   print("valid");
+//                           try {
+//   // Convertir la date de String à DateTime
+//   DateTime dateEnquete = DateTime.parse(dateController.text);
 
-  // Appliquer les changements via le Provider
-  Provider.of<EnqueteService>(context, listen: false).applyChange();
+//   // Ajouter l'enquête collectée
+//   await EnqueteService().addEnqueteGrossiste(
+//     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
+//     num_fiche: numFicheController.text,
+//     marche: marche.id_marche!.toString(),
+//     collecteur: enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
+//     date_enquete: dateEnquete,
+//   ).then((value) {
+//     hideLoadingDialog(context);
+//   });
 
-  // Récupérer la nouvelle liste d'enquêtes grossiste
-  List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+//   // Appliquer les changements via le Provider
+//   Provider.of<EnqueteService>(context, listen: false).applyChange();
 
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading1 = false;
-    enqueteGrossisteList = nouvelleListe;
-  });
-  numFicheController.clear();
-  dateController.clear();
-  marcheController.clear();
+//   // Récupérer la nouvelle liste d'enquêtes grossiste
+//   List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
 
-  // Fermer le dialogue
-  Navigator.of(context).pop();
+//   // Mettre à jour l'état avec la nouvelle liste
+//   setState(() {
+//     isLoading1 = false;
+//     enqueteGrossisteList = nouvelleListe;
+//   });
+//   numFicheController.clear();
+//   dateController.clear();
+//   marcheController.clear();
 
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("Erreur : " + errorMessage);
+//   // Fermer le dialogue
+//   Navigator.of(context).pop();
 
-  // Gérer l'erreur ici
-}
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("Erreur : " + errorMessage);
+
+//   // Gérer l'erreur ici
+// }
+//                           }
+
                           }
+//                           else if(formkey.currentState!.validate() && isEditMode) {
+//                                  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-                          }else if(formkey.currentState!.validate() && isEditMode) {
-                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-
-                             try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
+//                              try {
+//   // Convertir la date de String à DateTime
+//   DateTime dateEnquete = DateTime.parse(dateController.text);
   
 
 
-  await EnqueteService()
-      .updateEnqueteGrossiste(
-        id_enquete: enqueteCollecte!.id_enquete!,
-        num_fiche: numFicheController.text,
-        marche: marcheController.text,
-    collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
-        date_enquete: dateEnquete,
-      ).then((value) {
-        hideLoadingDialog(context);
-      });
-            Provider.of<EnqueteService>(context, listen: false).applyChange();
-           List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
+//   await EnqueteService()
+//       .updateEnqueteGrossiste(
+//         id_enquete: enqueteCollecte!.id_enquete!,
+//         num_fiche: numFicheController.text,
+//         marche: marcheController.text,
+//     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
+//         date_enquete: dateEnquete,
+//       ).then((value) {
+//         hideLoadingDialog(context);
+//       });
+//             Provider.of<EnqueteService>(context, listen: false).applyChange();
+//            List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
 
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading1 = false;
-    enqueteGrossisteList = nouvelleListe;
-  });
-   numFicheController.clear();
-  dateController.clear();
-  marcheController.clear();
-            Navigator.of(context).pop();
+//   // Mettre à jour l'état avec la nouvelle liste
+//   setState(() {
+//     isLoading1 = false;
+//     enqueteGrossisteList = nouvelleListe;
+//   });
+//    numFicheController.clear();
+//   dateController.clear();
+//   marcheController.clear();
+//             Navigator.of(context).pop();
           
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("erreur m: " + errorMessage);
-}
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("erreur m: " + errorMessage);
+// }
 
-                                }
+//                                 }
                         },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code
@@ -441,7 +459,7 @@ Future<void> fetchAndSyncMarche() async {
         backgroundColor: vert,
        leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                 actions:[
@@ -566,7 +584,10 @@ Future<void> fetchAndSyncMarche() async {
                                     // Action pour détail
                                     Get.to(DetailEnqueteGrossisteScreen(enqueteGrossiste: enquete,), transition: Transition.rightToLeftWithFade, duration: const Duration(seconds: 1));
                                     print('Détail sélectionné');
-                                  } else if (result == 'supprimer') {
+                                  } 
+                                  else if (result == 'supprimer') {
+                                   // Vérifier si l'enquête est liée dans la table prix_marche_grossiste
+
                                     // Action pour supprimer
                                     EnqueteService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
                         // Update the original list used by ListView.builder
@@ -575,6 +596,7 @@ Future<void> fetchAndSyncMarche() async {
                         });
                       });
                                     print('Supprimer sélectionné');
+                                  
                                   }
                                                   else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
                                            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
@@ -586,15 +608,27 @@ Future<void> fetchAndSyncMarche() async {
    DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
   // Ajouter l'enquête collectée
   await EnqueteService().addEnqueteGrossiste(
+    id_code_mobile: enquete.id_enquete!,
     id_personnel: enqueteurProvider.enqueteur!.id_personnel!,
     num_fiche: enquete.num_fiche!,
     marche: enquete.marche!,
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur.toString(),
     date_enquete:parsedDate,
-  ).then((value) => {
+  ).then((value) {
+    if(value != null){
+      
     LocalDatabaseService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
       hideLoadingDialog(context);
-    })
+      setState(() {
+        
+          enqueteGrossisteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+      });
+    });
+    }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer");
+            hideLoadingDialog(context);
+
+    }
   });
 
   // Appliquer les changements via le Provider
@@ -602,7 +636,6 @@ Future<void> fetchAndSyncMarche() async {
 
   // Récupérer la nouvelle liste d'enquêtes collectées
   List<EnqueteGrossiste> nouvelleListe = await fetchEnqueteGrossiste();
-          enqueteGrossisteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
 
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
@@ -618,12 +651,44 @@ Future<void> fetchAndSyncMarche() async {
 } catch (e) {
   final String errorMessage = e.toString();
   print("Erreur : " + errorMessage);
+      hideLoadingDialog(context);
 
   // Gérer l'erreur ici
 }
                                       print('Synchroniser sélectionné');
                                     } 
+                                    else if (result == 'lier') {
+                                    Get.to(AddPrixMarcheGrossisteScreen(isEditMode: false, id_enquete: enquete.id_enquete,));
+                                      print('Supprimer sélectionné');
+                                    }
                                    else if (result == 'supprimee') {
+                                    final dbService = LocalDatabaseService();  // Créer une instance
+final db = await dbService.database;  
+  final result = await db.rawQuery('''
+    SELECT * FROM prix_marche_grossiste WHERE enquete = ?
+  ''', [enquete.id_enquete]);
+
+  if (result.isNotEmpty) {
+    // Si des objets liés à l'enquête sont trouvés dans la table prix_marche_grossiste
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enquête non synchronisée'),
+          content: Text('Vous devez synchroniser l\'enquête avant de la supprimer.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    // Si l'enquête n'est pas liée, permettre la suppression
                                       // Action pour supprimer
                                       LocalDatabaseService().deleteEnqueteGrossiste(enquete.id_enquete!).then((value) {
                           // Update the original list used by ListView.builder
@@ -633,6 +698,7 @@ Future<void> fetchAndSyncMarche() async {
                         });
                                       print('Supprimer sélectionné');
                                     }
+                                }
                                 },
                                 itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
                                      <PopupMenuEntry<String>>  [
@@ -644,6 +710,10 @@ Future<void> fetchAndSyncMarche() async {
                                   const  PopupMenuItem<String>(
                                       value: 'detail',
                                       child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'lier',
+                                      child: Text('Ajouter collecte'),
                                     ),
                                   const  PopupMenuItem<String>(
                                       value: 'supprimee',

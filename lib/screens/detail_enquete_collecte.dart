@@ -34,15 +34,15 @@ class _DetailEnqueteCollecteScreenState extends State<DetailEnqueteCollecteScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDetailRow("Marché:", widget.enqueteCollecte!.marche!),
+              buildDetailRow("Marché:", widget.enqueteCollecte!.marche! ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("N° Fiche :",  widget.enqueteCollecte!.num_fiche!),
+              buildDetailRow("N° Fiche :",  widget.enqueteCollecte!.num_fiche!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Collecteur :",  widget.enqueteCollecte!.collecteur!),
+              buildDetailRow("Collecteur :",  widget.enqueteCollecte!.collecteur!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Date Enquête :",  widget.enqueteCollecte!.date_enquete!),
+              buildDetailRow("Date Enquête :",  widget.enqueteCollecte!.date_enquete!  ?? "Non defini") ,
               Divider(thickness: 1),
-              buildDetailRow("Statut :", "Terminé"),
+              // buildDetailRow("Statut :", widget.enqueteCollecte!.!),
               Divider(thickness: 1),
               SizedBox(height: 20),
               // Center(
@@ -72,11 +72,17 @@ class _DetailEnqueteCollecteScreenState extends State<DetailEnqueteCollecteScree
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+            Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
             label,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          Text(
+            Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
             value,
             style: TextStyle(fontSize: 16),
           ),

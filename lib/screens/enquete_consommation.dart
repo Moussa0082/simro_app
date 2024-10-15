@@ -12,9 +12,11 @@ import 'package:simro/models/Collecteur.dart';
 import 'package:simro/models/Enquete.dart';
 import 'package:simro/models/Marche.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/add_prix_marche_consommation.dart';
 import 'package:simro/screens/detail_enquete_consommation.dart';
 import 'package:simro/screens/detail_enquete_grossiste.dart';
 import 'package:simro/screens/detail_marche.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/services/Enquete_Service.dart';
 import 'package:simro/services/Local_DataBase_Service.dart';
 import 'package:simro/widgets/Snackbar.dart';
@@ -115,16 +117,15 @@ TextEditingController dateController = TextEditingController();
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<Enquete> fetchedList = await EnqueteService().fetchEnquete().then((enquetes) {
+    List<Enquete> fetchedList = await LocalDatabaseService().getAllEnquetesConsommation().then((enquetes) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
-  //   setState(() {
-  //     enqueteCollecteList = enquete;
-  //     // isLoading = false;
-  //   });
-  // });
     setState(() {
-      enqueteList.addAll(enquetes);
+      enqueteList = enquetes;
     });
+    // });
+    // setState(() {
+    //   enqueteList.addAll(enquetes);
+    // });
     return enqueteList;
   });
     
@@ -141,16 +142,17 @@ TextEditingController dateController = TextEditingController();
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-      fetchAndSyncMarche();    
+      fetchAndSyncMarche().then((value) {
+        setState(() {
+          isLoading = false;
+        });
+      });    
      // Appel pour récupérer les produits au chargement de la page
              LocalDatabaseService().getAllEnquetesConsommation().then((value) {
+              setState(() {
               enqueteList = value;
-     EnqueteService().fetchEnquete().then((enquetes) {
-    setState(() {
-      enqueteList.addAll(enquetes);  // Assigner les produits récupérés à la liste locale
-      isLoading = false;  // Désactiver le chargement
-    });
-  });
+              isLoading = false;
+              });
              });
   }
   
@@ -160,12 +162,12 @@ TextEditingController dateController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Enquête ", style: TextStyle(color:blanc),),
+        title: const Text("Enquête Consommation", style: TextStyle(color:blanc),),
         centerTitle: true,
         backgroundColor: vert,
         leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
                 actions:[
@@ -301,6 +303,10 @@ TextEditingController dateController = TextEditingController();
                       });
                                     print('Supprimer sélectionné');
                                   }
+                                  else if (result == 'lier') {
+                                    Get.to(AddPrixMarcheConsommationScreen(isEditMode: false, id_enquete: enquete.id_enquete,));
+                                      print('Supprimer sélectionné');
+                                    }
                                             else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
                                          showLoadingDialog(context, "Veuillez patienter"); 
                                        try {
@@ -310,17 +316,28 @@ TextEditingController dateController = TextEditingController();
    DateTime parsedDate = DateTime.parse(enquete.date_enquete!);
   // Ajouter l'enquête collectée
   await EnqueteService().addEnquete(
+    id_code_mobile: enquete.id_enquete!,
     statut: enquete.statut!,
     observation: enquete.observation!,
     marche: enquete.marche!,
     collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
     date_enquete:parsedDate,
-  ).then((value) => {
+  ).then((value)  {
+        if(value != null){
+
     LocalDatabaseService().deleteEnqueteConsommation(enquete.id_enquete!).then((value) {
       hideLoadingDialog(context);
-    })
+      setState(() {
+        
+        enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
+      });
+    });
+     }else{
+      Snack.error(titre: "Erreur", message: "Une erreur s'est produite veuillez réessayer");
+            hideLoadingDialog(context);
+
+    }
   });
-            enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
 
 
   // Appliquer les changements via le Provider
@@ -341,12 +358,40 @@ TextEditingController dateController = TextEditingController();
 } catch (e) {
   final String errorMessage = e.toString();
   print("Erreur : " + errorMessage);
+       hideLoadingDialog(context);
 
   // Gérer l'erreur ici
 }
                                       print('Synchroniser sélectionné');
                                     } 
                                                   else if (result == 'supprimee') {
+                                                    final dbService = LocalDatabaseService();  // Créer une instance
+final db = await dbService.database;  
+  final result = await db.rawQuery('''
+    SELECT * FROM new_prix_marche_consommation WHERE enquete = ?
+  ''', [enquete.id_enquete]);
+
+  if (result.isNotEmpty) {
+    // Si des objets liés à l'enquête sont trouvés dans la table prix_marche_grossiste
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enquête non synchronisée'),
+          content: Text('Vous devez synchroniser l\'enquête avant de la supprimer.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    // Si l'enquête n'est pas liée, permettre la suppression
                                       // Action pour supprimer
                                       LocalDatabaseService().deleteEnqueteConsommation(enquete.id_enquete!).then((value) {
                           // Update the original list used by ListView.builder
@@ -354,7 +399,7 @@ TextEditingController dateController = TextEditingController();
                             enqueteList.removeWhere((item) => item.id_enquete == enquete.id_enquete);
                           });
                         });
-                        }
+                        }}
                                 },
                                 itemBuilder: (BuildContext context) => enquete.isSynced != null &&  enquete.isSynced != 1 ?   
                                      <PopupMenuEntry<String>>  [
@@ -366,6 +411,10 @@ TextEditingController dateController = TextEditingController();
                                   const  PopupMenuItem<String>(
                                       value: 'detail',
                                       child: Text('Détail'),
+                                    ),
+                                  const  PopupMenuItem<String>(
+                                      value: 'lier',
+                                      child: Text('Ajouter collecte'),
                                     ),
                                   const  PopupMenuItem<String>(
                                       value: 'supprimee',
@@ -596,110 +645,129 @@ TextEditingController dateController = TextEditingController();
     date_enquete: dateController.text,
     isSynced: 0,
   );
-    await LocalDatabaseService().insertEnqueteConsommation(enquete).then((value) => {
-        LocalDatabaseService().getAllEnquetesConsommation().then((enquetes) {
-    setState(() {
-      enqueteList = enquetes;
-      isLoading = false;
-    });
-    hideLoadingDialog(context);
-  })
-    });
-  }else{
-      print("en ligne");
-      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+    // Insérer l'enquête localement et récupérer l'ID généré
+    await LocalDatabaseService().insertEnqueteConsommationteAndsendId(enquete).then((generatedId) {
+      // Mettre à jour l'objet enquete avec l'ID généré
+      enquete.id_enquete = generatedId;
 
-                          try {
-  // Convertir la date de String à DateTime
-  DateTime dateEnquete = DateTime.parse(dateController.text);
+      LocalDatabaseService().getAllEnquetesConsommation().then((enquetes) {
+        setState(() {
+          enqueteList = enquetes;
+          isLoading = false;
+        });
+        observationController.clear();
+        statutController.clear();
+        dateController.clear();
+        marcheController.clear();
+        hideLoadingDialog(context);
 
-  // Ajouter l'enquête collectée
-  await EnqueteService().addEnquete(
-    statut: statutController.text,
-    observation: observationController.text,
-    marche: marche.id_marche!.toString(),
-    collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
-    date_enquete: dateEnquete,
-  ).then((value){
-    hideLoadingDialog(context);
-  });
-
-  // Appliquer les changements via le Provider
-  Provider.of<EnqueteService>(context, listen: false).applyChange();
-
-  // Récupérer la nouvelle liste d'enquêtes collectées
-  List<Enquete> nouvelleListe = await fetchEnquete();
-
-  // Mettre à jour l'état avec la nouvelle liste
-  setState(() {
-    isLoading = false;
-    enqueteList = nouvelleListe;
-  });
-  observationController.clear();
-  statutController.clear();
-  dateController.clear();
-  marcheController.clear();
-
-  // Fermer le dialogue
-  Navigator.of(context).pop();
-
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("Erreur : " + errorMessage);
-
-  // Gérer l'erreur ici
-}
-                          }
-
-                          }else if(formkey.currentState!.validate() && isEditMode) {
-                                 showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-
-                            try {
-  // Vérifiez que enqueteurProvider.enqueteur et enquete ne sont pas nulls
-  if (enqueteurProvider.enqueteur != null && enquete != null) {
-    // Convertir la date de String à DateTime
-    DateTime dateEnquete = DateTime.parse(dateController.text);
-
-    print("id collecteur: " + enqueteurProvider.enqueteur!.id_enqueteur!.toString());
-
-    await EnqueteService().updateEnquete(
-      collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
-      id_enquete: enquete.id_enquete!,
-      statut: statutController.text,
-      observation: observationController.text,
-      marche: marcheController.text,
-      date_enquete: dateEnquete,
-    ).then((value) {
+        // Redirection après mise à jour de l'UI avec l'ID correct
+        Get.to(AddPrixMarcheConsommationScreen(isEditMode: false, id_enquete: enquete.id_enquete!));
+      });
+    }).catchError((error) {
+      // Gérer l'erreur
+      print("Erreur lors de l'insertion locale : $error");
+      Snack.error(titre: "Erreur", message: "Impossible de sauvegarder l'enquête");
       hideLoadingDialog(context);
     });
 
-    // Rafraîchir la liste
-    Provider.of<EnqueteService>(context, listen: false).applyChange();
-    List<Enquete> nouvelleListe = await fetchEnquete();
-
-    // Mettre à jour l'état avec la nouvelle liste
-    setState(() {
-      isLoading = false;
-      enqueteList = nouvelleListe;
-    });
-
-    // Vider les contrôleurs
-    observationController.clear();
-    statutController.clear();
-    dateController.clear();
-    marcheController.clear();
-
-    Navigator.of(context).pop();
-  } else {
-    print("Erreur : enqueteur ou enquete est null");
   }
-} catch (e) {
-  final String errorMessage = e.toString();
-  print("Erreur m: " + errorMessage);
-}
+//   else{
+//       print("en ligne");
+//       showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
+//                           try {
+//   // Convertir la date de String à DateTime
+//   DateTime dateEnquete = DateTime.parse(dateController.text);
+
+//   // Ajouter l'enquête collectée
+//   await EnqueteService().addEnquete(
+//     statut: statutController.text,
+//     observation: observationController.text,
+//     marche: marche.id_marche!.toString(),
+//     collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
+//     date_enquete: dateEnquete,
+//   ).then((value){
+//     hideLoadingDialog(context);
+//   });
+
+//   // Appliquer les changements via le Provider
+//   Provider.of<EnqueteService>(context, listen: false).applyChange();
+
+//   // Récupérer la nouvelle liste d'enquêtes collectées
+//   List<Enquete> nouvelleListe = await fetchEnquete();
+
+//   // Mettre à jour l'état avec la nouvelle liste
+//   setState(() {
+//     isLoading = false;
+//     enqueteList = nouvelleListe;
+//   });
+//   observationController.clear();
+//   statutController.clear();
+//   dateController.clear();
+//   marcheController.clear();
+
+//   // Fermer le dialogue
+//   Navigator.of(context).pop();
+
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("Erreur : " + errorMessage);
+
+//   // Gérer l'erreur ici
+// }
+//                           }
+
+                          }
+//                           else if(formkey.currentState!.validate() && isEditMode) {
+//                                  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
+
+//                             try {
+//   // Vérifiez que enqueteurProvider.enqueteur et enquete ne sont pas nulls
+//   if (enqueteurProvider.enqueteur != null && enquete != null) {
+//     // Convertir la date de String à DateTime
+//     DateTime dateEnquete = DateTime.parse(dateController.text);
+
+//     print("id collecteur: " + enqueteurProvider.enqueteur!.id_enqueteur!.toString());
+
+//     await EnqueteService().updateEnquete(
+//       collecteur: enqueteurProvider.enqueteur!.id_enqueteur!,
+//       id_enquete: enquete.id_enquete!,
+//       statut: statutController.text,
+//       observation: observationController.text,
+//       marche: marcheController.text,
+//       date_enquete: dateEnquete,
+//     ).then((value) {
+//       hideLoadingDialog(context);
+//     });
+
+//     // Rafraîchir la liste
+//     Provider.of<EnqueteService>(context, listen: false).applyChange();
+//     List<Enquete> nouvelleListe = await fetchEnquete();
+
+//     // Mettre à jour l'état avec la nouvelle liste
+//     setState(() {
+//       isLoading = false;
+//       enqueteList = nouvelleListe;
+//     });
+
+//     // Vider les contrôleurs
+//     observationController.clear();
+//     statutController.clear();
+//     dateController.clear();
+//     marcheController.clear();
+
+//     Navigator.of(context).pop();
+//   } else {
+//     print("Erreur : enqueteur ou enquete est null");
+//   }
+// } catch (e) {
+//   final String errorMessage = e.toString();
+//   print("Erreur m: " + errorMessage);
+// }
 
 
-                                }
+//                                 }
                         },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vert, // Orange color code

@@ -32,15 +32,15 @@ class _DetailEnqueteConsommationScreenState extends State<DetailEnqueteConsommat
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildDetailRow("Marché:", widget.enqueteConsommation!.marche!),
+              buildDetailRow("Marché:", widget.enqueteConsommation!.marche!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Collecteur :",  widget.enqueteConsommation!.collecteur!.toString()),
+              buildDetailRow("Collecteur :",  widget.enqueteConsommation!.collecteur!.toString()  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Date Enquête :",  widget.enqueteConsommation!.date_enquete!),
+              buildDetailRow("Date Enquête :",  widget.enqueteConsommation!.date_enquete!  ?? "Non defini") ,
               Divider(thickness: 1),
-              buildDetailRow("Statut :",  widget.enqueteConsommation!.statut!),
+              buildDetailRow("Statut :",  widget.enqueteConsommation!.statut!  ?? "Non defini"),
               Divider(thickness: 1),
-              buildDetailRow("Observation :",  widget.enqueteConsommation!.observation!),
+              buildDetailRow("Observation :",  widget.enqueteConsommation!.observation!  ?? "Non defini"),
               Divider(thickness: 1),
               SizedBox(height: 20),
               // Center(
@@ -70,11 +70,17 @@ class _DetailEnqueteConsommationScreenState extends State<DetailEnqueteConsommat
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+           Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
             label,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          Text(
+            Text(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
             value,
             style: TextStyle(fontSize: 16),
           ),

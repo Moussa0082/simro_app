@@ -318,7 +318,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   child:
                   imageUrl.isEmpty ?
                   Image.asset(
-                                                                  "assets/images/riz.jpeg",
+                                                                  "assets/images/riz.jpg",
                                                                   fit: BoxFit
                                                                       .cover,
                                                                   height: 80,

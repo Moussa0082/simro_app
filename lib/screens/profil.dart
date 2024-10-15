@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simro/constant/constantes.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
+import 'package:simro/screens/home.dart';
 import 'package:simro/screens/public_home.dart';
 
 class ProfilScreen extends StatefulWidget {
@@ -40,14 +41,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
           centerTitle: true,
             leading: IconButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Get.offAll( const HomeScreen(), transition: Transition.leftToRight);
               },
               icon: const Icon(Icons.arrow_back_ios, color: blanc)),
           actions: const [
-            Padding(
-              padding:  EdgeInsets.all(8.0),
-              child: Icon(color: blanc, Icons.edit),
-            ),
+            // Padding(
+            //   padding:  EdgeInsets.all(8.0),
+            //   child: Icon(color: blanc, Icons.edit),
+            // ),
           ],
          
         ),
@@ -62,19 +63,19 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     radius: 50,
                     backgroundImage: AssetImage('assets/images/logo-simro.png'), // Remplacez par votre image
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: Colors.black,
-                        size: 20,
-                      ),
-                    ),
-                  ),
+                  // Positioned(
+                  //   bottom: 0,
+                  //   right: 0,
+                  //   child: CircleAvatar(
+                  //     radius: 15,
+                  //     backgroundColor: Colors.white,
+                  //     child: Icon(
+                  //       Icons.camera_alt,
+                  //       color: Colors.black,
+                  //       size: 20,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             const  SizedBox(height: 20),

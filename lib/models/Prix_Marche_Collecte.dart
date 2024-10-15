@@ -54,10 +54,12 @@ class PrixMarcheCollecte {
 
     
 
+
   PrixMarcheCollecte copyWith({
     int? enquete,
     String? produit,
     int? unite,
+    int? id_code_mobile,
     int? isSynced,
     double? poids_unitaire,
     double? montant_achat,
@@ -168,7 +170,7 @@ class PrixMarcheCollecte {
 
   @override
   String toString() {
-    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite, isSynced: $isSynced, poids_unitaire: $poids_unitaire, montant_achat: $montant_achat, prix_fg_kg: $prix_fg_kg, localite_origine: $localite_origine, distance_origine_marche: $distance_origine_marche, montant_transport: $montant_transport, etat_route: $etat_route, quantite_collecte: $quantite_collecte, client_principal: $client_principal, fournisseur_principal: $fournisseur_principal, niveau_approvisionement: $niveau_approvisionement, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
+    return 'PrixMarcheCollecte(enquete: $enquete, produit: $produit, unite: $unite isSynced: $isSynced, poids_unitaire: $poids_unitaire, montant_achat: $montant_achat, prix_fg_kg: $prix_fg_kg, localite_origine: $localite_origine, distance_origine_marche: $distance_origine_marche, montant_transport: $montant_transport, etat_route: $etat_route, quantite_collecte: $quantite_collecte, client_principal: $client_principal, fournisseur_principal: $fournisseur_principal, niveau_approvisionement: $niveau_approvisionement, app_mobile: $app_mobile, observation: $observation, statut: $statut, id_personnel: $id_personnel, date_enregistrement: $date_enregistrement, modifier_le: $modifier_le, modifier_par: $modifier_par, id_fiche: $id_fiche)';
   }
 
   @override
