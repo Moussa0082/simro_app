@@ -154,7 +154,6 @@ class EnqueteService extends ChangeNotifier {
           String formattedDate = DateFormat('yyyy-MM-dd').format(date_enquete);
 
     var addEnquete = jsonEncode({
-      'id_enquete': null,
       'id_code_mobile': id_code_mobile,
       'observation': observation,
       'statut': statut,

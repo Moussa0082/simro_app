@@ -794,14 +794,14 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
                               if(widget.isEditMode == false && formkey.currentState!.validate()){
                                      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 //  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
- final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+//  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
 // This condition is for demo purposes only to explain every connection type.
 // Use conditions which work for your requirements.
-   if (st == false) {
-   print("hors ligne");
+  //  if (st == false) {
+  //  print("hors ligne");
   // Mobile network available.
-    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    // Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
     PrixMarcheConsommation prixMarcheConsommation = PrixMarcheConsommation(
               enquete: widget.id_enquete!,
                               produit: produit.nom_produit!, unite:int.parse(uniteController.text), 
@@ -820,7 +820,7 @@ class _AddPrixMarcheConsommationScreenState extends State<AddPrixMarcheConsommat
   hideLoadingDialog(context);
   })
     });
-  }
+  // }
   // else{
   //     print("en ligne");
 

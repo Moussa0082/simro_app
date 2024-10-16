@@ -62,8 +62,8 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
       duration: const Duration(milliseconds: 500),
     )..repeat(reverse: true, period: const Duration(milliseconds: 500));
     super.initState();
-    // requestPermissions();
-    checkEnqueteurSession();
+    requestPermissions();
+    // checkEnqueteurSession();
    
   }
 
@@ -108,22 +108,25 @@ class _SplashScreenState extends State<SplashScreen>  with TickerProviderStateMi
 Future<bool> requestPermissions() async {
   // Demander les permissions à l'utilisateur
   Map<Permission, PermissionStatus> statuses = await [
-    Permission.camera,
-    Permission.storage,
+    // Permission.camera,
+    // Permission.storage,
     Permission.location,
   ].request();
 
   // Vérifier si toutes les permissions sont accordées
   bool allPermissionsGranted = 
-      statuses[Permission.location]!.isGranted &&
-      statuses[Permission.storage]!.isGranted;
+      statuses[Permission.location]!.isGranted 
+      // &&
+      // statuses[Permission.storage]!.isGranted
+      ;
 
   if (allPermissionsGranted) {
     print('Toutes les permissions ont été accordées');
     checkEnqueteurSession();
   } else {
     // Si une ou plusieurs permissions sont refusées, afficher une boîte de dialogue
-    _showDialog();
+    // _showDialog();
+        checkEnqueteurSession();
   }
   return allPermissionsGranted;
 }

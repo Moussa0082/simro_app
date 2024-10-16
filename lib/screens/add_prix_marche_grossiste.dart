@@ -587,7 +587,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
         isLoading = false;
       })
      });
-     
+
    fetchAndSyncProduits().then((value) => {
       setState(() {
         isLoading = false;
@@ -1358,15 +1358,15 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
 
                               if(widget.isEditMode == false && formkey.currentState!.validate()){
 //  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
- final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+//  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
 // This condition is for demo purposes only to explain every connection type.
 // Use conditions which work for your requirements.
-   if (st == false) {
+  //  if (st == false) {
                                  showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-   print("hors ligne");
+  //  print("hors ligne");
   // Mobile network available.
-    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    // Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
     PrixMarcheGrossiste prixMarcheGrossiste = PrixMarcheGrossiste(
     enquete: widget.id_enquete!, localite_vente:commune1.id_commune!.toString(),
                                 produit: produit.nom_produit!, unite_stock: int.parse(uniteStockController.text), 
@@ -1391,7 +1391,7 @@ class _AddPrixMarcheGrossisteScreenState extends State<AddPrixMarcheGrossisteScr
   })
     });
   hideLoadingDialog(context);
-  }
+  // }
   // else{
   //     print("en ligne");
 

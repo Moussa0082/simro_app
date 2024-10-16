@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:simro/constant/constantes.dart';
+import 'package:simro/controller/network_controller.dart';
 import 'package:simro/functions/functions.dart';
 import 'package:simro/models/Prix_Marche_Collecte.dart';
 import 'package:simro/provider/Enqueteur_Provider.dart';
@@ -96,18 +97,18 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                           PopupMenuButton<String>(
                             iconColor:blanc,
                             onSelected: (String result) {
-                              if (result == 'ajouter') {
-                                Get.to(AddPrixMarcheCollecteScreen(isEditMode: false,), transition: Transition.downToUp);
-                              }
+                              // if (result == 'ajouter') {
+                              //   Get.to(AddPrixMarcheCollecteScreen(isEditMode: false,), transition: Transition.downToUp);
+                              // }
                               // if (result == 'synchroniser') {
                               //  showSyncDialog(context);
                               // }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(
-                                value: 'ajouter',
-                                child: Text('Ajouter'),
-                              ),
+                              // PopupMenuItem<String>(
+                              //   value: 'ajouter',
+                              //   child: Text('Ajouter'),
+                              // ),
                               // PopupMenuItem<String>(
                               //   value: 'synchroniser',
                               //   child: Text('Synchroniser'),
@@ -222,6 +223,22 @@ class _PrixMarcheCollecteScreenState extends State<PrixMarcheCollecteScreen> {
                                       print('Détail sélectionné');
                                     } 
                                        else if (result == 'synchroniser' && prixMarche.isSynced != null &&  prixMarche.isSynced != 1)  {
+                                            final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+    if(st == false){
+      ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(child: const Text("Connectez-vous à internet pour pouvoir synchroniser")),
+              duration: Duration(seconds: 5), // Garde le SnackBar affiché
+              backgroundColor: Colors.red,
+//               action: SnackBarAction(
+//                 label: 'OK',
+//                 onPressed: () {
+// ScaffoldMessenger.of(context).hideCurrentSnackBar();                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+//                 },
+//               ),
+            ),
+          );
+    }
    showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                                        try {
   //  DateTime parsedDate = DateTime.parse(enquete.date_enquete!);

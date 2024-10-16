@@ -357,15 +357,16 @@ if (connectivityResult.contains(ConnectivityResult.none)) {
 if (!isEditMode && formkey.currentState!.validate()) {
   showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
-  final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+  // final st = Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
   // Si l'utilisateur est hors ligne
-  if (st == false) {
-    print("hors ligne");
-    Snack.error(titre: "Alerte", message: "Vous êtes hors connexion");
+  // if (st == false) {
+    // print("hors ligne");
+    // Snack.error(titre: "Alerte", message: "Vous êtes hors connexion");
 
     EnqueteCollecte enquete = EnqueteCollecte(
-      collecteur: enqueteurProvider.enqueteur!.id_personnel!,
+      collecteur: enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
+      id_personnel: enqueteurProvider.enqueteur!.id_personnel,
       num_fiche: numFicheController.text,
       marche: marcheController.text,
       date_enquete: dateController.text,
@@ -397,7 +398,7 @@ if (!isEditMode && formkey.currentState!.validate()) {
       hideLoadingDialog(context);
     });
   }
-}
+// }
 
 //   else{
 //       print("en ligne");
@@ -659,7 +660,22 @@ if (!isEditMode && formkey.currentState!.validate()) {
                                     } 
 
                                     else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
-                                      
+                                        final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+    if(st == false){
+      ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(child: const Text("Connectez-vous à internet pour pouvoir synchroniser")),
+              duration: Duration(seconds: 5), // Garde le SnackBar affiché
+              // backgroundColor: Colors.red,
+//               action: SnackBarAction(
+//                 label: 'OK',
+//                 onPressed: () {
+// ScaffoldMessenger.of(context).hideCurrentSnackBar();                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+//                 },
+//               ),
+            ),
+          );
+    }
      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
                                        try {
        final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
@@ -697,7 +713,7 @@ if (!isEditMode && formkey.currentState!.validate()) {
   // Mettre à jour l'état avec la nouvelle liste
   setState(() {
     isLoading = false;
-    enqueteCollecteList.addAll(nouvelleListe);
+    enqueteCollecteList = nouvelleListe;
   });
   numFicheController.clear();
   dateController.clear();

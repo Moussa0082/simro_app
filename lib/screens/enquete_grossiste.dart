@@ -81,7 +81,7 @@ class _EnqueteGrossisteScreenState extends State<EnqueteGrossisteScreen> {
   try {
     // Appel du service pour récupérer les données d'enquêtes
      
-    List<EnqueteGrossiste> fetchedList = await EnqueteService().fetchEnqueteGrossiste().then((enquetes) {
+    List<EnqueteGrossiste> fetchedList = await LocalDatabaseService().getAllEnqueteGrossiste().then((enquetes) {
   //    LocalDatabaseService().getAllEnquetes().then((enquete) {
     setState(() {
       enqueteGrossisteList = enquetes;
@@ -296,16 +296,16 @@ Future<void> fetchAndSyncMarche() async {
  if (!isEditMode && formkey.currentState!.validate()) {
      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 //  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
- final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+//  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
 // This condition is for demo purposes only to explain every connection type.
 // Use conditions which work for your requirements.
-   if (st == false) {
-   print("hors ligne");
+  //  if (st == false) {
+  //  print("hors ligne");
   // Mobile network available.
-    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    // Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
     EnqueteGrossiste enquete = EnqueteGrossiste(
-      collecteur:enqueteurProvider.enqueteur!.id_personnel!,
+      collecteur:enqueteurProvider.enqueteur!.id_enqueteur!.toString(),
     num_fiche: numFicheController.text,
     marche: marcheController.text,
     date_enquete: dateController.text,
@@ -336,7 +336,7 @@ Future<void> fetchAndSyncMarche() async {
       hideLoadingDialog(context);
     });
 
-  }
+  // }
 //   else{
 //       print("en ligne");
 //            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
@@ -599,6 +599,22 @@ Future<void> fetchAndSyncMarche() async {
                                   
                                   }
                                                   else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                                                                                  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+    if(st == false){
+      ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(child: const Text("Connectez-vous à internet pour pouvoir synchroniser")),
+              duration: Duration(seconds: 5), // Garde le SnackBar affiché
+              backgroundColor: Colors.red,
+//               action: SnackBarAction(
+//                 label: 'OK',
+//                 onPressed: () {
+// ScaffoldMessenger.of(context).hideCurrentSnackBar();                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+//                 },
+//               ),
+            ),
+          );
+    }
                                            showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
 
                                        try {

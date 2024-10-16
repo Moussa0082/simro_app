@@ -308,6 +308,22 @@ TextEditingController dateController = TextEditingController();
                                       print('Supprimer sélectionné');
                                     }
                                             else if (result == 'synchroniser' && enquete.isSynced != null &&  enquete.isSynced != 1)  {
+                  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+    if(st == false){
+      ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(child: const Text("Connectez-vous à internet pour pouvoir synchroniser")),
+              duration: Duration(seconds: 5), // Garde le SnackBar affiché
+              // backgroundColor: Colors.red,
+//               action: SnackBarAction(
+//                 label: 'OK',
+//                 onPressed: () {
+// ScaffoldMessenger.of(context).hideCurrentSnackBar();                  // Optionnel : ajouter une action pour que l'utilisateur puisse le masquer manuellement
+//                 },
+//               ),
+            ),
+          );
+    }
                                          showLoadingDialog(context, "Veuillez patienter"); 
                                        try {
        final  enqueteurProvider = Provider.of<EnqueteurProvider>(context, listen: false);
@@ -633,7 +649,7 @@ final db = await dbService.database;
  
                           if (formkey.currentState!.validate() && !isEditMode) {
      showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
-          if (st == false) {
+          // if (st == false) {
    print("hors ligne");
   // Mobile network available.
     Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
@@ -671,7 +687,7 @@ final db = await dbService.database;
       hideLoadingDialog(context);
     });
 
-  }
+  // }
 //   else{
 //       print("en ligne");
 //       showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement

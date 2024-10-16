@@ -519,7 +519,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez l'unité";
@@ -550,7 +550,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le poids unitaire";
@@ -581,7 +581,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le prix par kilogramme";
@@ -612,7 +612,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le montant d'achat";
@@ -644,7 +644,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez la distance d'origine du marché";
@@ -675,7 +675,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le montant du transport ";
@@ -737,7 +737,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez la quantite collecte";
@@ -768,7 +768,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le client principal";
@@ -799,7 +799,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le fournisseur principal";
@@ -830,7 +830,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) {
                                 return "Veillez entrez le niveau d'approvisionnement";
@@ -1001,14 +1001,14 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
 
                               if(formkey.currentState!.validate() && widget.isEditMode == false){
 //  final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
- final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
+//  final st =  Get.put<NetworkController>(NetworkController(), permanent: true).isConnectedToInternet;
 
 // This condition is for demo purposes only to explain every connection type.
 // Use conditions which work for your requirements.
-   if (st == false) {
-   print("hors ligne");
+  //  if (st == false) {
+  //  print("hors ligne");
   // Mobile network available.
-    Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
+    // Snack.error(titre: "Alerte", message:"Vous êtes hors connexion");
     PrixMarcheCollecte prixMarcheCollecte = PrixMarcheCollecte(
     enquete: widget.id_enquete!,
                               produit: produit.nom_produit.toString(), unite: int.parse(uniteController.text), 
@@ -1037,7 +1037,7 @@ class _AddPrixMarcheCollecteScreenState extends State<AddPrixMarcheCollecteScree
   hideLoadingDialog(context);
   })
     });
-  }
+  // }
                                     }
   //                                   else if(formkey.currentState!.validate() && widget.isEditMode == true){
   //                                showLoadingDialog(context, "Veuillez patienter"); // Affiche le dialogue de chargement
